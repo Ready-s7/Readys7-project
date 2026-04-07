@@ -1,13 +1,9 @@
 package com.example.readys7project.global.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
 
-@Getter
 @Builder
-@AllArgsConstructor
-public class LoginResponseDto {
-    private final String refreshToken;
-    private final String email;
-}
+public record LoginResponseDto(
+        String refreshToken,
+        String email
+) {}
