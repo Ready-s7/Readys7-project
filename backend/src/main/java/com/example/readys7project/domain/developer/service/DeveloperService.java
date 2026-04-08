@@ -5,7 +5,10 @@ import com.example.readys7project.domain.developer.dto.request.DeveloperProfileR
 import com.example.readys7project.domain.developer.entity.Developer;
 import com.example.readys7project.domain.developer.repository.DeveloperRepository;
 import com.example.readys7project.domain.user.entity.User;
+import com.example.readys7project.domain.user.enums.UserRole;
 import com.example.readys7project.domain.user.repository.UserRepository;
+import com.example.readys7project.global.exception.common.ErrorCode;
+import com.example.readys7project.global.exception.domain.DeveloperException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +33,7 @@ public class DeveloperService {
     @Transactional(readOnly = true)
     public DeveloperDto getDeveloperById(Long id) {
         Developer developer = developerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("개발자를 찾을 수 없습니다"));
+                .orElseThrow(() -> new DeveloperException(ErrorCode.DEVELOPER_NOT_FOUND));
         return convertToDto(developer);
     }
 
@@ -44,14 +47,14 @@ public class DeveloperService {
     @Transactional
     public DeveloperDto updateProfile(DeveloperProfileRequest request, String userEmail) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
+                .orElseThrow(() -> new DeveloperException(ErrorCode.USER_NOT_FOUND));
 
-        if (user.getRole() != User.UserRole.DEVELOPER) {
-            throw new RuntimeException("개발자만 프로필을 수정할 수 있습니다");
+        if (user.getRole() != UserRole.DEVELOPER) {
+            throw new DeveloperException(ErrorCode.USER_FORBIDDEN);
         }
 
         Developer developer = developerRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("개발자 프로필을 찾을 수 없습니다"));
+                .orElseThrow(() -> new DeveloperException(ErrorCode.DEVELOPER_NOT_FOUND));
 
         developer.setTitle(request.getTitle());
         developer.setSkills(request.getSkills());
@@ -66,7 +69,7 @@ public class DeveloperService {
     @Transactional
     public void updateRating(Long developerId, Double newRating, Integer newReviewCount) {
         Developer developer = developerRepository.findById(developerId)
-                .orElseThrow(() -> new RuntimeException("개발자를 찾을 수 없습니다"));
+                .orElseThrow(() -> new DeveloperException(ErrorCode.DEVELOPER_NOT_FOUND));
 
         developer.setRating(newRating);
         developer.setReviewCount(newReviewCount);

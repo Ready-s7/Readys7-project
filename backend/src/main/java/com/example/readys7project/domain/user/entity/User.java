@@ -1,24 +1,15 @@
 package com.example.readys7project.domain.user.entity;
 
+import com.example.readys7project.domain.user.enums.UserRole;
+import com.example.readys7project.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import lombok.*;
 
-import java.time.LocalDateTime;
-
+@Getter
 @Entity
 @Table(name = "users")
-@EntityListeners(AuditingEntityListener.class)
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class User {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class User extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -51,16 +42,14 @@ public class User {
     @Column(nullable = false)
     private Boolean active = true;
 
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    public enum UserRole {
-        CLIENT,
-        DEVELOPER
+    @Builder
+    public User(String email, String password, String name, UserRole role, String phoneNumber, String location, String description) {
+        this.email = email;
+        this.password = password;
+        this.name = name;
+        this.role = role;
+        this.phoneNumber = phoneNumber;
+        this.location = location;
+        this.description = description;
     }
 }

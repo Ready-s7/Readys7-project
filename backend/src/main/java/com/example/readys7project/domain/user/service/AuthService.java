@@ -7,14 +7,14 @@ import com.example.readys7project.domain.user.dto.request.LoginRequest;
 import com.example.readys7project.domain.user.dto.request.RegisterRequest;
 import com.example.readys7project.domain.user.dto.response.AuthResponse;
 import com.example.readys7project.domain.user.entity.User;
+import com.example.readys7project.domain.user.enums.UserRole;
 import com.example.readys7project.domain.user.repository.UserRepository;
+import com.example.readys7project.global.exception.common.ErrorCode;
+import com.example.readys7project.global.exception.domain.UserException;
 import com.example.readys7project.global.security.JwtTokenProvider;
+import com.example.readys7project.global.security.refreshtoken.entity.RefreshToken;
+import com.example.readys7project.global.security.refreshtoken.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,30 +26,29 @@ public class AuthService {
     private final UserRepository userRepository;
     private final DeveloperRepository developerRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtTokenProvider tokenProvider;
-    private final AuthenticationManager authenticationManager;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("이미 존재하는 이메일입니다");
+            throw new UserException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .name(request.getName())
-                .role(User.UserRole.valueOf(request.getRole().toUpperCase()))
+                .role(UserRole.valueOf(request.getRole().toUpperCase()))
                 .phoneNumber(request.getPhoneNumber())
                 .location(request.getLocation())
                 .description(request.getDescription())
-                .active(true)
                 .build();
 
         user = userRepository.save(user);
 
         // 개발자로 등록시 Developer 프로필 생성
-        if (user.getRole() == User.UserRole.DEVELOPER) {
+        if (user.getRole() == UserRole.DEVELOPER) {
             Developer developer = Developer.builder()
                     .user(user)
                     .title("개발자")
@@ -61,41 +60,47 @@ public class AuthService {
             developerRepository.save(developer);
         }
 
-        UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
-                .username(user.getEmail())
-                .password(user.getPassword())
-                .authorities("USER")
-                .build();
-
-        String token = tokenProvider.generateToken(userDetails);
-
         return AuthResponse.builder()
-                .token(token)
                 .user(convertToUserDto(user))
                 .build();
     }
 
-    @Transactional(readOnly = true)
-    public AuthResponse login(LoginRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
+    // Access Token + Refresh Token + email을 묶어서 반환하는 record
+    public record AuthTokenDto(String accessToken, String refreshToken, String email) {}
+
+    @Transactional
+    public AuthTokenDto login(LoginRequest request) {
+        // 1. email로 User 조회
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
+
+        // 2. 비밀번호 검증
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new UserException(ErrorCode.USER_INFO_MISMATCH);
+        }
+
+
+        // 4. Access Token 발급 (membershipGrade 포함)
+        String accessToken = jwtTokenProvider.createToken(
+                user.getEmail()
+        );
+
+        // 5. Refresh Token 발급 및 저장 (Rotation)
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail());
+
+        // 기존 토큰 삭제 추가
+        refreshTokenRepository.deleteByEmail(user.getEmail());
+        refreshTokenRepository.flush();
+
+        refreshTokenRepository.save(
+                new RefreshToken(
+                        user.getEmail(),
+                        refreshToken,
+                        jwtTokenProvider.getRefreshTokenExpiresAt()
                 )
         );
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        String token = tokenProvider.generateToken(userDetails);
-
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
-
-        return AuthResponse.builder()
-                .token(token)
-                .user(convertToUserDto(user))
-                .build();
+        return new AuthTokenDto(accessToken, refreshToken, user.getEmail());
     }
 
     private UserDto convertToUserDto(User user) {

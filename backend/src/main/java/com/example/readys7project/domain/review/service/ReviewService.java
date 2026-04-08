@@ -10,7 +10,10 @@ import com.example.readys7project.domain.review.dto.request.ReviewRequest;
 import com.example.readys7project.domain.review.entity.Review;
 import com.example.readys7project.domain.review.repository.ReviewRepository;
 import com.example.readys7project.domain.user.entity.User;
+import com.example.readys7project.domain.user.enums.UserRole;
 import com.example.readys7project.domain.user.repository.UserRepository;
+import com.example.readys7project.global.exception.common.ErrorCode;
+import com.example.readys7project.global.exception.domain.ReviewException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,17 +34,17 @@ public class ReviewService {
     @Transactional
     public ReviewDto createReview(ReviewRequest request, String userEmail) {
         User client = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
+                .orElseThrow(() -> new ReviewException(ErrorCode.USER_NOT_FOUND));
 
-        if (client.getRole() != User.UserRole.CLIENT) {
-            throw new RuntimeException("클라이언트만 리뷰를 작성할 수 있습니다");
+        if (client.getRole() != UserRole.CLIENT) {
+            throw new ReviewException(ErrorCode.USER_FORBIDDEN);
         }
 
         Developer developer = developerRepository.findById(request.getDeveloperId())
-                .orElseThrow(() -> new RuntimeException("개발자를 찾을 수 없습니다"));
+                .orElseThrow(() -> new ReviewException(ErrorCode.DEVELOPER_NOT_FOUND));
 
         Project project = projectRepository.findById(request.getProjectId())
-                .orElseThrow(() -> new RuntimeException("프로젝트를 찾을 수 없습니다"));
+                .orElseThrow(() -> new ReviewException(ErrorCode.PROJECT_NOT_FOUND));
 
         Review review = Review.builder()
                 .developer(developer)

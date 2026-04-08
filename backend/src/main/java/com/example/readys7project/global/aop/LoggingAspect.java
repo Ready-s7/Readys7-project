@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 public class LoggingAspect {
 
     @Around(
-            "execution(* com.example.a3sproject.domain..controller..*(..)) || " +
-            "execution(* com.example.a3sproject.domain..service..*(..))"
+            "execution(* com.example.readys7project.domain..controller..*(..)) || " +
+            "execution(* com.example.readys7project.domain..service..*(..))"
     )
     public Object logAround(ProceedingJoinPoint joinPoint) throws Throwable {
         String className  = joinPoint.getTarget().getClass().getSimpleName();

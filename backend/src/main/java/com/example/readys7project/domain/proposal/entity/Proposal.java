@@ -2,24 +2,20 @@ package com.example.readys7project.domain.proposal.entity;
 
 import com.example.readys7project.domain.developer.entity.Developer;
 import com.example.readys7project.domain.project.entity.Project;
+import com.example.readys7project.domain.proposal.enums.ProposalStatus;
+import com.example.readys7project.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
+@Getter
 @Entity
 @Table(name = "proposals")
-@EntityListeners(AuditingEntityListener.class)
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Proposal {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Proposal extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,14 +42,13 @@ public class Proposal {
     @Column(nullable = false)
     private ProposalStatus status = ProposalStatus.PENDING;
 
-    @CreatedDate
-    @Column(name = "submitted_at", nullable = false, updatable = false)
-    private LocalDateTime submittedAt;
-
-    public enum ProposalStatus {
-        PENDING,
-        ACCEPTED,
-        REJECTED,
-        WITHDRAWN
+    @Builder
+    public Proposal(Project project, Developer developer, String coverLetter, String proposedBudget, String proposedDuration, ProposalStatus status) {
+        this.project = project;
+        this.developer = developer;
+        this.coverLetter = coverLetter;
+        this.proposedBudget = proposedBudget;
+        this.proposedDuration = proposedDuration;
+        this.status = status;
     }
 }
