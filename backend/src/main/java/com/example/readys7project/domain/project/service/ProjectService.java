@@ -3,9 +3,15 @@ package com.example.readys7project.domain.project.service;
 import com.example.readys7project.domain.project.dto.ProjectDto;
 import com.example.readys7project.domain.project.dto.request.ProjectRequest;
 import com.example.readys7project.domain.project.entity.Project;
+import com.example.readys7project.domain.project.enums.ProjectStatus;
 import com.example.readys7project.domain.project.repository.ProjectRepository;
 import com.example.readys7project.domain.user.entity.User;
+import com.example.readys7project.domain.user.enums.UserRole;
 import com.example.readys7project.domain.user.repository.UserRepository;
+import com.example.readys7project.global.exception.common.ErrorCode;
+import com.example.readys7project.global.exception.domain.ProjectException;
+import com.example.readys7project.global.exception.domain.ProposalException;
+import com.example.readys7project.global.exception.domain.UserException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,10 +29,10 @@ public class ProjectService {
     @Transactional
     public ProjectDto createProject(ProjectRequest request, String userEmail) {
         User client = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
+                .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
 
-        if (client.getRole() != User.UserRole.CLIENT) {
-            throw new RuntimeException("클라이언트만 프로젝트를 생성할 수 있습니다");
+        if (client.getRole() != UserRole.CLIENT) {
+            throw new ProjectException(ErrorCode.USER_FORBIDDEN);
         }
 
         Project project = Project.builder()
@@ -37,7 +43,7 @@ public class ProjectService {
                 .budget(request.getBudget())
                 .duration(request.getDuration())
                 .skills(request.getSkills())
-                .status(Project.ProjectStatus.OPEN)
+                .projectStatus(ProjectStatus.OPEN)
                 .proposalCount(0)
                 .build();
 
@@ -55,14 +61,14 @@ public class ProjectService {
     @Transactional(readOnly = true)
     public ProjectDto getProjectById(Long id) {
         Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("프로젝트를 찾을 수 없습니다"));
+                .orElseThrow(() -> new ProjectException(ErrorCode.PROJECT_NOT_FOUND));
         return convertToDto(project);
     }
 
     @Transactional(readOnly = true)
     public List<ProjectDto> searchProjects(String category, String status, String skill) {
-        Project.ProjectStatus projectStatus = status != null ?
-            Project.ProjectStatus.valueOf(status.toUpperCase()) : null;
+        ProjectStatus projectStatus = status != null ?
+            ProjectStatus.valueOf(status.toUpperCase()) : null;
 
         return projectRepository.searchProjects(category, projectStatus, skill).stream()
                 .map(this::convertToDto)
@@ -72,21 +78,16 @@ public class ProjectService {
     @Transactional
     public ProjectDto updateProject(Long id, ProjectRequest request, String userEmail) {
         Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("프로젝트를 찾을 수 없습니다"));
+                .orElseThrow(() -> new ProjectException(ErrorCode.PROJECT_NOT_FOUND));
 
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
+                .orElseThrow(() -> new ProjectException(ErrorCode.PROJECT_NOT_FOUND));
 
         if (!project.getClient().getId().equals(user.getId())) {
-            throw new RuntimeException("프로젝트를 수정할 권한이 없습니다");
+            throw new ProjectException(ErrorCode.USER_FORBIDDEN);
         }
 
-        project.setTitle(request.getTitle());
-        project.setDescription(request.getDescription());
-        project.setCategory(request.getCategory());
-        project.setBudget(request.getBudget());
-        project.setDuration(request.getDuration());
-        project.setSkills(request.getSkills());
+        project.update(request);
 
         project = projectRepository.save(project);
         return convertToDto(project);
@@ -95,13 +96,13 @@ public class ProjectService {
     @Transactional
     public void deleteProject(Long id, String userEmail) {
         Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("프로젝트를 찾을 수 없습니다"));
+                .orElseThrow(() -> new ProjectException(ErrorCode.PROJECT_NOT_FOUND));
 
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
+                .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
 
         if (!project.getClient().getId().equals(user.getId())) {
-            throw new RuntimeException("프로젝트를 삭제할 권한이 없습니다");
+            throw new ProjectException(ErrorCode.USER_FORBIDDEN);
         }
 
         projectRepository.delete(project);
@@ -110,7 +111,7 @@ public class ProjectService {
     @Transactional
     public void incrementProposalCount(Long projectId) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("프로젝트를 찾을 수 없습니다"));
+                .orElseThrow(() -> new ProjectException(ErrorCode.PROJECT_NOT_FOUND));
         project.setProposalCount(project.getProposalCount() + 1);
         projectRepository.save(project);
     }
@@ -128,8 +129,6 @@ public class ProjectService {
                 .proposalCount(project.getProposalCount())
                 .clientName(project.getClient().getName())
                 .clientRating(4.5) // TODO: 실제 클라이언트 평점 계산
-                .postedDate(project.getPostedDate())
-                .updatedAt(project.getUpdatedAt())
                 .build();
     }
 }

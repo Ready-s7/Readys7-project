@@ -1,0 +1,16 @@
+package com.example.readys7project.domain.project.enums;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
+public enum ProjectStatus {
+
+    OPEN("오픈"),
+    IN_PROGRESS("작업 중"),
+    COMPLETED("작업 완료"),
+    CANCELLED("작업 취소");
+
+    private final String title;
+    }

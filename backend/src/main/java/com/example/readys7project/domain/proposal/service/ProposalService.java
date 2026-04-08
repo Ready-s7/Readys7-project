@@ -9,9 +9,13 @@ import com.example.readys7project.domain.project.service.ProjectService;
 import com.example.readys7project.domain.proposal.dto.ProposalDto;
 import com.example.readys7project.domain.proposal.dto.request.ProposalRequest;
 import com.example.readys7project.domain.proposal.entity.Proposal;
+import com.example.readys7project.domain.proposal.enums.ProposalStatus;
 import com.example.readys7project.domain.proposal.repository.ProposalRepository;
 import com.example.readys7project.domain.user.entity.User;
+import com.example.readys7project.domain.user.enums.UserRole;
 import com.example.readys7project.domain.user.repository.UserRepository;
+import com.example.readys7project.global.exception.common.ErrorCode;
+import com.example.readys7project.global.exception.domain.ProposalException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,22 +36,22 @@ public class ProposalService {
     @Transactional
     public ProposalDto createProposal(ProposalRequest request, String userEmail) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
+                .orElseThrow(() -> new ProposalException(ErrorCode.USER_NOT_FOUND));
 
-        if (user.getRole() != User.UserRole.DEVELOPER) {
-            throw new RuntimeException("개발자만 제안서를 제출할 수 있습니다");
+        if (user.getRole() != UserRole.DEVELOPER) {
+            throw new ProposalException(ErrorCode.USER_FORBIDDEN);
         }
 
         Developer developer = developerRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("개발자 프로필을 찾을 수 없습니다"));
+                .orElseThrow(() -> new ProposalException(ErrorCode.DEVELOPER_NOT_FOUND));
 
         Project project = projectRepository.findById(request.getProjectId())
-                .orElseThrow(() -> new RuntimeException("프로젝트를 찾을 수 없습니다"));
+                .orElseThrow(() -> new ProposalException(ErrorCode.PROJECT_NOT_FOUND));
 
         // 이미 제안서를 제출했는지 확인
         proposalRepository.findByProjectIdAndDeveloperId(project.getId(), developer.getId())
                 .ifPresent(p -> {
-                    throw new RuntimeException("이미 이 프로젝트에 제안서를 제출했습니다");
+                    throw new ProposalException(ErrorCode.PROPOSAL_ALREADY_EXISTS);
                 });
 
         Proposal proposal = Proposal.builder()
@@ -56,7 +60,7 @@ public class ProposalService {
                 .coverLetter(request.getCoverLetter())
                 .proposedBudget(request.getProposedBudget())
                 .proposedDuration(request.getProposedDuration())
-                .status(Proposal.ProposalStatus.PENDING)
+                .status(ProposalStatus.PENDING)
                 .build();
 
         proposal = proposalRepository.save(proposal);
@@ -77,10 +81,10 @@ public class ProposalService {
     @Transactional(readOnly = true)
     public List<ProposalDto> getProposalsByDeveloper(String userEmail) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
+                .orElseThrow(() -> new ProposalException(ErrorCode.USER_NOT_FOUND));
 
         Developer developer = developerRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("개발자 프로필을 찾을 수 없습니다"));
+                .orElseThrow(() -> new ProposalException(ErrorCode.DEVELOPER_NOT_FOUND));
 
         return proposalRepository.findByDeveloperId(developer.getId()).stream()
                 .map(this::convertToDto)
@@ -90,17 +94,17 @@ public class ProposalService {
     @Transactional
     public ProposalDto updateProposalStatus(Long proposalId, String status, String userEmail) {
         Proposal proposal = proposalRepository.findById(proposalId)
-                .orElseThrow(() -> new RuntimeException("제안서를 찾을 수 없습니다"));
+                .orElseThrow(() -> new ProposalException(ErrorCode.PROPOSAL_NOT_FOUND));
 
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
+                .orElseThrow(() -> new ProposalException(ErrorCode.USER_NOT_FOUND));
 
         // 클라이언트만 제안서 상태 변경 가능
         if (!proposal.getProject().getClient().getId().equals(user.getId())) {
-            throw new RuntimeException("제안서 상태를 변경할 권한이 없습니다");
+            throw new ProposalException(ErrorCode.USER_FORBIDDEN);
         }
 
-        proposal.setStatus(Proposal.ProposalStatus.valueOf(status.toUpperCase()));
+        proposal.setStatus(ProposalStatus.valueOf(status.toUpperCase()));
         proposal = proposalRepository.save(proposal);
 
         return convertToDto(proposal);
@@ -117,7 +121,6 @@ public class ProposalService {
                 .proposedBudget(proposal.getProposedBudget())
                 .proposedDuration(proposal.getProposedDuration())
                 .status(proposal.getStatus().name().toLowerCase())
-                .submittedAt(proposal.getSubmittedAt())
                 .build();
     }
 }

@@ -1,22 +1,19 @@
 package com.example.readys7project.domain.developer.entity;
 
 import com.example.readys7project.domain.user.entity.User;
+import com.example.readys7project.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 @Entity
 @Table(name = "developers")
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Developer {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Developer extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -56,4 +53,15 @@ public class Developer {
 
     @Column(name = "available_for_work", nullable = false)
     private Boolean availableForWork = true;
+
+    @Builder
+    public Developer(User user, String title, Double rating, Integer reviewCount, Integer completedProjects, Boolean availableForWork) {
+        this.user = user;
+        this.title = title;
+        this.rating = rating;
+        this.reviewCount = reviewCount;
+        this.completedProjects = completedProjects;
+        this.availableForWork = availableForWork;
+    }
+
 }

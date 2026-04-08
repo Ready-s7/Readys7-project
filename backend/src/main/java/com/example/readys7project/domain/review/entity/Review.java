@@ -3,24 +3,15 @@ package com.example.readys7project.domain.review.entity;
 import com.example.readys7project.domain.developer.entity.Developer;
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.user.entity.User;
+import com.example.readys7project.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import lombok.*;
 
-import java.time.LocalDateTime;
-
+@Getter
 @Entity
 @Table(name = "reviews")
-@EntityListeners(AuditingEntityListener.class)
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Review {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Review extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,7 +35,12 @@ public class Review {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String comment;
 
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @Builder
+    public Review(Developer developer, User client, Project project, Integer rating, String comment) {
+        this.developer = developer;
+        this.client = client;
+        this.project = project;
+        this.rating = rating;
+        this.comment = comment;
+    }
 }

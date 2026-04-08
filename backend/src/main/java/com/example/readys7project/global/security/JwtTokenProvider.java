@@ -2,77 +2,109 @@ package com.example.readys7project.global.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
 
 @Component
 public class JwtTokenProvider {
 
-    @Value("${jwt.secret}")
-    private String secret;
+    private final SecretKey secretKey;
+    private final long tokenValidityInMilliseconds;
+    private final long refreshTokenValidityInMilliseconds;
 
-    @Value("${jwt.expiration}")
-    private Long expiration;
-
-    private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    public JwtTokenProvider(
+            @Value("${jwt.secret}") String secret,
+            @Value("${jwt.token-validity-in-seconds}") long tokenValidityInSeconds,
+            @Value("${jwt.refresh-token-validity-in-seconds}") long refreshTokenValidityInSeconds
+    ) {
+        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        System.out.println(secret.length());
+        this.tokenValidityInMilliseconds = tokenValidityInSeconds * 1000;
+        this.refreshTokenValidityInMilliseconds = refreshTokenValidityInSeconds * 1000;
     }
 
-    public String generateToken(UserDetails userDetails) {
-        Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, userDetails.getUsername());
-    }
-
-    private String createToken(Map<String, Object> claims, String subject) {
+    /**
+     * Refresh Token 생성
+     * Claims 없이 subject(email)만 포함 — 최소한의 정보만 담습니다.
+     */
+    public String createRefreshToken(String email) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + expiration);
+        Date validity = new Date(now.getTime() + refreshTokenValidityInMilliseconds);
 
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(subject)
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .subject(email)
+                .issuedAt(now)
+                .expiration(validity)
+                .signWith(secretKey)
                 .compact();
     }
 
-    public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+    /**
+     * Refresh Token 만료 시각 반환 — DB 저장용
+     */
+    public LocalDateTime getRefreshTokenExpiresAt() {
+        return LocalDateTime.now()
+                .plusSeconds(refreshTokenValidityInMilliseconds / 1000);
     }
 
-    public Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
+    /**
+     * JWT 토큰 생성
+     *
+     * - 사용자 멤버십(membership) 정보 추가
+     */
+    public String createToken(String email) {
+        Date now = new Date();
+        Date validity = new Date(now.getTime() + tokenValidityInMilliseconds);
+
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(now)
+                .expiration(validity)
+                .signWith(secretKey)
+                .compact();
     }
 
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
-    }
-
-    private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
+    private Claims getClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(secretKey)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
-    private Boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+    /**
+     * JWT 토큰에서 이메일 추출
+     */
+    public String getEmail(String token) {
+        return getClaims(token).getSubject();
     }
 
-    public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    /**
+     * JWT 토큰에서 멤버십 등급 추출
+     */
+    public String getMembership(String token) {
+        return getClaims(token).get("membership", String.class);
+    }
+
+    /**
+     * JWT 토큰 유효성 검증
+     * - 토큰 블랙리스트 체크 (로그아웃된 토큰)
+     * - 토큰 갱신 로직
+     * - 예외를 catch하지 않고 그대로 전파 → JwtAuthenticationFilter에서 처리
+     */
+    public void validateToken(String token) {
+        Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token);
+        // - ExpiredJwtException: 만료된 토큰
+        // - MalformedJwtException: 잘못된 형식
+        // - SignatureException: 서명 오류
     }
 }
