@@ -52,14 +52,22 @@ public record CustomUserDetails(
 
     // 아래 메서드들은 기본값이 true이므로 생략하거나 명시적으로 true를 반환하면 됩니다.
     @Override
-    public boolean isAccountNonExpired() { return true; }
+    public boolean isAccountNonExpired() {
+        return UserDetails.super.isAccountNonExpired();
+    }
 
     @Override
-    public boolean isAccountNonLocked() { return true; }
+    public boolean isAccountNonLocked() {
+        return UserDetails.super.isAccountNonLocked();
+    }
 
     @Override
-    public boolean isCredentialsNonExpired() { return true; }
+    public boolean isCredentialsNonExpired() {
+        return UserDetails.super.isCredentialsNonExpired();
+    }
 
     @Override
-    public boolean isEnabled() { return true; }
+    public boolean isEnabled() {
+        return UserDetails.super.isEnabled();
+    }
 }
