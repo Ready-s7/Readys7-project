@@ -50,18 +50,6 @@ public class Project extends BaseEntity {
     @Column(nullable = false)
     private ProjectStatus status;
 
-    @Column(nullable = false)
-    private Integer maxProposals;          // 동시성 제어 필드 - 모집정원 (고정값)
-
-    @Column(nullable = false)
-    private Integer currentProposals = 0;  // 동시성 제어 필드 - 현재 지원자 수 (경쟁자원)
-
-    @Column(nullable = false)
-    private Boolean recruiting = true;     // 동시성 제어 필드 - 모집 중 여부 (빠른 조회용 상태값)
-
-    @Column(nullable = false)
-    private LocalDateTime recruitDeadline; // 동시성 제어 필드 - 시간 기반 이벤트
-
     @Builder
     public Project(Client client, String title, String description, String skills, Category category,
                    Integer budget, Integer duration, Integer maxProposals, LocalDateTime recruitDeadline) {
@@ -75,10 +63,7 @@ public class Project extends BaseEntity {
 
         // 초기화 세팅
         this.status = ProjectStatus.OPEN;
-        this.maxProposals = maxProposals;
-        this.currentProposals = 0;
-        this.recruiting = true;
-        this.recruitDeadline = recruitDeadline;
+
     }
 
     public void update(
@@ -87,9 +72,9 @@ public class Project extends BaseEntity {
             Category category,
             String skills,
             Integer budget,
-            Integer duration,
-            Integer maxProposals,
-            LocalDateTime recruitDeadline
+            Integer duration
+//            Integer maxProposals,
+//            LocalDateTime recruitDeadline
     ) {
         this.title = title;
         this.description = description;
@@ -97,17 +82,15 @@ public class Project extends BaseEntity {
         this.skills = skills;
         this.budget = budget;
         this.duration = duration;
-        this.maxProposals = maxProposals;
-        this.recruitDeadline = recruitDeadline;
+
     }
 
-    public void increaseProposalCount() {
-        this.currentProposals++;
-
-        if (this.currentProposals >= this.maxProposals) {
-            this.recruiting = false;
-            this.status = ProjectStatus.CLOSED;
-        }
-    }
+//    public void increaseProposalCount() {
+//        this.currentProposals++;
+//
+//        if (this.currentProposals >= this.maxProposals) {
+//            this.status = ProjectStatus.CLOSED;
+//        }
+//    }
 
 }
