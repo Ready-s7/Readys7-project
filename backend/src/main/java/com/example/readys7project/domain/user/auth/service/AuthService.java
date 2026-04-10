@@ -1,14 +1,11 @@
-package com.example.readys7project.domain.user.service;
+package com.example.readys7project.domain.user.auth.service;
 
-import com.example.readys7project.domain.developer.entity.Developer;
-import com.example.readys7project.domain.developer.repository.DeveloperRepository;
-import com.example.readys7project.domain.user.dto.UserDto;
-import com.example.readys7project.domain.user.dto.request.LoginRequest;
-import com.example.readys7project.domain.user.dto.request.RegisterRequest;
-import com.example.readys7project.domain.user.dto.response.AuthResponse;
-import com.example.readys7project.domain.user.entity.User;
-import com.example.readys7project.domain.user.enums.UserRole;
-import com.example.readys7project.domain.user.repository.UserRepository;
+import com.example.readys7project.domain.user.auth.dto.UserDto;
+import com.example.readys7project.domain.user.auth.dto.request.UserRegisterRequestDto;
+import com.example.readys7project.domain.user.auth.dto.response.AuthResponse;
+import com.example.readys7project.domain.user.auth.entity.User;
+import com.example.readys7project.domain.user.auth.enums.UserRole;
+import com.example.readys7project.domain.user.auth.repository.UserRepository;
 import com.example.readys7project.global.dto.LoginRequestDto;
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.UserException;
@@ -25,44 +22,44 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private final UserRepository userRepository;
-    private final DeveloperRepository developerRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
 
     @Transactional
-    public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
+    public AuthResponse register(
+            UserRegisterRequestDto userRegisterRequestDto
+    ) {
+        if (userRepository.existsByEmail(userRegisterRequestDto.email())) {
             throw new UserException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
         User user = User.builder()
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .name(request.getName())
-                .role(UserRole.valueOf(request.getRole().toUpperCase()))
-                .phoneNumber(request.getPhoneNumber())
-                .location(request.getLocation())
-                .description(request.getDescription())
+                .email(userRegisterRequestDto.email())
+                .password(passwordEncoder.encode(userRegisterRequestDto.password()))
+                .name(userRegisterRequestDto.name())
+                .userRole(UserRole.valueOf(userRegisterRequestDto.role().toUpperCase()))
+                .phoneNumber(userRegisterRequestDto.phoneNumber())
+                .description(userRegisterRequestDto.description())
                 .build();
 
         User savedUser = userRepository.save(user);
 
         // 개발자로 등록시 Developer 프로필 생성
-        if (user.getRole() == UserRole.DEVELOPER) {
-            Developer developer = Developer.builder()
-                    .user(savedUser)
-                    .title("개발자")
-                    .rating(0.0)
-                    .reviewCount(0)
-                    .completedProjects(0)
-                    .availableForWork(true)
-                    .build();
-            developerRepository.save(developer);
-        }
+//        if (user.getRole() == UserRole.DEVELOPER) {
+//            Developer developer = Developer.builder()
+//                    .user(savedUser)
+//                    .title("개발자")
+//                    .rating(0.0)
+//                    .reviewCount(0)
+//                    .completedProjects(0)
+//                    .availableForWork(true)
+//                    .build();
+//            developerRepository.save(developer);
+//        }
 
         return AuthResponse.builder()
-                .user(convertToUserDto(user))
+                .user(convertToUserDto(savedUser))
                 .build();
     }
 
@@ -143,11 +140,7 @@ public class AuthService {
                 .id(user.getId())
                 .email(user.getEmail())
                 .name(user.getName())
-                .role(user.getRole().name())
-                .phoneNumber(user.getPhoneNumber())
-                .location(user.getLocation())
-                .avatarUrl(user.getAvatarUrl())
-                .description(user.getDescription())
+                .role(user.getUserRole().name())
                 .createdAt(user.getCreatedAt())
                 .build();
     }

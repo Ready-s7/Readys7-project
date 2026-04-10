@@ -1,7 +1,7 @@
 package com.example.readys7project.global.security;
 
-import com.example.readys7project.domain.user.entity.User;
-import com.example.readys7project.domain.user.repository.UserRepository;
+import com.example.readys7project.domain.user.auth.entity.User;
+import com.example.readys7project.domain.user.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

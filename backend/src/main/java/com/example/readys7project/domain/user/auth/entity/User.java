@@ -1,6 +1,6 @@
-package com.example.readys7project.domain.user.entity;
+package com.example.readys7project.domain.user.auth.entity;
 
-import com.example.readys7project.domain.user.enums.UserRole;
+import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -25,31 +25,21 @@ public class User extends BaseEntity {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private UserRole role; // CLIENT, DEVELOPER
+    @Column(name = "user_type", nullable = false)
+    private UserRole userRole; // CLIENT, DEVELOPER, ADMIN
 
-    @Column(name = "phone_number")
+    @Column(nullable = false)
     private String phoneNumber;
 
-    private String location;
-
-    @Column(name = "avatar_url")
-    private String avatarUrl;
-
-    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = false)
-    private Boolean active = true;
-
     @Builder
-    public User(String email, String password, String name, UserRole role, String phoneNumber, String location, String description) {
+    public User(String email, String password, String name, UserRole userRole, String phoneNumber, String description) {
         this.email = email;
         this.password = password;
         this.name = name;
-        this.role = role;
+        this.userRole = userRole;
         this.phoneNumber = phoneNumber;
-        this.location = location;
         this.description = description;
     }
 }

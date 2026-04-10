@@ -1,9 +1,8 @@
-package com.example.readys7project.domain.user.controller;
+package com.example.readys7project.domain.user.auth.controller;
 
-import com.example.readys7project.domain.user.dto.request.LoginRequest;
-import com.example.readys7project.domain.user.dto.request.RegisterRequest;
-import com.example.readys7project.domain.user.dto.response.AuthResponse;
-import com.example.readys7project.domain.user.service.AuthService;
+import com.example.readys7project.domain.user.auth.dto.request.UserRegisterRequestDto;
+import com.example.readys7project.domain.user.auth.dto.response.AuthResponse;
+import com.example.readys7project.domain.user.auth.service.AuthService;
 import com.example.readys7project.global.dto.ApiResponseDto;
 import com.example.readys7project.global.dto.LoginRequestDto;
 import com.example.readys7project.global.dto.LoginResponseDto;
@@ -15,20 +14,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
-
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
 
-    @PostMapping("/register")
+    @PostMapping("/v1/auth/register")
     public ResponseEntity<ApiResponseDto<AuthResponse>> register(
-            @Valid @RequestBody RegisterRequest request
-    ) {
-        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.CREATED, authService.register(request)));
+            @Valid @RequestBody UserRegisterRequestDto userRegisterRequestDto) {
+        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.CREATED, authService.register(userRegisterRequestDto)));
     }
 
     /**
@@ -37,7 +33,7 @@ public class AuthController {
      * - Access Token → Response Header (Authorization: Bearer {token})
      * - Refresh Token → Response Body
      */
-    @PostMapping("/login")
+    @PostMapping("/v1/aut/login")
     public ResponseEntity<ApiResponseDto<LoginResponseDto>> login(
             @Valid @RequestBody LoginRequestDto request
     ) {
@@ -59,7 +55,7 @@ public class AuthController {
      * 토큰 재발급 API
      * POST /api/auth/reissue
      */
-    @PostMapping("/reissue")
+    @PostMapping("/v1/auth/reissue")
     public ResponseEntity<ApiResponseDto<LoginResponseDto>> reissue(
             @RequestBody LoginResponseDto request
     ) {
@@ -81,7 +77,7 @@ public class AuthController {
      * 로그아웃 API
      * POST /api/auth/logout
      */
-    @PostMapping("/logout")
+    @PostMapping("/v1/auth/logout")
     public ResponseEntity<ApiResponseDto<Void>> logout(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
