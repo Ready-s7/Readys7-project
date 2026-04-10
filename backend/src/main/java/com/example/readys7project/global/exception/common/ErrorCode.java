@@ -21,6 +21,9 @@ public enum ErrorCode {
     // Project
     PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "프로젝트를 찾을 수 없습니다."),
 
+    // Category
+    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND,"카테고리를 찾을 수 없습니다."),
+
     // Proposal
     PROPOSAL_NOT_FOUND(HttpStatus.NOT_FOUND, "제안서를 찾을 수 없습니다."),
     PROPOSAL_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 해당 프로젝트에 제안서를 제출했습니다."),
