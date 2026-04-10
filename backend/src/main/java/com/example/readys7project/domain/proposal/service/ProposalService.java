@@ -37,9 +37,9 @@ public class ProposalService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ProposalException(ErrorCode.USER_NOT_FOUND));
 
-//        if (user.getRole() != UserRole.DEVELOPER) {
-//            throw new ProposalException(ErrorCode.USER_FORBIDDEN);
-//        }
+        if (user.getRole() != UserRole.DEVELOPER) {
+            throw new ProposalException(ErrorCode.USER_FORBIDDEN);
+        }
 
         Developer developer = developerRepository.findByUser(user)
                 .orElseThrow(() -> new ProposalException(ErrorCode.DEVELOPER_NOT_FOUND));
@@ -65,7 +65,7 @@ public class ProposalService {
         proposal = proposalRepository.save(proposal);
 
         // 프로젝트의 제안 수 증가
-        project.increaseProposalCount();
+        projectService.incrementProposalCount(project.getId());
 
         return convertToDto(proposal);
     }
@@ -103,7 +103,7 @@ public class ProposalService {
             throw new ProposalException(ErrorCode.USER_FORBIDDEN);
         }
 
-//        proposal.Status(ProposalStatus.valueOf(status.toUpperCase()));
+        proposal.setStatus(ProposalStatus.valueOf(status.toUpperCase()));
         proposal = proposalRepository.save(proposal);
 
         return convertToDto(proposal);

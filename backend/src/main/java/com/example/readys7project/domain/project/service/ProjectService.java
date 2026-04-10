@@ -36,27 +36,27 @@ public class ProjectService {
     @Transactional
     public ProjectDto createProject(ProjectRequestDto request, String userEmail) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
 
         if (user.getUserRole() != UserRole.CLIENT) {
-            throw new UserException(ErrorCode.USER_FORBIDDEN);
+            throw new ProjectException(ErrorCode.USER_FORBIDDEN);
         }
         Client client = clientRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
 
         Category category = categoryRepository.findById(request.categoryId())
-                .orElseThrow(() -> new CategoryException(ErrorCode.CATEGORY_NOT_FOUND));
+                .orElseThrow(() -> new ProjectException(ErrorCode.CATEGORY_NOT_FOUND));
 
         Project project = Project.builder()
                 .client(client)
                 .category(category)
                 .title(request.title())
                 .description(request.description())
-                .skills(convertSkillsToJson(request.skills()))
+                .skills(request.skills())
                 .budget(request.budget())
                 .duration(request.duration())
-                .maxProposals(request.maxProposals())
-                .recruitDeadline(request.recruitDeadline())
+//                .maxProposals(request.maxProposals())
+//                .recruitDeadline(request.recruitDeadline())
                 .build();
 
         return convertToDto(projectRepository.save(project));
@@ -92,10 +92,10 @@ public class ProjectService {
     public List<ProjectDto> getMyProjects(String userEmail) {
 
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
 
         Client client = clientRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
 
 
         return projectRepository.findByClientId(user.getId()).stream()
@@ -110,28 +110,28 @@ public class ProjectService {
                 .orElseThrow(() -> new ProjectException(ErrorCode.PROJECT_NOT_FOUND));
 
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
 
         Client client = clientRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
 
 
         if (!project.getClient().getId().equals(user.getId())) {
-            throw new UserException(ErrorCode.USER_FORBIDDEN);
+            throw new ProjectException(ErrorCode.USER_FORBIDDEN);
         }
 
         Category category = categoryRepository.findById(request.categoryId())
-                .orElseThrow(() -> new CategoryException(ErrorCode.CATEGORY_NOT_FOUND));
+                .orElseThrow(() -> new ProjectException(ErrorCode.CATEGORY_NOT_FOUND));
 
         project.update(
                 request.title(),
                 request.description(),
                 category,
-                convertSkillsToJson(request.skills()),
+                request.skills(),
                 request.budget(),
-                request.duration(),
-                request.maxProposals(),
-                request.recruitDeadline()
+                request.duration()
+//                request.maxProposals(),
+//                request.recruitDeadline()
         );
 
         return convertToDto(project);
@@ -145,10 +145,10 @@ public class ProjectService {
                 .orElseThrow(() -> new ProjectException(ErrorCode.PROJECT_NOT_FOUND));
 
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
 
         if (!project.getClient().getId().equals(user.getId())) {
-            throw new UserException(ErrorCode.USER_FORBIDDEN);
+            throw new ProjectException(ErrorCode.USER_FORBIDDEN);
         }
 
         projectRepository.delete(project);
@@ -163,25 +163,14 @@ public class ProjectService {
                 project.getCategory().getName(),
                 project.getBudget(),
                 project.getDuration(),
-                convertJsonToSkills(project.getSkills()),
+                project.getSkills(),
                 project.getStatus().name(),
-                project.getCurrentProposals(),
-                project.getMaxProposals(),
+//                project.getCurrentProposals(),
+//                project.getMaxProposals(),
                 project.getClient().getUser().getName(),
                 project.getClient().getRating(),
                 project.getCreatedAt(),
                 project.getUpdatedAt()
         );
-    }
-
-    // JSON 변환
-    private String convertSkillsToJson(List<String> skills) {
-        if (skills == null || skills.isEmpty()) return "[]";
-        return skills.toString(); // 간단 버전 (추후 ObjectMapper 추천)
-    }
-
-    private List<String> convertJsonToSkills(String json) {
-        if (json == null || json.equals("[]")) return List.of();
-        return List.of(json.replace("[", "").replace("]", "").split(", "));
     }
 }

@@ -25,10 +25,10 @@ public record ProjectRequestDto(
     @NotNull(message = "기간은 필수입니다.")
     Integer duration,
 
-    List<String> skills,
+    String skills
 
-    @NotNull(message = "최대 지원자 수는 필수입니다.")
-    Integer maxProposals,
-
-    LocalDateTime recruitDeadline
+//    @NotNull(message = "최대 지원자 수는 필수입니다.")
+//    Integer maxProposals,
+//
+//    LocalDateTime recruitDeadline
 ){ }
