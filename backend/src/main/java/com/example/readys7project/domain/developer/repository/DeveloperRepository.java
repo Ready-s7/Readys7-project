@@ -1,7 +1,7 @@
 package com.example.readys7project.domain.developer.repository;
 
 import com.example.readys7project.domain.developer.entity.Developer;
-import com.example.readys7project.domain.user.entity.User;
+import com.example.readys7project.domain.user.auth.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

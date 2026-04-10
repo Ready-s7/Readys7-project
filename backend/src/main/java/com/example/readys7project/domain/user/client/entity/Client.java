@@ -1,7 +1,7 @@
-package com.example.readys7project.domain.client.entity;
+package com.example.readys7project.domain.user.client.entity;
 
-import com.example.readys7project.domain.client.enums.ParticipateType;
-import com.example.readys7project.domain.user.entity.User;
+import com.example.readys7project.domain.user.auth.enums.ParticipateType;
+import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "clients")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Client extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

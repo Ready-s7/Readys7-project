@@ -1,8 +1,11 @@
 package com.example.readys7project.domain.user.auth.controller;
 
+import com.example.readys7project.domain.user.auth.dto.UserDto;
+import com.example.readys7project.domain.user.auth.dto.request.AdminRegisterRequestDto;
+import com.example.readys7project.domain.user.auth.dto.request.DeveloperRegisterRequestDto;
 import com.example.readys7project.domain.user.auth.dto.request.UserRegisterRequestDto;
-import com.example.readys7project.domain.user.auth.dto.response.AuthResponse;
 import com.example.readys7project.domain.user.auth.service.AuthService;
+import com.example.readys7project.domain.user.auth.dto.request.ClientRegisterRequestDto;
 import com.example.readys7project.global.dto.ApiResponseDto;
 import com.example.readys7project.global.dto.LoginRequestDto;
 import com.example.readys7project.global.dto.LoginResponseDto;
@@ -22,9 +25,18 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/v1/auth/register")
-    public ResponseEntity<ApiResponseDto<AuthResponse>> register(
-            @Valid @RequestBody UserRegisterRequestDto userRegisterRequestDto) {
-        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.CREATED, authService.register(userRegisterRequestDto)));
+    public ResponseEntity<ApiResponseDto<UserDto>> register(
+            @Valid @RequestBody UserRegisterRequestDto userRegisterRequestDto,
+            @Valid @RequestBody @RequestParam(required = false) AdminRegisterRequestDto adminRegisterRequestDto,
+            @Valid @RequestBody @RequestParam(required = false) ClientRegisterRequestDto clientRegisterRequestDto,
+            @Valid @RequestBody @RequestParam(required = false) DeveloperRegisterRequestDto developerRegisterRequestDto
+    ) {
+        return ResponseEntity.ok(ApiResponseDto.success
+                (HttpStatus.CREATED, authService.register(
+                        userRegisterRequestDto,
+                        adminRegisterRequestDto,
+                        clientRegisterRequestDto,
+                        developerRegisterRequestDto)));
     }
 
     /**
@@ -33,7 +45,7 @@ public class AuthController {
      * - Access Token → Response Header (Authorization: Bearer {token})
      * - Refresh Token → Response Body
      */
-    @PostMapping("/v1/aut/login")
+    @PostMapping("/v1/auth/login")
     public ResponseEntity<ApiResponseDto<LoginResponseDto>> login(
             @Valid @RequestBody LoginRequestDto request
     ) {

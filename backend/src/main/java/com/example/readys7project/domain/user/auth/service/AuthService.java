@@ -1,11 +1,19 @@
 package com.example.readys7project.domain.user.auth.service;
 
+import com.example.readys7project.domain.developer.entity.Developer;
+import com.example.readys7project.domain.developer.repository.DeveloperRepository;
+import com.example.readys7project.domain.user.admin.entity.Admin;
+import com.example.readys7project.domain.user.admin.repository.AdminRepository;
 import com.example.readys7project.domain.user.auth.dto.UserDto;
+import com.example.readys7project.domain.user.auth.dto.request.AdminRegisterRequestDto;
+import com.example.readys7project.domain.user.auth.dto.request.ClientRegisterRequestDto;
+import com.example.readys7project.domain.user.auth.dto.request.DeveloperRegisterRequestDto;
 import com.example.readys7project.domain.user.auth.dto.request.UserRegisterRequestDto;
-import com.example.readys7project.domain.user.auth.dto.response.AuthResponse;
 import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.domain.user.auth.repository.UserRepository;
+import com.example.readys7project.domain.user.client.entity.Client;
+import com.example.readys7project.domain.user.client.repository.ClientRepository;
 import com.example.readys7project.global.dto.LoginRequestDto;
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.UserException;
@@ -25,10 +33,16 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final DeveloperRepository developerRepository;
+    private final ClientRepository clientRepository;
+    private final AdminRepository adminRepository;
 
     @Transactional
-    public AuthResponse register(
-            UserRegisterRequestDto userRegisterRequestDto
+    public UserDto register(
+            UserRegisterRequestDto userRegisterRequestDto,
+            AdminRegisterRequestDto adminRegisterRequestDto,
+            ClientRegisterRequestDto clientRegisterRequestDto,
+            DeveloperRegisterRequestDto developerRegisterRequestDto
     ) {
         if (userRepository.existsByEmail(userRegisterRequestDto.email())) {
             throw new UserException(ErrorCode.EMAIL_ALREADY_EXISTS);
@@ -45,22 +59,36 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
-        // 개발자로 등록시 Developer 프로필 생성
-//        if (user.getRole() == UserRole.DEVELOPER) {
-//            Developer developer = Developer.builder()
-//                    .user(savedUser)
-//                    .title("개발자")
-//                    .rating(0.0)
-//                    .reviewCount(0)
-//                    .completedProjects(0)
-//                    .availableForWork(true)
-//                    .build();
-//            developerRepository.save(developer);
-//        }
 
-        return AuthResponse.builder()
-                .user(convertToUserDto(savedUser))
-                .build();
+        if (user.getUserRole() == UserRole.ADMIN) {
+            Admin admin = Admin.builder()
+                    .user(savedUser)
+                    .adminRole(adminRegisterRequestDto.adminRole())
+                    .build();
+            adminRepository.save(admin);
+        }
+
+//         개발자로 등록시 Developer 프로필 생성
+        if (user.getUserRole() == UserRole.DEVELOPER) {
+            Developer developer = Developer.builder()
+                    .user(savedUser)
+                    .title(developerRegisterRequestDto.title())
+                    // TODO minHourlyPay
+                    // TODO maxHourlyPay
+                    .availableForWork(developerRegisterRequestDto.availableForWork())
+                    .build();
+            developerRepository.save(developer);
+        }
+        if (user.getUserRole() == UserRole.CLIENT) {
+            Client client = Client.builder()
+                    .user(savedUser)
+                    .title(clientRegisterRequestDto.title())
+                    .participateType(clientRegisterRequestDto.participateType())
+                    .build();
+            clientRepository.save(client);
+        }
+
+        return convertToUserDto(savedUser);
     }
 
     // Access Token + Refresh Token + email을 묶어서 반환하는 record
