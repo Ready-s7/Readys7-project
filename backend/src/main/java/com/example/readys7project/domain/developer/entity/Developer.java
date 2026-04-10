@@ -1,6 +1,6 @@
 package com.example.readys7project.domain.developer.entity;
 
-import com.example.readys7project.domain.user.entity.User;
+import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
