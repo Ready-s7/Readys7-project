@@ -31,16 +31,15 @@ public class ProposalService {
     private final ProjectRepository projectRepository;
     private final DeveloperRepository developerRepository;
     private final UserRepository userRepository;
-    private final ProjectService projectService;
 
     @Transactional
     public ProposalDto createProposal(ProposalRequest request, String userEmail) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ProposalException(ErrorCode.USER_NOT_FOUND));
 
-        if (user.getRole() != UserRole.DEVELOPER) {
-            throw new ProposalException(ErrorCode.USER_FORBIDDEN);
-        }
+//        if (user.getRole() != UserRole.DEVELOPER) {
+//            throw new ProposalException(ErrorCode.USER_FORBIDDEN);
+//        }
 
         Developer developer = developerRepository.findByUser(user)
                 .orElseThrow(() -> new ProposalException(ErrorCode.DEVELOPER_NOT_FOUND));
@@ -66,7 +65,7 @@ public class ProposalService {
         proposal = proposalRepository.save(proposal);
 
         // 프로젝트의 제안 수 증가
-        projectService.incrementProposalCount(project.getId());
+        project.increaseProposalCount();
 
         return convertToDto(proposal);
     }
@@ -104,7 +103,7 @@ public class ProposalService {
             throw new ProposalException(ErrorCode.USER_FORBIDDEN);
         }
 
-        proposal.setStatus(ProposalStatus.valueOf(status.toUpperCase()));
+//        proposal.Status(ProposalStatus.valueOf(status.toUpperCase()));
         proposal = proposalRepository.save(proposal);
 
         return convertToDto(proposal);
