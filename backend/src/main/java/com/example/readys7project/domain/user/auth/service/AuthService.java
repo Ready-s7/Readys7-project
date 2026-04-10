@@ -1,7 +1,7 @@
 package com.example.readys7project.domain.user.auth.service;
 
-import com.example.readys7project.domain.developer.entity.Developer;
-import com.example.readys7project.domain.developer.repository.DeveloperRepository;
+import com.example.readys7project.domain.user.developer.entity.Developer;
+import com.example.readys7project.domain.user.developer.repository.DeveloperRepository;
 import com.example.readys7project.domain.user.admin.entity.Admin;
 import com.example.readys7project.domain.user.admin.repository.AdminRepository;
 import com.example.readys7project.domain.user.auth.dto.UserDto;

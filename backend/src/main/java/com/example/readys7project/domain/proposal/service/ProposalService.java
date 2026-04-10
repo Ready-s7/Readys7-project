@@ -1,8 +1,8 @@
 
 package com.example.readys7project.domain.proposal.service;
 
-import com.example.readys7project.domain.developer.entity.Developer;
-import com.example.readys7project.domain.developer.repository.DeveloperRepository;
+import com.example.readys7project.domain.user.developer.entity.Developer;
+import com.example.readys7project.domain.user.developer.repository.DeveloperRepository;
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.project.repository.ProjectRepository;
 import com.example.readys7project.domain.project.service.ProjectService;
