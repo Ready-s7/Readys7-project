@@ -9,6 +9,7 @@ import com.example.readys7project.domain.user.dto.response.AuthResponse;
 import com.example.readys7project.domain.user.entity.User;
 import com.example.readys7project.domain.user.enums.UserRole;
 import com.example.readys7project.domain.user.repository.UserRepository;
+import com.example.readys7project.global.dto.LoginRequestDto;
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.UserException;
 import com.example.readys7project.global.security.JwtTokenProvider;
@@ -45,12 +46,12 @@ public class AuthService {
                 .description(request.getDescription())
                 .build();
 
-        user = userRepository.save(user);
+        User savedUser = userRepository.save(user);
 
         // 개발자로 등록시 Developer 프로필 생성
         if (user.getRole() == UserRole.DEVELOPER) {
             Developer developer = Developer.builder()
-                    .user(user)
+                    .user(savedUser)
                     .title("개발자")
                     .rating(0.0)
                     .reviewCount(0)
@@ -69,28 +70,32 @@ public class AuthService {
     public record AuthTokenDto(String accessToken, String refreshToken, String email) {}
 
     @Transactional
-    public AuthTokenDto login(LoginRequest request) {
+    public AuthTokenDto login(LoginRequestDto request) {
         // 1. email로 User 조회
-        User user = userRepository.findByEmail(request.getEmail())
+        User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
 
         // 2. 비밀번호 검증
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new UserException(ErrorCode.USER_INFO_MISMATCH);
         }
 
 
-        // 4. Access Token 발급 (membershipGrade 포함)
+        // 4. Access Token 발급
         String accessToken = jwtTokenProvider.createToken(
                 user.getEmail()
         );
 
+        // 기존 토큰 삭제 추가
+        boolean existence = refreshTokenRepository.existsByEmail(user.getEmail());
+        if (existence) {
+            refreshTokenRepository.deleteByEmail(user.getEmail());
+            refreshTokenRepository.flush();
+        }
+
         // 5. Refresh Token 발급 및 저장 (Rotation)
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail());
 
-        // 기존 토큰 삭제 추가
-        refreshTokenRepository.deleteByEmail(user.getEmail());
-        refreshTokenRepository.flush();
 
         refreshTokenRepository.save(
                 new RefreshToken(
@@ -101,6 +106,36 @@ public class AuthService {
         );
 
         return new AuthTokenDto(accessToken, refreshToken, user.getEmail());
+    }
+
+    @Transactional
+    public AuthTokenDto reissue(String refreshToken) {
+        // 1. Refresh Token 유효성 검증
+        jwtTokenProvider.validateToken(refreshToken);
+
+        // 2. DB에서 Refresh Token 조회
+        RefreshToken savedToken = refreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new UserException(ErrorCode.USER_UNAUTHORIZED));
+
+        // 3. email로 User 조회
+        User user = userRepository.findByEmail(savedToken.getEmail())
+                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
+
+        // 5. Refresh Token Rotation
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getEmail());
+        savedToken.rotate(newRefreshToken, jwtTokenProvider.getRefreshTokenExpiresAt());
+        refreshTokenRepository.save(savedToken);
+
+        // 6. 새 Access Token 발급
+        String newAccessToken = jwtTokenProvider.createToken(
+                user.getEmail()
+        );
+
+        return new AuthTokenDto(newAccessToken, newRefreshToken, user.getEmail());
+    }
+
+    public void logout(String email) {
+        refreshTokenRepository.deleteByEmail(email);
     }
 
     private UserDto convertToUserDto(User user) {

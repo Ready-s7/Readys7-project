@@ -86,13 +86,6 @@ public class JwtTokenProvider {
     }
 
     /**
-     * JWT 토큰에서 멤버십 등급 추출
-     */
-    public String getMembership(String token) {
-        return getClaims(token).get("membership", String.class);
-    }
-
-    /**
      * JWT 토큰 유효성 검증
      * - 토큰 블랙리스트 체크 (로그아웃된 토큰)
      * - 토큰 갱신 로직
