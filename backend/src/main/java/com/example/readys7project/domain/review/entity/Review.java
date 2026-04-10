@@ -1,6 +1,6 @@
 package com.example.readys7project.domain.review.entity;
 
-import com.example.readys7project.domain.developer.entity.Developer;
+import com.example.readys7project.domain.user.developer.entity.Developer;
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.global.entity.BaseEntity;

@@ -1,15 +1,11 @@
 package com.example.readys7project.domain.proposal.entity;
 
-import com.example.readys7project.domain.developer.entity.Developer;
+import com.example.readys7project.domain.user.developer.entity.Developer;
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.proposal.enums.ProposalStatus;
 import com.example.readys7project.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Entity
