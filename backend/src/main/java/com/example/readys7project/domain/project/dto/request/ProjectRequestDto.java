@@ -16,19 +16,20 @@ public record ProjectRequestDto(
     @NotBlank(message = "설명은 필수입니다.")
     String description,
 
-    @NotBlank(message = "카테고리는 필수입니다.")
+    @NotNull(message = "카테고리는 필수입니다.")
     Long categoryId,
 
-    @NotNull(message = "예산은 필수입니다.")
-    Integer budget,
+    @NotNull(message = "최저 예산은 필수입니다.")
+    Integer minBudget,
+
+    @NotNull(message = "최대 예산은 필수입니다.")
+    Integer maxBudget,
 
     @NotNull(message = "기간은 필수입니다.")
     Integer duration,
 
-    String skills
+    String skills,
 
-//    @NotNull(message = "최대 지원자 수는 필수입니다.")
-//    Integer maxProposals,
-//
-//    LocalDateTime recruitDeadline
+    @NotNull(message = "최대 지원자 수는 필수입니다.")
+    Integer maxProposalCount
 ){ }

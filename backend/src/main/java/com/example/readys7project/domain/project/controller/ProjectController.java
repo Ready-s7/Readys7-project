@@ -29,7 +29,7 @@ public class ProjectController {
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
         String email = customUserDetails.getEmail();
-        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, projectService.createProject(request, email)));
+        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.CREATED, projectService.createProject(request, email)));
     }
 
     // 프로젝트 전체 목록 조회

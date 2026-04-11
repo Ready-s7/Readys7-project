@@ -23,7 +23,7 @@ public enum ErrorCode {
 
     // Project
     PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "프로젝트를 찾을 수 없습니다."),
-
+    PROJECT_ALREADY_CLOSED(HttpStatus.BAD_REQUEST,"이미 마감된 프로젝트입니다."),
     // Category
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND,"카테고리를 찾을 수 없습니다."),
 
