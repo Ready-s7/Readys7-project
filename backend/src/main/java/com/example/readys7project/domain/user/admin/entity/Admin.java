@@ -53,7 +53,7 @@ public class Admin extends BaseEntity {
 
     // 슈퍼관리자가 승인해주는 메서드
 
-    public void updatePendingAdminStatus(AdminStatus adminStatus) {
+    public void updateAdminStatus(AdminStatus adminStatus) {
         if (this.status != AdminStatus.PENDING) {
             throw new AdminException(ErrorCode.ADMIN_STATUS_NOT_MATCH);
         }
