@@ -187,8 +187,8 @@ public class ReviewService {
     public List<ReviewDto> getReviewsByClient(Long clientId) {
 
         // 클라이언트 조회 검증
-        User client=userRepository.findById(clientId).orElseThrow(
-                ()->new ReviewException(ErrorCode.USER_NOT_FOUND)
+        Client client=clientRepository.findById(clientId).orElseThrow(
+                ()->new ReviewException(ErrorCode.CLIENT_NOT_FOUND)
         );
         return reviewRepository.findByClientId(clientId).stream()
                 .map(this::convertToDto)
