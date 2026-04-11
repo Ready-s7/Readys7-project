@@ -42,7 +42,7 @@ public class ProjectService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
 
-        // 2. CLIENT 역할 여부 검증
+        // 2. CLIENT 역할 검증
         if (user.getUserRole() != UserRole.CLIENT) {
             throw new ProjectException(ErrorCode.USER_FORBIDDEN);
         }
@@ -207,7 +207,7 @@ public class ProjectService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
 
-        // 3. 요청한 사용자의 Client 프로필 존재 여부 검증
+        // 3. 요청한 사용자의 Client 역할 검증
         Client client = clientRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
 
