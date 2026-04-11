@@ -22,23 +22,23 @@ public class AdminController {
     private final AdminService adminService;
 
     @GetMapping("/v1/admins")
-    public ResponseEntity<ApiResponseDto<GetAllAdminListResponseDto>> getAllAdminList(
+    public ResponseEntity<ApiResponseDto<GetAllAdminListResponseDto>> getAllPendingAdminList(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size
     ){
         Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok(ApiResponseDto
-                .success(HttpStatus.OK, adminService.getAllAdminList(customUserDetails, pageable)));
+                .success(HttpStatus.OK, adminService.getAllPendingAdminList(customUserDetails, pageable)));
     }
 
     @PatchMapping("/v1/admins/{adminId}")
-    public ResponseEntity<ApiResponseDto<UpdateAdminStatusResponseDto>> approveAdmin(
+    public ResponseEntity<ApiResponseDto<UpdateAdminStatusResponseDto>> updateAdminStatus(
             @PathVariable Long adminId,
             @RequestBody UpdateAdminStatusRequestDto updateAdminStatusRequestDto,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
         return ResponseEntity.ok(ApiResponseDto
-                .success(HttpStatus.OK, adminService.approveAdmin(adminId, updateAdminStatusRequestDto, customUserDetails)));
+                .success(HttpStatus.OK, adminService.updateAdminStatus(adminId, updateAdminStatusRequestDto, customUserDetails)));
     }
 }

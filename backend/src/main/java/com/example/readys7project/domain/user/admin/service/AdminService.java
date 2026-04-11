@@ -29,7 +29,7 @@ public class AdminService {
     private final AdminRepository adminRepository;
 
     @Transactional(readOnly = true)
-    public GetAllAdminListResponseDto getAllAdminList(CustomUserDetails customUserDetails, Pageable pageable) {
+    public GetAllAdminListResponseDto getAllPendingAdminList(CustomUserDetails customUserDetails, Pageable pageable) {
 
         // customUserDetails 에서 로그인한 User 정보 꺼내오기
         User user = customUserDetails.getUser();
@@ -73,7 +73,7 @@ public class AdminService {
     }
 
     @Transactional
-    public UpdateAdminStatusResponseDto approveAdmin(
+    public UpdateAdminStatusResponseDto updateAdminStatus(
             Long adminId,
             UpdateAdminStatusRequestDto updateAdminStatusRequestDto,
             CustomUserDetails customUserDetails
@@ -96,7 +96,7 @@ public class AdminService {
                 .orElseThrow(() -> new AdminException(ErrorCode.ADMIN_NOT_FOUND));
 
         // 승인 메서드 호출
-        targetAdmin.approveAdmin();
+        targetAdmin.updatePendingAdminStatus(updateAdminStatusRequestDto.adminStatus());
 
         /* saveAndFlush -> Spring Data JPA가 제공하는 메서드,
          그냥 save만 하게되면, 변경 사항을 1차 캐시에만 저장해놓고, 실제 DB에는 반영이 안됨,

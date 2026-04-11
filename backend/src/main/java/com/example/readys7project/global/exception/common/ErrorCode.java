@@ -37,9 +37,9 @@ public enum ErrorCode {
 
     // Admin
     INVALID_ADMIN_ROLE(HttpStatus.UNAUTHORIZED, "잘못된 역할입니다."),
-    NOT_PENDING_STATUS(HttpStatus.BAD_REQUEST, "승인 대기중 상태가 아닙니다."),
+    ADMIN_STATUS_NOT_MATCH(HttpStatus.BAD_REQUEST, "승인 대기중 상태가 아닙니다."),
     ADMIN_NOT_FOUND(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다"),
-    ALREADY_APPROVE(HttpStatus.BAD_REQUEST, "이미 승인된 관리자 입니다.");
+    ADMIN_ALREADY_APPROVE(HttpStatus.BAD_REQUEST, "이미 승인된 관리자 입니다.");
 
     private final HttpStatus status;
     private final String message;

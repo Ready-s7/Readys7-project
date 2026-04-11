@@ -1,5 +1,6 @@
 package com.example.readys7project.domain.user.admin.entity;
 
+import com.example.readys7project.domain.user.admin.dto.request.UpdateAdminStatusRequestDto;
 import com.example.readys7project.domain.user.admin.enums.AdminRole;
 import com.example.readys7project.domain.user.admin.enums.AdminStatus;
 import com.example.readys7project.domain.user.auth.entity.User;
@@ -49,18 +50,14 @@ public class Admin extends BaseEntity {
         this.adminRole = adminRole;
     }
 
-    // 상태 변경
-    public void updateAdminStatus(AdminStatus status) {
-        this.status = status;
-    }
 
     // 슈퍼관리자가 승인해주는 메서드
 
-    public void approveAdmin() {
+    public void updatePendingAdminStatus(AdminStatus adminStatus) {
         if (this.status != AdminStatus.PENDING) {
-            throw new AdminException(ErrorCode.NOT_PENDING_STATUS);
+            throw new AdminException(ErrorCode.ADMIN_STATUS_NOT_MATCH);
         }
-        this.status = AdminStatus.APPROVED;
+        this.status = adminStatus;
     }
 
     // builderMethodName -> 각 빌더에 고유한 이름을 지정해줄 수 있는 메서드
