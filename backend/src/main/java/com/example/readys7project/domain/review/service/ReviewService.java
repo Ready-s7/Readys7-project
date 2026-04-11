@@ -36,7 +36,7 @@ public class ReviewService {
         User client = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ReviewException(ErrorCode.USER_NOT_FOUND));
 
-        if (client.getRole() != UserRole.CLIENT) {
+        if (client.getUole() != UserRole.CLIENT) {
             throw new ReviewException(ErrorCode.USER_FORBIDDEN);
         }
 
