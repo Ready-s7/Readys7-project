@@ -1,0 +1,10 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop  # 로컬은 매번 초기화
+
+logging:
+  level:
+    com.example.readys7project: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG

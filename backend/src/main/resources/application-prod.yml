@@ -1,0 +1,9 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: none  # 운영은 절대 자동 변경 금지
+
+logging:
+  level:
+    root: WARN
+    com.example.readys7project: INFO
