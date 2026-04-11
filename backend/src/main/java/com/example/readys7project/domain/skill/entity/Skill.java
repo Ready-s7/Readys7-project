@@ -1,0 +1,40 @@
+package com.example.readys7project.domain.skill.entity;
+
+import com.example.readys7project.domain.skill.enums.SkillCategory;
+import com.example.readys7project.domain.user.admin.entity.Admin;
+import com.example.readys7project.global.entity.BaseEntity;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@Entity
+@Table(name = "skills")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Skill extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_id")
+    private Admin admin;
+
+    @Column(nullable = false, length = 20)
+    private String name;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private SkillCategory skillCategory;
+
+    @Builder
+    public Skill(Admin admin, String name, SkillCategory skillCategory) {
+        this.admin = admin;
+        this.name = name;
+        this.skillCategory = skillCategory;
+    }
+
+}
