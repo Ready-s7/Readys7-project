@@ -4,11 +4,14 @@ import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SoftDelete;
 
 @Getter
 @Entity
 @Table(name = "users")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SoftDelete
+
 public class User extends BaseEntity {
 
     @Id
