@@ -1,5 +1,6 @@
 package com.example.readys7project.domain.review.dto.request;
 
+
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -13,10 +14,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReviewRequest {
-
-    @NotNull(message = "프로젝트 번호는 필수 입니다.")
-    private Long projectId;
+public class ReviewUpdateRequest {
 
     @NotNull(message = "평점은 필수입니다")
     @Min(value = 1, message = "평점은 1점 이상이어야 합니다")
