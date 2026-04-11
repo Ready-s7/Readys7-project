@@ -37,6 +37,7 @@ public class AuthService {
     private final ClientRepository clientRepository;
     private final AdminRepository adminRepository;
 
+    // User 회원가입 로직
     @Transactional
     public UserDto register(
             UserRegisterRequestDto userRegisterRequestDto,
@@ -44,10 +45,12 @@ public class AuthService {
             ClientRegisterRequestDto clientRegisterRequestDto,
             DeveloperRegisterRequestDto developerRegisterRequestDto
     ) {
+        // User 이메일이 존재하는지 중복 체크
         if (userRepository.existsByEmail(userRegisterRequestDto.email())) {
             throw new UserException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
+        // userRegisterRequestDto온 필드값 User에 넣어주기
         User user = User.builder()
                 .email(userRegisterRequestDto.email())
                 .password(passwordEncoder.encode(userRegisterRequestDto.password()))
@@ -57,37 +60,47 @@ public class AuthService {
                 .description(userRegisterRequestDto.description())
                 .build();
 
+        // 유저 레포에 저장
         User savedUser = userRepository.save(user);
 
 
+        // ADMIN으로 등록시
         if (user.getUserRole() == UserRole.ADMIN) {
             Admin admin = Admin.builder()
                     .user(savedUser)
                     .adminRole(adminRegisterRequestDto.adminRole())
                     .build();
+            // 어드민 레포에 저장
             adminRepository.save(admin);
         }
 
-//         개발자로 등록시 Developer 프로필 생성
+         // DEVELOPER로 등록시
         if (user.getUserRole() == UserRole.DEVELOPER) {
             Developer developer = Developer.builder()
                     .user(savedUser)
                     .title(developerRegisterRequestDto.title())
-                    // TODO minHourlyPay
-                    // TODO maxHourlyPay
+                    .minHourlyPay(developerRegisterRequestDto.minHourlyPay())
+                    .maxHourlyPay(developerRegisterRequestDto.maxHourlyPay())
+                    .skills(developerRegisterRequestDto.skills())
                     .availableForWork(developerRegisterRequestDto.availableForWork())
                     .build();
+            // 개발자 레포에 저장
             developerRepository.save(developer);
         }
+
+        // CLIENT로 등록시
         if (user.getUserRole() == UserRole.CLIENT) {
             Client client = Client.builder()
                     .user(savedUser)
                     .title(clientRegisterRequestDto.title())
                     .participateType(clientRegisterRequestDto.participateType())
                     .build();
+
+            // 클라이언트 레포에 저장
             clientRepository.save(client);
         }
 
+        // User를 UserDto로 변환해서 리턴
         return convertToUserDto(savedUser);
     }
 
@@ -104,7 +117,6 @@ public class AuthService {
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new UserException(ErrorCode.USER_INFO_MISMATCH);
         }
-
 
         // 4. Access Token 발급
         String accessToken = jwtTokenProvider.createToken(
@@ -159,7 +171,9 @@ public class AuthService {
         return new AuthTokenDto(newAccessToken, newRefreshToken, user.getEmail());
     }
 
+    // 로그아웃
     public void logout(String email) {
+        // 토큰 삭제 -> 로그아웃
         refreshTokenRepository.deleteByEmail(email);
     }
 
