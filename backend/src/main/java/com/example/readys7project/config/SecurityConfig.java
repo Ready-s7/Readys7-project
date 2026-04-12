@@ -5,6 +5,7 @@ import com.example.readys7project.global.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -54,8 +55,11 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
-                .requestMatchers("/projects/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/projects").permitAll()        // 목록 조회만 허용
+                .requestMatchers(HttpMethod.GET, "/api/v1/projects/search").permitAll() // 검색만 허용
+                .requestMatchers("/api/v1/projects/**").authenticated()                 // 나머지 인증 필요
                 .requestMatchers("/developers/**").permitAll()
+                .requestMatchers("/ws/**").permitAll()
                 .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider())

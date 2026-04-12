@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Readys7-project.iml" filepath="$PROJECT_DIR$/.idea/Readys7-project.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Readys7-project.main.iml" filepath="$PROJECT_DIR$/.idea/modules/Readys7-project.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/backend.main.iml" filepath="$PROJECT_DIR$/.idea/modules/backend.main.iml" />
     </modules>
   </component>
 </project>
