@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface DeveloperRepository extends JpaRepository<Developer, Long> {
+public interface DeveloperRepository extends JpaRepository<Developer, Long>, DeveloperQueryRepository {
     Optional<Developer> findByUser(User user);
 }
