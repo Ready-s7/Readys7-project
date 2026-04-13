@@ -16,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -23,11 +25,10 @@ public class DeveloperService {
 
     private final DeveloperRepository developerRepository;
     private final UserRepository userRepository;
-    private final DeveloperQueryRepository developerQueryRepository;
 
     // 전체 개발자 목록
     public Page<DeveloperDto> getAllDevelopers(Pageable pageable) {
-        return developerRepository.findAll(pageable)
+        return developerRepository.findAllWithUser(pageable)
                 .map(this::convertToDto);
     }
 
@@ -40,20 +41,23 @@ public class DeveloperService {
 
     // 개발자 검색 (skill, minRating)
     public Page<DeveloperDto> searchDevelopers(String skill, Double minRating, Pageable pageable) {
-        return developerQueryRepository.searchDevelopers(skill, minRating, pageable)
+        return developerRepository.searchDevelopers(skill, minRating, pageable)
                 .map(this::convertToDto);
     }
 
     // 개발자 프로필 수정 (DEVELOPER 전용)
     @Transactional
     public DeveloperDto updateProfile(DeveloperProfileRequestDto request, String userEmail) {
+        // 1. JWT에서 파싱된 이메일로 DB 조회 -> User 존재 여부 확인
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new DeveloperException(ErrorCode.USER_NOT_FOUND));
 
+        // 2. 해당 User의 역할이 DEVELOPER인지 확인
         if (user.getUserRole() != UserRole.DEVELOPER) {
             throw new DeveloperException(ErrorCode.USER_FORBIDDEN);
         }
 
+        // 3. 해당 유저와 연결된 Developer 엔티티 조회
         Developer developer = developerRepository.findByUser(user)
                 .orElseThrow(() -> new DeveloperException(ErrorCode.DEVELOPER_NOT_FOUND));
 
