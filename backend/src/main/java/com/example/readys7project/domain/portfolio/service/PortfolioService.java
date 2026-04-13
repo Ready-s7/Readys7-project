@@ -105,7 +105,7 @@ public class PortfolioService {
         }
 
         // 포트폴리오 내용 수정
-        portfolio.update(
+        portfolio.portfolioUpdate(
                 request.title(),
                 request.description(),
                 request.imageUrl(),

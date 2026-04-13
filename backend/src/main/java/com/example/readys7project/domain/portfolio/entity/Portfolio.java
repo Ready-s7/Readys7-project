@@ -16,7 +16,6 @@ import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "portfolios")
-@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @SQLDelete(sql = "UPDATE portfolios SET is_deleted = true WHERE id = ?") // 삭제 시 실행될 SQL 커스텀
 @SQLRestriction("is_deleted = false")
@@ -61,7 +60,7 @@ public class Portfolio extends BaseEntity {
         this.skills = skills;
     }
 
-    public void update(String title, String description, String imageUrl, String projectUrl, String skills) {
+    public void portfolioUpdate(String title, String description, String imageUrl, String projectUrl, String skills) {
         this.title = title;
         this.description = description;
         this.imageUrl = imageUrl;

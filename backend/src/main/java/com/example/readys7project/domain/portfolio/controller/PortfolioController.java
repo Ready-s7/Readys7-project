@@ -34,7 +34,7 @@ public class PortfolioController {
     }
 
     // 개발자 포트폴리오 수정
-    @PatchMapping(value = "/v1/portfolios", params = "developerId")
+    @PatchMapping("/v1/portfolios")
     public ResponseEntity<ApiResponseDto<PortfolioDto>> updatePortfolio(
             @RequestParam Long developerId,
             @Valid @RequestBody PortfolioRequestDto request,
@@ -47,7 +47,7 @@ public class PortfolioController {
     }
 
     // 개발자 포트폴리오 삭제
-    @DeleteMapping(value = "/v1/portfolios", params = "developerId")
+    @DeleteMapping("/v1/portfolios")
     public ResponseEntity<ApiResponseDto<Void>> deletePortfolio(
             @RequestParam Long developerId,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
@@ -60,7 +60,7 @@ public class PortfolioController {
 
 
     // 개발자 포트폴리오 조회
-    @GetMapping(value = "/v1/portfolios", params = "developerId")
+    @GetMapping("/v1/portfolios")
     public ResponseEntity<ApiResponseDto<Page<PortfolioDto>>> getPortfolio(
             @RequestParam Long developerId,
             @RequestParam(required = false) String skill,
