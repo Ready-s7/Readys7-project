@@ -13,6 +13,9 @@ import com.example.readys7project.domain.user.developer.repository.DeveloperRepo
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.PortfolioException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,9 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PortfolioService {
 
-    private PortfolioRepository portfolioRepository;
-    private UserRepository userRepository;
-    private DeveloperRepository developerRepository;
+    private final PortfolioRepository portfolioRepository;
+    private final UserRepository userRepository;
+    private final DeveloperRepository developerRepository;
 
     // 개발자 포트폴리오 생성 로직
     /**
@@ -54,6 +57,7 @@ public class PortfolioService {
                 .description(request.description())
                 .imageUrl(request.imageUrl())
                 .projectUrl(request.projectUrl())
+                .skills(request.skills())
                 .build();
 
         Portfolio savedPortfolio = portfolioRepository.save(portfolio);
@@ -105,7 +109,8 @@ public class PortfolioService {
                 request.title(),
                 request.description(),
                 request.imageUrl(),
-                request.projectUrl()
+                request.projectUrl(),
+                request.skills()
         );
 
         // 수정된 포트폴리오 저장
@@ -158,15 +163,15 @@ public class PortfolioService {
     // 개발자 포트폴리오 조회
     // 일단 비회원도 조회 가능.
     @Transactional(readOnly = true)
-    public PortfolioDto getPortfolio(Long developerId){
+    public Page<PortfolioDto>getPortfolio(Long developerId, String skill, int page, int size){
 
         Developer developer=developerRepository.findById(developerId)
                 .orElseThrow(()->new PortfolioException(ErrorCode.DEVELOPER_NOT_FOUND));
 
-        Portfolio portfolio=portfolioRepository.findByDeveloperId(developerId)
-                .orElseThrow(()->new PortfolioException(ErrorCode.PORTFOLIO_NOT_FOUND));
+        Pageable pageable = PageRequest.of(page - 1, size);
 
-        return convertToDto(portfolio);
+        return portfolioRepository.searchPortfolios(developerId, skill, pageable)
+                .map(this::convertToDto);
     }
 
 
@@ -182,6 +187,7 @@ public class PortfolioService {
                 .description(portfolio.getDescription())
                 .imageUrl(portfolio.getImageUrl())
                 .projectUrl(portfolio.getProjectUrl())
+                .skills(portfolio.getSkills())
                 .createdAt(portfolio.getCreatedAt())
                 .updatedAt(portfolio.getUpdatedAt())
                 .build();

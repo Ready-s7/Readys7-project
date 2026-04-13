@@ -20,6 +20,7 @@ public class PortfolioDto {
     private String description;
     private String imageUrl;
     private String projectUrl;
+    private String skills;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

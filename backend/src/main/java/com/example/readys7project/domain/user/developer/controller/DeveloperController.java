@@ -1,5 +1,6 @@
 package com.example.readys7project.domain.user.developer.controller;
 
+import com.example.readys7project.domain.project.dto.ProjectDto;
 import com.example.readys7project.domain.user.developer.dto.DeveloperDto;
 import com.example.readys7project.domain.user.developer.dto.request.DeveloperProfileRequestDto;
 import com.example.readys7project.domain.user.developer.service.DeveloperService;
@@ -13,7 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
 
 @RestController
 @RequestMapping("api")
@@ -53,6 +53,12 @@ public class DeveloperController {
         return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, developerService.updateProfile(request, email)));
     }
 
-    // 내 프로젝트 목록 조회  <---구현예정 (ProposalRepository에 developer_id와 status로 조회하는 메서드 생성되면 구현예정)
-
+    // 내 프로젝트 목록 조회
+    @GetMapping("/v1/developers/my-projects")
+    public ResponseEntity<ApiResponseDto<Page<ProjectDto>>> getMyProjects(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            Pageable pageable) {
+        String email = userDetails.getEmail();
+        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, developerService.getMyProjects(email, pageable)));
+    }
 }

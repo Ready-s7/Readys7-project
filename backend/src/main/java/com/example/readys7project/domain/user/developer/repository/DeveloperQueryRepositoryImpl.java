@@ -1,6 +1,12 @@
 package com.example.readys7project.domain.user.developer.repository;
 
+import com.example.readys7project.domain.category.entity.QCategory;
+import com.example.readys7project.domain.project.entity.Project;
+import com.example.readys7project.domain.project.entity.QProject;
+import com.example.readys7project.domain.proposal.entity.QProposal;
+import com.example.readys7project.domain.proposal.enums.ProposalStatus;
 import com.example.readys7project.domain.user.auth.entity.QUser;
+import com.example.readys7project.domain.user.client.entity.QClient;
 import com.example.readys7project.domain.user.developer.entity.Developer;
 import com.example.readys7project.domain.user.developer.entity.QDeveloper;
 import com.querydsl.core.BooleanBuilder;
@@ -72,6 +78,41 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
                 .from(qDeveloper)
                 .where(builder)
                 .fetchOne();
+
+        return new PageImpl<>(content, pageable, total == null ? 0 : total);
+    }
+
+    // 내 프로젝트 목록 조회
+    @Override
+    public Page<Project> findMyProjects(Developer developer, Pageable pageable) {
+        QProposal qProposal = QProposal.proposal;
+        QProject qProject = QProject.project;
+        QClient qClient = QClient.client;
+        QUser qUser = QUser.user;
+        QCategory qCategory = QCategory.category;
+
+        List<Project> content = queryFactory
+                .select(qProposal.project)
+                .from(qProposal)
+                .join(qProposal.project, qProject).fetchJoin()
+                .join(qProject.client, qClient).fetchJoin()
+                .join(qClient.user, qUser).fetchJoin()
+                .join(qProject.category, qCategory).fetchJoin()
+                .where(
+                        qProposal.developer.eq(developer)                      // 본인 제안서
+                        .and(qProposal.status.eq(ProposalStatus.ACCEPTED))     // 상태가 ACCEPTED인 것만
+                )
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long total = queryFactory
+                .select(qProposal.count())
+                .from(qProposal)
+                .where(
+                        qProposal.developer.eq(developer)
+                        .and(qProposal.status.eq(ProposalStatus.ACCEPTED))
+                ).fetchOne();
 
         return new PageImpl<>(content, pageable, total == null ? 0 : total);
     }

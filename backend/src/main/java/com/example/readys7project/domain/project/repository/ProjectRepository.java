@@ -2,6 +2,8 @@ package com.example.readys7project.domain.project.repository;
 
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.project.enums.ProjectStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,6 +16,9 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     List<Project> findByClientId(Long clientId);
     List<Project> findByCategory(String category);
     List<Project> findByStatus(ProjectStatus status);
+
+    // 내 프로젝트 목록 조회 페이징
+    Page<Project> findByClientId(Long clientId, Pageable pageable);
 
     @Query("SELECT p FROM Project p WHERE " +
            "(:category IS NULL OR p.category = :category) AND " +

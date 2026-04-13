@@ -8,6 +8,7 @@ import com.example.readys7project.global.dto.ApiResponseDto;
 import com.example.readys7project.global.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -60,11 +61,14 @@ public class PortfolioController {
 
     // 개발자 포트폴리오 조회
     @GetMapping(value = "/v1/portfolios", params = "developerId")
-    public ResponseEntity<ApiResponseDto<PortfolioDto>> getPortfolio(
-            @RequestParam Long developerId
+    public ResponseEntity<ApiResponseDto<Page<PortfolioDto>>> getPortfolio(
+            @RequestParam Long developerId,
+            @RequestParam(required = false) String skill,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
         return ResponseEntity.ok(
-                ApiResponseDto.success(HttpStatus.OK, portfolioService.getPortfolio(developerId))
+                ApiResponseDto.success(HttpStatus.OK, portfolioService.getPortfolio(developerId,skill, page, size))
         );
     }
 

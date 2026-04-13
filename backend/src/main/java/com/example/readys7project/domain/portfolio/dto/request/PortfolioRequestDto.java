@@ -5,7 +5,8 @@ import lombok.Builder;
 
 
 @Builder
-public record PortfolioRequestDto(
+public record
+PortfolioRequestDto(
         @NotBlank(message = "포트폴리오 제목은 필수입니다.")
         String title,
 
@@ -13,6 +14,7 @@ public record PortfolioRequestDto(
         String description,
 
         String imageUrl,
-        String projectUrl
+        String projectUrl,
+        String skills
 )
 { }

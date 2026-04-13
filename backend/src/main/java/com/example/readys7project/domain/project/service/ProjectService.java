@@ -46,7 +46,7 @@ public class ProjectService {
         }
 
         // 3. 요청한 사용자의 Client 프로필 존재 여부 검증
-        Client client = clientRepository.findByUserId(user.getId())
+        Client client = clientRepository.findByUser(user)
                 .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
 
         // 4. 요청한 카테고리 존재 여부 검증
@@ -132,7 +132,7 @@ public class ProjectService {
                 .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
 
         // 2. 요청한 사용자의 Client 역할 검증
-        Client client = clientRepository.findByUserId(user.getId())
+        Client client = clientRepository.findByUser(user)
                 .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
 
 
@@ -159,7 +159,7 @@ public class ProjectService {
 
         // 3. 요청한 사용자의 Client 역할 검증
         // CLIENT 역할이 아닌 경우 차단
-        Client client = clientRepository.findByUserId(user.getId())
+        Client client = clientRepository.findByUser(user)
                 .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
 
         // 4. 프로젝트 소유자 본인 여부 검증
@@ -206,7 +206,7 @@ public class ProjectService {
                 .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
 
         // 3. 요청한 사용자의 Client 역할 검증
-        Client client = clientRepository.findByUserId(user.getId())
+        Client client = clientRepository.findByUser(user)
                 .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
 
         // 4. 프로젝트 소유자 본인 여부 검증
