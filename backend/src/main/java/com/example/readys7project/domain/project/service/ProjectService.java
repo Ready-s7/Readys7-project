@@ -234,8 +234,8 @@ public class ProjectService {
                 .orElseThrow(() -> new ProjectException(ErrorCode.PROJECT_NOT_FOUND));
 
         // 2단계: 이미 마감된 프로젝트인지 검증
-        // CLOSED 상태라면 더 이상 제안서를 받을 수 없음
-        if (project.getStatus() == ProjectStatus.CLOSED) {
+        // OPEN 상태가 아니라면 차단
+        if (project.getStatus() != ProjectStatus.OPEN) {
             throw new ProjectException(ErrorCode.PROJECT_ALREADY_CLOSED);
         }
 
