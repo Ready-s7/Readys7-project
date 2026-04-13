@@ -49,6 +49,10 @@ public enum ErrorCode {
     // Message
     MESSAGE_PUBLISH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "메시지 발행에 실패했습니다."),
 
+    // Skill
+    SKILL_NOT_FOUND(HttpStatus.NOT_FOUND, "기술을 찾을 수 없습니다."),
+    SKILL_UPDATE_DATA_NULL(HttpStatus.BAD_REQUEST, "업데이트 데이터를 입력해주세요."),
+
     // Common
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "잘못된 입력값입니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."),

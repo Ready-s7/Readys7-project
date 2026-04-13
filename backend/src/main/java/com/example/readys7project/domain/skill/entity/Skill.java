@@ -1,8 +1,11 @@
 package com.example.readys7project.domain.skill.entity;
 
+import com.example.readys7project.domain.skill.dto.request.UpdateSkillRequestDto;
 import com.example.readys7project.domain.skill.enums.SkillCategory;
 import com.example.readys7project.domain.user.admin.entity.Admin;
 import com.example.readys7project.global.entity.BaseEntity;
+import com.example.readys7project.global.exception.common.ErrorCode;
+import com.example.readys7project.global.exception.domain.SkillException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -43,4 +46,12 @@ public class Skill extends BaseEntity {
         this.skillCategory = skillCategory;
     }
 
+    public void updateSkill(UpdateSkillRequestDto request) {
+        if (request.name() != null && !request.name().isBlank()) {
+            this.name = request.name();
+        }
+        if (request.category() != null) {
+            this.skillCategory = request.category();
+        }
+    }
 }
