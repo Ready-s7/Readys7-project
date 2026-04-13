@@ -5,12 +5,14 @@ import com.example.readys7project.domain.user.developer.enums.ParticipateType;
 import com.example.readys7project.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SoftDelete;
 
 
 @Getter
 @Entity
 @Table(name = "developers")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SoftDelete
 public class Developer extends BaseEntity {
 
     @Id
