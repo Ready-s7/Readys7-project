@@ -1,5 +1,6 @@
 package com.example.readys7project.domain.user.auth.entity;
 
+import com.example.readys7project.domain.user.auth.dto.request.UpdateUserInformationRequestDto;
 import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -42,6 +43,13 @@ public class User extends BaseEntity {
         this.password = password;
         this.name = name;
         this.userRole = userRole;
+        this.phoneNumber = phoneNumber;
+        this.description = description;
+    }
+
+    // 유저 정보 수정 메서드
+    public void updateUserInformation(String name, String phoneNumber, String description) {
+        this.name = name;
         this.phoneNumber = phoneNumber;
         this.description = description;
     }

@@ -31,7 +31,7 @@ public class AuthController {
             @Valid @RequestBody @RequestParam(required = false) ClientRegisterRequestDto clientRegisterRequestDto,
             @Valid @RequestBody @RequestParam(required = false) DeveloperRegisterRequestDto developerRegisterRequestDto
     ) {
-        return ResponseEntity.ok(ApiResponseDto.success
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success
                 (HttpStatus.CREATED, authService.register(
                         userRegisterRequestDto,
                         adminRegisterRequestDto,
@@ -94,7 +94,7 @@ public class AuthController {
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         authService.logout(userDetails.getEmail());
-        return ResponseEntity.ok()
+        return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .body(ApiResponseDto.successWithNoContent());
     }
 }

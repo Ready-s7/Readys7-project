@@ -1,6 +1,6 @@
 package com.example.readys7project.domain.user.auth.dto.request;
 
-import com.example.readys7project.domain.user.auth.enums.ParticipateType;
+import com.example.readys7project.domain.user.enums.ParticipateType;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
 
