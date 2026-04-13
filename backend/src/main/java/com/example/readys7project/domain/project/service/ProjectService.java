@@ -161,7 +161,7 @@ public class ProjectService {
 
         // 6. 프로젝트 정보 업데이트
         // Dirty Checking에 의해 트랜잭션 종료 시 자동으로 UPDATE 쿼리가 실행됨
-        project.update(
+        project.updateProject(
                 request.title(),
                 request.description(),
                 category,

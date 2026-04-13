@@ -137,7 +137,7 @@ public class CategoryService {
 
         // 5. 카테고리 정보 업데이트
         // Dirty Checking에 의해 트랜잭션 종료 시 자동으로 UPDATE 쿼리가 실행됨
-        category.update(
+        category.updateCategory(
                 request.name(),
                 request.icon(),
                 request.description(),

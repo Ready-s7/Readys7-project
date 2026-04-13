@@ -43,7 +43,7 @@ public class Category extends BaseEntity {
         this.displayOrder = displayOrder;
     }
 
-    public void update(
+    public void updateCategory(
             String name,
             String icon,
             String description,

@@ -88,7 +88,7 @@ public class Project extends BaseEntity {
 
     }
 
-    public void update(
+    public void updateProject(
             String title,
             String description,
             Category category,
