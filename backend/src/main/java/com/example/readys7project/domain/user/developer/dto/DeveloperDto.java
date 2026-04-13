@@ -1,6 +1,6 @@
 package com.example.readys7project.domain.user.developer.dto;
 
-import com.example.readys7project.domain.user.developer.enums.ParticipateType;
+import com.example.readys7project.domain.user.enums.ParticipateType;
 import lombok.Builder;
 
 @Builder

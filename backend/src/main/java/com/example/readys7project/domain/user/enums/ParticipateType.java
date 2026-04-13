@@ -1,4 +1,4 @@
-package com.example.readys7project.domain.user.auth.enums;
+package com.example.readys7project.domain.user.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -6,10 +6,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum ParticipateType {
-
     INDIVIDUAL("개인"),
     COMPANY("회사");
 
     private final String title;
-
 }
