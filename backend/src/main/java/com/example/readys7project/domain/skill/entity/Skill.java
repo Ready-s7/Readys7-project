@@ -30,13 +30,14 @@ public class Skill extends BaseEntity {
     @JoinColumn(name = "admin_id")
     private Admin admin;
 
-    @Column(nullable = false, length = 20)
+    @Column(name = "name", nullable = false, length = 20)
     private String name;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(name = "category", nullable = false, length = 20)
     private SkillCategory skillCategory;
 
+    @Column(name = "is_deleted")
     private boolean isDeleted = false;
 
     @Builder

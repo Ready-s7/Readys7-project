@@ -37,9 +37,7 @@ public class ChatRoomService {
     public ChatRoomDto createChatRoom(CreateChatRoomRequestDto request, String email) {
 
         // user 가져오기
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new ChatRoomException(ErrorCode.USER_NOT_FOUND)
-        );
+        User user = findUser(email);
 
         // 클라이언트인지 검증
         if (!user.getUserRole().equals(UserRole.CLIENT)) {
@@ -97,9 +95,7 @@ public class ChatRoomService {
     @Transactional(readOnly = true)
     public Page<ChatRoomDto> getMyChatRooms(String email, Pageable pageable) {
         // user 가져오기
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new ChatRoomException(ErrorCode.USER_NOT_FOUND)
-        );
+        User user = findUser(email);
 
         // chatRoom 페이지 조회
         // 메서드 내부에서 client인지 developer인지 검증
@@ -121,5 +117,11 @@ public class ChatRoomService {
                 .unreadCount(unreadCount)
                 .createdAt(chatRoom.getCreatedAt())
                 .build();
+    }
+
+    private User findUser(String email) {
+        return userRepository.findByEmail(email).orElseThrow(
+                () -> new ChatRoomException(ErrorCode.USER_NOT_FOUND)
+        );
     }
 }
