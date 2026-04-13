@@ -8,8 +8,8 @@ import com.example.readys7project.domain.proposal.entity.Proposal;
 import com.example.readys7project.domain.proposal.enums.ProposalStatus;
 import com.example.readys7project.domain.proposal.repository.ProposalRepository;
 import com.example.readys7project.domain.review.dto.ReviewDto;
-import com.example.readys7project.domain.review.dto.request.ReviewRequest;
-import com.example.readys7project.domain.review.dto.request.ReviewUpdateRequest;
+import com.example.readys7project.domain.review.dto.request.ReviewRequestDto;
+import com.example.readys7project.domain.review.dto.request.ReviewUpdateRequestDto;
 import com.example.readys7project.domain.review.entity.Review;
 import com.example.readys7project.domain.review.repository.ReviewRepository;
 import com.example.readys7project.domain.user.auth.entity.User;
@@ -53,7 +53,7 @@ public class ReviewService {
     // 리뷰 생성 비즈니스 로직
 
     @Transactional
-    public ReviewDto createReview(ReviewRequest request,Long targetUserId ,String userEmail) {
+    public ReviewDto createReview(ReviewRequestDto request, Long targetUserId , String userEmail) {
 
         // 작성자 존재 검증
         User user = userRepository.findByEmail(userEmail)
@@ -64,7 +64,7 @@ public class ReviewService {
                 .orElseThrow(() -> new ReviewException(ErrorCode.USER_NOT_FOUND));
 
         // 프로젝트 조회
-        Project project = projectRepository.findById(request.getProjectId())
+        Project project = projectRepository.findById(request.projectId())
                 .orElseThrow(() -> new ReviewException(ErrorCode.PROJECT_NOT_FOUND));
 
 
@@ -128,8 +128,8 @@ public class ReviewService {
                     .developer(developer)
                     .client(client)
                     .project(project)
-                    .rating(request.getRating())
-                    .comment(request.getComment())
+                    .rating(request.rating())
+                    .comment(request.comment())
                     .build();
 
             savedReview = reviewRepository.save(review);
@@ -145,8 +145,8 @@ public class ReviewService {
                     .developer(developer)
                     .client(client)
                     .project(project)
-                    .rating(request.getRating())
-                    .comment(request.getComment())
+                    .rating(request.rating())
+                    .comment(request.comment())
                     .build();
 
             savedReview = reviewRepository.save(review);
@@ -254,7 +254,7 @@ public class ReviewService {
 
     // 리뷰 수정
     @Transactional
-    public ReviewDto updateReview(Long reviewId, @Valid ReviewUpdateRequest request, String email) {
+    public ReviewDto updateReview(Long reviewId, @Valid ReviewUpdateRequestDto request, String email) {
 
         // 사용자 검증
         User user= userRepository.findByEmail(email)
@@ -278,7 +278,7 @@ public class ReviewService {
             throw new ReviewException(ErrorCode.USER_FORBIDDEN);
         }
 
-        review.update(request.getRating(), request.getComment());
+        review.update(request.rating(), request.comment());
 
         Review updatedReview = reviewRepository.save(review);
 

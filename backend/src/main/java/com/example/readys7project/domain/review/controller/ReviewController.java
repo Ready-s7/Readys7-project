@@ -1,8 +1,8 @@
 package com.example.readys7project.domain.review.controller;
 
 import com.example.readys7project.domain.review.dto.ReviewDto;
-import com.example.readys7project.domain.review.dto.request.ReviewRequest;
-import com.example.readys7project.domain.review.dto.request.ReviewUpdateRequest;
+import com.example.readys7project.domain.review.dto.request.ReviewRequestDto;
+import com.example.readys7project.domain.review.dto.request.ReviewUpdateRequestDto;
 import com.example.readys7project.domain.review.service.ReviewService;
 import com.example.readys7project.global.dto.ApiResponseDto;
 import com.example.readys7project.global.security.CustomUserDetails;
@@ -25,7 +25,7 @@ public class ReviewController {
     // 리뷰 생성
     @PostMapping("/v1/reviews")
     public ResponseEntity<ApiResponseDto<ReviewDto>> createReview(
-            @Valid @RequestBody ReviewRequest request,
+            @Valid @RequestBody ReviewRequestDto request,
             @RequestParam Long targetUserId,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
@@ -49,7 +49,7 @@ public class ReviewController {
     @PatchMapping("/v1/reviews/{reviewId}")
     public ResponseEntity<ApiResponseDto<ReviewDto>> updateReview(
             @PathVariable Long reviewId,
-            @Valid @RequestBody ReviewUpdateRequest request,
+            @Valid @RequestBody ReviewUpdateRequestDto request,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ){
         String email = customUserDetails.getEmail();
