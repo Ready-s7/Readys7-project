@@ -1,13 +1,14 @@
 package com.example.readys7project.domain.review.controller;
 
 import com.example.readys7project.domain.review.dto.ReviewDto;
-import com.example.readys7project.domain.review.dto.request.ReviewRequest;
-import com.example.readys7project.domain.review.dto.request.ReviewUpdateRequest;
+import com.example.readys7project.domain.review.dto.request.ReviewRequestDto;
+import com.example.readys7project.domain.review.dto.request.ReviewUpdateRequestDto;
 import com.example.readys7project.domain.review.service.ReviewService;
 import com.example.readys7project.global.dto.ApiResponseDto;
 import com.example.readys7project.global.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,7 +26,7 @@ public class ReviewController {
     // 리뷰 생성
     @PostMapping("/v1/reviews")
     public ResponseEntity<ApiResponseDto<ReviewDto>> createReview(
-            @Valid @RequestBody ReviewRequest request,
+            @Valid @RequestBody ReviewRequestDto request,
             @RequestParam Long targetUserId,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
@@ -33,23 +34,45 @@ public class ReviewController {
         return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.CREATED, reviewService.createReview(request,targetUserId,email)));
     }
 
-    // 비 로그인도 가능.  구분선 params 추가
+    // 개발자 조회
+    //  구분선 params 추가
     @GetMapping(value = "/v1/reviews", params = "developerId")
-    public ResponseEntity<ApiResponseDto<List<ReviewDto>>> getReviewsByDeveloper(@RequestParam Long developerId) {
-        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, reviewService.getReviewsByDeveloper(developerId)));
+    public ResponseEntity<ApiResponseDto<Page<ReviewDto>>> getReviewsByDeveloper(
+            @RequestParam Long developerId,
+            @RequestParam(required = false) Integer rating,
+            @RequestParam(required = false) Integer minRating,
+            @RequestParam(required = false) Integer maxRating,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails
+    ) {
+        String email = customUserDetails.getEmail();
+        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, reviewService.getReviewsByDeveloper(developerId, rating, minRating, maxRating, page, size,email)));
     }
 
-    // 비 로그인도 가능. 구분선 params 추가
+
+    // 클라이언트 조회
+    // . 구분선 params 추가
     @GetMapping(value = "/v1/reviews", params = "clientId")
-    public ResponseEntity<ApiResponseDto<List<ReviewDto>>> getReviewsByClient(@RequestParam Long clientId) {
-        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, reviewService.getReviewsByClient(clientId)));
+    public ResponseEntity<ApiResponseDto<Page<ReviewDto>>> getReviewsByClient(
+            @RequestParam Long clientId,
+            @RequestParam(required = false) Integer rating,
+            @RequestParam(required = false) Integer minRating,
+            @RequestParam(required = false) Integer maxRating,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails
+    )
+    {
+        String email = customUserDetails.getEmail();
+        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, reviewService.getReviewsByClient(clientId, rating, minRating, maxRating, page, size,email)));
     }
 
     // 리뷰 수정
     @PatchMapping("/v1/reviews/{reviewId}")
     public ResponseEntity<ApiResponseDto<ReviewDto>> updateReview(
             @PathVariable Long reviewId,
-            @Valid @RequestBody ReviewUpdateRequest request,
+            @Valid @RequestBody ReviewUpdateRequestDto request,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ){
         String email = customUserDetails.getEmail();

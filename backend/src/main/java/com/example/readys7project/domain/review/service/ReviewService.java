@@ -8,8 +8,8 @@ import com.example.readys7project.domain.proposal.entity.Proposal;
 import com.example.readys7project.domain.proposal.enums.ProposalStatus;
 import com.example.readys7project.domain.proposal.repository.ProposalRepository;
 import com.example.readys7project.domain.review.dto.ReviewDto;
-import com.example.readys7project.domain.review.dto.request.ReviewRequest;
-import com.example.readys7project.domain.review.dto.request.ReviewUpdateRequest;
+import com.example.readys7project.domain.review.dto.request.ReviewRequestDto;
+import com.example.readys7project.domain.review.dto.request.ReviewUpdateRequestDto;
 import com.example.readys7project.domain.review.entity.Review;
 import com.example.readys7project.domain.review.repository.ReviewRepository;
 import com.example.readys7project.domain.user.auth.entity.User;
@@ -24,6 +24,9 @@ import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.ReviewException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,7 +56,7 @@ public class ReviewService {
     // 리뷰 생성 비즈니스 로직
 
     @Transactional
-    public ReviewDto createReview(ReviewRequest request,Long targetUserId ,String userEmail) {
+    public ReviewDto createReview(ReviewRequestDto request, Long targetUserId , String userEmail) {
 
         // 작성자 존재 검증
         User user = userRepository.findByEmail(userEmail)
@@ -64,7 +67,7 @@ public class ReviewService {
                 .orElseThrow(() -> new ReviewException(ErrorCode.USER_NOT_FOUND));
 
         // 프로젝트 조회
-        Project project = projectRepository.findById(request.getProjectId())
+        Project project = projectRepository.findById(request.projectId())
                 .orElseThrow(() -> new ReviewException(ErrorCode.PROJECT_NOT_FOUND));
 
 
@@ -118,7 +121,7 @@ public class ReviewService {
         Review savedReview;
 
         if (user.getUserRole() == UserRole.CLIENT) {
-            client = clientRepository.findByUserId(user.getId())
+            client = clientRepository.findByUser(user)
                     .orElseThrow(() -> new ReviewException(ErrorCode.CLIENT_NOT_FOUND));
 
             developer = developerRepository.findByUser(targetUser)
@@ -128,14 +131,14 @@ public class ReviewService {
                     .developer(developer)
                     .client(client)
                     .project(project)
-                    .rating(request.getRating())
-                    .comment(request.getComment())
+                    .rating(request.rating())
+                    .comment(request.comment())
                     .build();
 
             savedReview = reviewRepository.save(review);
 
         } else if (user.getUserRole() == UserRole.DEVELOPER) {
-            client = clientRepository.findByUserId(targetUser.getId())
+            client = clientRepository.findByUser(targetUser)
                     .orElseThrow(() -> new ReviewException(ErrorCode.CLIENT_NOT_FOUND));
 
             developer = developerRepository.findByUser(user)
@@ -145,8 +148,8 @@ public class ReviewService {
                     .developer(developer)
                     .client(client)
                     .project(project)
-                    .rating(request.getRating())
-                    .comment(request.getComment())
+                    .rating(request.rating())
+                    .comment(request.comment())
                     .build();
 
             savedReview = reviewRepository.save(review);
@@ -167,32 +170,58 @@ public class ReviewService {
     }
 
 
-        // 특정 개발자가 받은 리뷰 목록 조회
+    // 특정 개발자가 받은 리뷰 목록 조회
     // 특정 개발자의 클라이언트가 남긴 리뷰 조회
     @Transactional(readOnly = true)
-    public List<ReviewDto> getReviewsByDeveloper(Long developerId) {
+    public Page<ReviewDto> getReviewsByDeveloper(
+            Long developerId,
+            Integer rating,
+            Integer minRating,
+            Integer maxRating,
+            int page,
+            int size,
+            String email
+    ) {
+
+        // 검증 로직
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ReviewException(ErrorCode.USER_NOT_FOUND));
 
         Developer developer =developerRepository.findById(developerId).orElseThrow(
                 ()-> new ReviewException(ErrorCode.DEVELOPER_NOT_FOUND));
 
-        return reviewRepository.findByDeveloperId(developerId).stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+        Pageable pageable = PageRequest.of(page - 1, size);
+
+        return reviewRepository.searchReviewsByDeveloper(developerId, rating, minRating, maxRating, pageable)
+                .map(this::convertToDto);
     }
 
 
     // 클라이언트에 개발자가 남긴 리뷰 목록
     // 클라이언트 리뷰 목록 조회
     @Transactional(readOnly = true)
-    public List<ReviewDto> getReviewsByClient(Long clientId) {
+    public Page<ReviewDto> getReviewsByClient
+    (  Long clientId,
+       Integer rating,
+       Integer minRating,
+       Integer maxRating,
+       int page,
+       int size,
+       String email
+    ) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ReviewException(ErrorCode.USER_NOT_FOUND));
 
         // 클라이언트 조회 검증
         Client client=clientRepository.findById(clientId).orElseThrow(
                 ()->new ReviewException(ErrorCode.CLIENT_NOT_FOUND)
         );
-        return reviewRepository.findByClientId(clientId).stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+
+        Pageable pageable = PageRequest.of(page - 1, size);
+
+
+        return reviewRepository.searchReviewsByClient(clientId, rating, minRating, maxRating, pageable)
+                .map(this::convertToDto);
     }
 
 
@@ -254,7 +283,7 @@ public class ReviewService {
 
     // 리뷰 수정
     @Transactional
-    public ReviewDto updateReview(Long reviewId, @Valid ReviewUpdateRequest request, String email) {
+    public ReviewDto updateReview(Long reviewId, @Valid ReviewUpdateRequestDto request, String email) {
 
         // 사용자 검증
         User user= userRepository.findByEmail(email)
@@ -278,7 +307,7 @@ public class ReviewService {
             throw new ReviewException(ErrorCode.USER_FORBIDDEN);
         }
 
-        review.update(request.getRating(), request.getComment());
+        review.update(request.rating(), request.comment());
 
         Review updatedReview = reviewRepository.save(review);
 

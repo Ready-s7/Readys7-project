@@ -7,19 +7,17 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-@Data
+
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class ReviewDto {
-    private Long id;
-    private Long developerId;
-    private String developerName;
-    private Long clientId;
-    private String clientName;
-    private Long projectId;
-    private String projectTitle;
-    private Integer rating;
-    private String comment;
-    private LocalDateTime createdAt;
-}
+public record ReviewDto (
+        Long id,
+        Long developerId,
+        String developerName,
+        Long clientId,
+        String clientName,
+        Long projectId,
+        String projectTitle,
+        Integer rating,
+        String comment,
+        LocalDateTime createdAt
+){}

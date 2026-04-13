@@ -47,7 +47,7 @@ public class ChatRoomService {
         }
 
         // client 가져오기
-        Client client = clientRepository.findByUserId(user.getId()).orElseThrow(
+        Client client = clientRepository.findByUser(user).orElseThrow(
                 () -> new ChatRoomException(ErrorCode.CLIENT_NOT_FOUND)
         );
 
