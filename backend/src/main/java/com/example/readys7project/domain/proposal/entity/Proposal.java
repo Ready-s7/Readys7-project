@@ -9,13 +9,15 @@ import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.ProposalException;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.SoftDelete;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Getter
 @Entity
 @Table(name = "proposals")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SoftDelete
+@SQLDelete(sql = "UPDATE proposals SET is_deleted = true WHERE id = ?") // 삭제 시 실행될 SQL 커스텀
+@SQLRestriction("is_deleted = false")
 public class Proposal extends BaseEntity {
 
     @Id
@@ -42,6 +44,8 @@ public class Proposal extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProposalStatus status = ProposalStatus.PENDING;
+
+    private boolean isDeleted = false;
 
     @Builder
     public Proposal(Project project, Developer developer, String coverLetter, String proposedBudget, String proposedDuration, ProposalStatus status) {

@@ -8,11 +8,16 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 
 @Getter
 @Entity
 @Table(name = "clients")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SQLDelete(sql = "UPDATE clients SET is_deleted = true WHERE id = ?") // 삭제 시 실행될 SQL 커스텀
+@SQLRestriction("is_deleted = false")
 public class Client extends BaseEntity {
 
     @Id
@@ -37,6 +42,8 @@ public class Client extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private ParticipateType participateType;
+
+    private boolean isDeleted = false;
 
     @Builder
     public Client(User user, String title, int completedProject, Double rating, int reviewCount, ParticipateType participateType) {

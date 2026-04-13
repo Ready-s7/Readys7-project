@@ -1,6 +1,5 @@
 package com.example.readys7project.domain.user.admin.entity;
 
-import com.example.readys7project.domain.user.admin.dto.request.UpdateAdminStatusRequestDto;
 import com.example.readys7project.domain.user.admin.enums.AdminRole;
 import com.example.readys7project.domain.user.admin.enums.AdminStatus;
 import com.example.readys7project.domain.user.auth.entity.User;
@@ -12,14 +11,16 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.SoftDelete;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 
 @Getter
 @Entity
 @Table(name = "admins")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SoftDelete
-
+@SQLDelete(sql = "UPDATE admins SET is_deleted = true WHERE id = ?") // 삭제 시 실행될 SQL 커스텀
+@SQLRestriction("is_deleted = false")
 public class Admin extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,7 +36,7 @@ public class Admin extends BaseEntity {
     @Column(name = "status", nullable = false)
     private AdminStatus status;
 
-
+    private boolean isDeleted = false;
 
     // 관리자는 회원가입시 PENDING상태로 강제
     @Builder

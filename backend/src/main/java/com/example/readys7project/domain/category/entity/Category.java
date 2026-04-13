@@ -6,11 +6,15 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "categories")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SQLDelete(sql = "UPDATE categories SET is_deleted = true WHERE id = ?") // 삭제 시 실행될 SQL 커스텀
+@SQLRestriction("is_deleted = false")
 public class Category extends BaseEntity {
 
     @Id
@@ -26,6 +30,8 @@ public class Category extends BaseEntity {
 
     @Column(nullable = false)
     private Integer displayOrder; // DB 정렬을 위한 컬럼
+
+    private boolean isDeleted = false;
 
     @Builder
     public Category(String name, String icon, String description, Integer displayOrder) {

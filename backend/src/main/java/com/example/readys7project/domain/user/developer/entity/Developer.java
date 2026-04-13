@@ -5,14 +5,16 @@ import com.example.readys7project.domain.user.developer.enums.ParticipateType;
 import com.example.readys7project.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.SoftDelete;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 
 @Getter
 @Entity
 @Table(name = "developers")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SoftDelete
+@SQLDelete(sql = "UPDATE developers SET is_deleted = true WHERE id = ?") // 삭제 시 실행될 SQL 커스텀
+@SQLRestriction("is_deleted = false")
 public class Developer extends BaseEntity {
 
     @Id
@@ -54,6 +56,7 @@ public class Developer extends BaseEntity {
     @Column(name = "participate_type")
     private ParticipateType participateType;   // 개발자 유형 (개인 or 회사)
 
+    private boolean isDeleted = false;
 
 
     @Builder
