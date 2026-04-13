@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ProjectRepository extends JpaRepository<Project, Long> {
+public interface ProjectRepository extends JpaRepository<Project, Long>, ProjectQueryRepository {
     List<Project> findByClientId(Long clientId);
     List<Project> findByCategory(Category category);
     List<Project> findByStatus(ProjectStatus status);

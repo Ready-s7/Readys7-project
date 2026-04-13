@@ -32,7 +32,6 @@ public class ProjectService {
     private final UserRepository userRepository;
     private final ClientRepository clientRepository;
     private final CategoryRepository categoryRepository;
-    private final ProjectQueryRepositoryImpl projectQueryRepositoryImpl;
 
     /**
      * 프로젝트 생성 (CLIENT 역할을 가진 사용자만 가능)
@@ -124,7 +123,7 @@ public class ProjectService {
             ProjectStatus.valueOf(status.toUpperCase()) : null;
 
         // 3. 조건에 맞는 프로젝트 목록 조회 후 DTO 변환하여 반환
-        return projectQueryRepositoryImpl.searchProjects(category, projectStatus, skill, pageable)
+        return projectRepository.searchProjects(category, projectStatus, skill, pageable)
                 .map(this::convertToDto);
     }
 
