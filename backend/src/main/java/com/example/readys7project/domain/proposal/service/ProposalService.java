@@ -73,7 +73,7 @@ public class ProposalService {
         Proposal savedProposal = proposalRepository.save(proposal);
 
         // 프로젝트의 제안 수 증가
-//        projectService.incrementProposalCount(project.getId());
+        projectService.incrementProposalCount(project.getId());
 
         return convertToDto(savedProposal);
     }
