@@ -3,18 +3,18 @@ package com.example.readys7project.domain.review.entity;
 import com.example.readys7project.domain.user.client.entity.Client;
 import com.example.readys7project.domain.user.developer.entity.Developer;
 import com.example.readys7project.domain.project.entity.Project;
-import com.example.readys7project.domain.proposal.entity.Proposal;
-import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.SoftDelete;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
-@SoftDelete
 @Getter
 @Entity
 @Table(name = "reviews")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SQLDelete(sql = "UPDATE reviews SET is_deleted = true WHERE id = ?") // 삭제 시 실행될 SQL 커스텀
+@SQLRestriction("is_deleted = false")
 public class Review extends BaseEntity {
 
     @Id
@@ -44,6 +44,8 @@ public class Review extends BaseEntity {
     // 리뷰 코멘트
     @Column(columnDefinition = "TEXT", nullable = false)
     private String comment;
+
+    private boolean isDeleted = false;
 
     @Builder
     public Review(Developer developer,Client client ,Project project, Integer rating, String comment) {

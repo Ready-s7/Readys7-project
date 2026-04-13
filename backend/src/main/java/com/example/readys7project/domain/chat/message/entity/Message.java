@@ -8,13 +8,15 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.SoftDelete;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Getter
 @Entity
 @Table(name = "messages")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SoftDelete
+@SQLDelete(sql = "UPDATE messages SET is_deleted = true WHERE id = ?") // 삭제 시 실행될 SQL 커스텀
+@SQLRestriction("is_deleted = false")
 public class Message extends BaseEntity {
 
     @Id
@@ -37,6 +39,8 @@ public class Message extends BaseEntity {
 
     @Column(nullable = false)
     private Boolean isSystem = false;  // 시스템 메시지 여부
+
+    private boolean isDeleted = false;
 
     @Builder
     public Message (ChatRoom chatRoom, User user, String content, Boolean isSystem) {

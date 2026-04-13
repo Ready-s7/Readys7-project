@@ -9,17 +9,18 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.SoftDelete;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Table(name = "projects")
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SoftDelete
+@SQLDelete(sql = "UPDATE projects SET is_deleted = true WHERE id = ?") // 삭제 시 실행될 SQL 커스텀
+@SQLRestriction("is_deleted = false")
 public class Project extends BaseEntity {
 
     @Id
@@ -60,6 +61,8 @@ public class Project extends BaseEntity {
 
     @Column(nullable = false)
     private Integer maxProposalCount;     // 최대 제안서 수
+
+    private boolean isDeleted = false;
 
     @Builder
     public Project(Client client, String title, String description, String skills, Category category,

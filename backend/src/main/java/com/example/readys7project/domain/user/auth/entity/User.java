@@ -5,14 +5,15 @@ import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.SoftDelete;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Getter
 @Entity
 @Table(name = "users")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SoftDelete
-
+@SQLDelete(sql = "UPDATE users SET is_deleted = true WHERE id = ?") // 삭제 시 실행될 SQL 커스텀
+@SQLRestriction("is_deleted = false")
 public class User extends BaseEntity {
 
     @Id
@@ -36,6 +37,8 @@ public class User extends BaseEntity {
     private String phoneNumber;
 
     private String description;
+
+    private boolean isDeleted = false;
 
     @Builder
     public User(String email, String password, String name, UserRole userRole, String phoneNumber, String description) {
