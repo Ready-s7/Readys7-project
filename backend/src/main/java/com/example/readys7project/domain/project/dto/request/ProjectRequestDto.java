@@ -28,7 +28,7 @@ public record ProjectRequestDto(
     @NotNull(message = "기간은 필수입니다.")
     Integer duration,
 
-    String skills,
+    List<String> skills,
 
     @NotNull(message = "최대 지원자 수는 필수입니다.")
     Integer maxProposalCount

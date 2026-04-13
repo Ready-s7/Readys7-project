@@ -24,8 +24,10 @@ public enum ErrorCode {
     // Project
     PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "프로젝트를 찾을 수 없습니다."),
     PROJECT_ALREADY_CLOSED(HttpStatus.BAD_REQUEST,"이미 마감된 프로젝트입니다."),
+
     // Category
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND,"카테고리를 찾을 수 없습니다."),
+    CATEGORY_ALREADY_EXISTS(HttpStatus.CONFLICT,"이미 존재하는 카테고리입니다."),
 
     // Proposal
     PROPOSAL_NOT_FOUND(HttpStatus.NOT_FOUND, "제안서를 찾을 수 없습니다."),
@@ -38,6 +40,7 @@ public enum ErrorCode {
     ADMIN_STATUS_NOT_MATCH(HttpStatus.BAD_REQUEST, "승인 대기중 상태가 아닙니다."),
     ADMIN_NOT_FOUND(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다"),
     ADMIN_ALREADY_APPROVE(HttpStatus.BAD_REQUEST, "이미 승인된 관리자 입니다."),
+    ADMIN_NOT_APPROVED(HttpStatus.FORBIDDEN, "승인되지 않은 관리자입니다."),
 
     // Review
     REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "리뷰를 찾을 수 없습니다."),

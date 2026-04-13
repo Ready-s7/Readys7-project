@@ -14,7 +14,7 @@ public record ProjectDto(
     Integer minBudget,
     Integer maxBudget,
     Integer duration,
-    String skills,
+    List<String> skills,
     String status,
     Integer currentProposalCount,
     Integer maxProposalCount,

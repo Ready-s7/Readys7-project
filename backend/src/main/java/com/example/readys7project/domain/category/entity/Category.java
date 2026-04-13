@@ -24,17 +24,31 @@ public class Category extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String name;
 
+    @Column(name = "icon")
     private String icon;
 
+    @Column(name = "description")
     private String description;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "display_order")
     private Integer displayOrder; // DB 정렬을 위한 컬럼
 
     private boolean isDeleted = false;
 
     @Builder
     public Category(String name, String icon, String description, Integer displayOrder) {
+        this.name = name;
+        this.icon = icon;
+        this.description = description;
+        this.displayOrder = displayOrder;
+    }
+
+    public void update(
+            String name,
+            String icon,
+            String description,
+            Integer displayOrder
+    ) {
         this.name = name;
         this.icon = icon;
         this.description = description;

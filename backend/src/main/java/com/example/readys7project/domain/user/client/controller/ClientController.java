@@ -61,7 +61,7 @@ public class ClientController {
     }
 
     // 내 프로젝트 목록 조회
-    @GetMapping("/v1/clients/my-project")
+    @GetMapping("/v1/clients/my-projects")
     public ResponseEntity<ApiResponseDto<GetClientProjectsListResponseDto>> getMyProjects(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam(defaultValue = "1") int page,

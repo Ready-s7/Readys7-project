@@ -3,6 +3,8 @@ package com.example.readys7project.domain.user.developer.dto;
 import com.example.readys7project.domain.user.enums.ParticipateType;
 import lombok.Builder;
 
+import java.util.List;
+
 @Builder
 public record DeveloperDto(
         Long id,
@@ -11,7 +13,7 @@ public record DeveloperDto(
         Double rating,
         Integer reviewCount,
         Integer completedProjects,
-        String skills,          // JSON 문자열
+        List<String> skills,          // JSON 문자열
         Integer minHourlyPay,
         Integer maxHourlyPay,
         String responseTime,
