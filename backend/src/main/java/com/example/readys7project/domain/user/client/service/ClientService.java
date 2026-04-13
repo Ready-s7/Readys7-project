@@ -5,6 +5,7 @@ import com.example.readys7project.domain.project.repository.ProjectRepository;
 import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.domain.user.auth.repository.UserRepository;
+import com.example.readys7project.domain.user.client.dto.response.ClientsResponseDto;
 import com.example.readys7project.domain.user.client.dto.request.UpdateClientProfileRequestDto;
 import com.example.readys7project.domain.user.client.dto.response.*;
 import com.example.readys7project.domain.user.client.entity.Client;
@@ -19,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -31,8 +33,9 @@ public class ClientService {
     private final ProjectRepository projectRepository;
 
     @Transactional(readOnly = true)
+
     // 클라이언트 목록 조회
-    public GetAllClientsListResponseDto getClients(
+    public PageResponseDto<ClientsResponseDto> getClients(
             CustomUserDetails customUserDetails,
             Pageable pageable
     ) {
@@ -40,60 +43,46 @@ public class ClientService {
         // 로그인 유저 정보 가져오기
         User user = customUserDetails.getUser();
 
-        // Pageable 세팅
-        Pageable convertPageable = PageRequest.of(
-                pageable.getPageNumber() - 1,
-                pageable.getPageSize());
+        // 로그인 유저 권한 체크
+        validateRole(user);
 
         // 유저의 정보가 존재하는지 유저레포에 확인
-        userRepository.findById(user.getId())
-                .orElseThrow(() -> new ClientException(ErrorCode.USER_NOT_FOUND));
+        boolean exist = userRepository.existsById(user.getId());
+        if (!exist) {
+            throw new ClientException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        // Pageable 세팅
+        Pageable converted = convertPageable(pageable);
 
         // Client 페이징 조회
-        Page<Client> clientPage = clientRepository.findAll(convertPageable);
+        Page<Client> clientPage = clientRepository.findAll(converted);
 
-        // clientPage를 ClientSummaryResponseDto로 변환
-        List<ClientSummaryResponseDto> clientList = clientPage.getContent().stream()
-                .map(ClientSummaryResponseDto::new)
+        // ClientPage를 ClientsResponseDto로 변환
+        List<ClientsResponseDto> clientList = clientPage.getContent().stream()
+                .map(ClientsResponseDto::from)
                 .toList();
 
-        // GetAllClientsListResponseDto 반환
-        return new GetAllClientsListResponseDto(
-                clientList,
-                clientPage.getNumber() + 1,
-                clientPage.getSize(),
-                clientPage.getTotalElements(),
-                clientPage.getTotalPages()
-        );
+        // PageResponseDto 공통 페이징 DTO로 반환
+        return PageResponseDto.of(clientPage, clientList);
     }
 
     // 클라이언트 상세 조회
     @Transactional(readOnly = true)
-    public GetClientDetailResponseDto getClientDetail(Long clientId, CustomUserDetails customUserDetails) {
+    public ClientsResponseDto getClientDetail(Long clientId, CustomUserDetails customUserDetails) {
 
         // 로그인 유저 정보 가져오기
         User user = customUserDetails.getUser();
 
         // 로그인 유저 권한 체크
-        if(user.getUserRole() == null){
-            throw new ClientException(ErrorCode.USER_UNAUTHORIZED);
-        }
+        validateRole(user);
 
         // 클라이언트 레포에 존재여부 확인
         Client client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new ClientException(ErrorCode.CLIENT_NOT_FOUND));
 
         // Dto 반환
-        return new GetClientDetailResponseDto(
-                client.getId(),
-                client.getUser().getName(),
-                client.getTitle(),
-                client.getCompletedProject(),
-                client.getRating(),
-                client.getReviewCount(),
-                client.getParticipateType(),
-                client.getUser().getDescription()
-        );
+        return ClientsResponseDto.from(client);
     }
 
     @Transactional
@@ -115,7 +104,7 @@ public class ClientService {
         Client client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new ClientException(ErrorCode.CLIENT_NOT_FOUND));
 
-        // 본인 확인
+        // 본인이 맞는지 확인
         if(!client.getUser().getId().equals(user.getId())) {
             throw new ClientException(ErrorCode.USER_FORBIDDEN);
         }
@@ -125,52 +114,75 @@ public class ClientService {
                 updateClientProfileRequestDto.title(),
                 updateClientProfileRequestDto.participateType());
 
-        clientRepository.saveAndFlush(client);
+        clientRepository.save(client);
 
-        return new UpdateClientProfileResponseDto(
-                client.getId(),
-                client.getTitle(),
-                client.getParticipateType(),
-                client.getUpdatedAt()
-        );
+        return UpdateClientProfileResponseDto.builder()
+                .clientId(client.getId())
+                .title(client.getTitle())
+                .participateType(client.getParticipateType())
+                .updatedAt(client.getUpdatedAt())
+                .build();
     }
 
     @Transactional(readOnly = true)
-    public GetClientProjectsListResponseDto getMyProjects(CustomUserDetails customUserDetails, Pageable pageable) {
+    public PageResponseDto<ClientProjectsListResponseDto> getMyProjects(
+            CustomUserDetails customUserDetails, Pageable pageable
+    ) {
 
         // 로그인 유저 정보 가져오기
         User user = customUserDetails.getUser();
 
+        validateRole(user);
+
         // 페이징 세팅
-        Pageable convertPageable = PageRequest.of(
-                pageable.getPageNumber() - 1,
-                pageable.getPageSize()
-        );
+        Pageable converted = convertPageable(pageable);
 
         // 클라이언트 유저 찾아보기
         Client client = clientRepository.findByUser(user)
                 .orElseThrow(() -> new ClientException(ErrorCode.CLIENT_NOT_FOUND));
 
         // ClientId로 프로젝트 페이징 조회
-        Page<Project> projectPage = projectRepository.findByClientId(client.getId(), convertPageable);
+        Page<Project> projectPage = projectRepository.findByClientId(client.getId(), converted);
 
         // Project를 ClientProjectSummaryResponseDto로 변환
-        List<ClientProjectSummaryResponseDto> projectList = projectPage
-                .map(project -> new ClientProjectSummaryResponseDto(
-                        project.getId(),
-                        project.getTitle(),
-                        project.getStatus(),
-                        project.getCurrentProposalCount(),
-                        project.getCreatedAt()
-                )).toList();
+        List<ClientProjectsListResponseDto> projectList = projectPage.getContent().stream()
+                .map(ClientProjectsListResponseDto::from)
+                .toList();
 
         // Dto 반환
-        return new GetClientProjectsListResponseDto(
-                projectList,
-                pageable.getPageNumber() +1,
+        return PageResponseDto.of(projectPage, projectList);
+    }
+
+    //
+    public static Pageable convertPageable(Pageable pageable) {
+        return PageRequest.of(
+                Math.max(0, pageable.getPageNumber() -1),
                 pageable.getPageSize(),
-                projectPage.getTotalElements(),
-                projectPage.getTotalPages()
+                pageable.getSort()
         );
+        /* Math.max(a, b) -> 자바에서 제공하는 Math 함수
+           "둘 중에 더 큰놈만 살아남는다"는 원리
+           a와 b라는 두 값을 넣으면, 둘을 비교해서 더 큰 값을 결과로 돌려줌!
+
+           PageRequest.of() -> 내가 원하는 페이지 데이터를 가져오기 위한 "주문서"
+           PageRequest안에 있는 정적 팩토리 메서드인데, 객체를 직접 생성하지 않고, .of()로 간편하게 객체 생성
+
+           주요 파라미터
+
+           1. PageRequest.of(int page, int size)
+           -> page : 몇 번째 페이지를 가져올 것인지, size -> 한 페이지에 몇개의 데이터를 담을 것인지
+           2. PageRequest.of(int page, int size, Sort sort)
+           -> 1번에서 정렬 조건 (sort)를 추가한 것
+           3. PageRequest.of(int page, int size, Direction direction, String.... properties)
+           -> 정렬 방향(오름차순/내림차순)과 정렬한 기준 필드명을 직접 지정
+           */
+    }
+
+    // 로그인 유저 권한 체크
+    private void validateRole(User user) {
+        UserRole userRole = user.getUserRole();
+        if(!(UserRole.ADMIN.equals(userRole) || UserRole.CLIENT.equals(userRole))) {
+            throw new ClientException(ErrorCode.USER_FORBIDDEN);
+        }
     }
 }
