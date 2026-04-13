@@ -3,6 +3,8 @@ package com.example.readys7project.domain.portfolio.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 
+import java.util.List;
+
 
 @Builder
 public record
@@ -15,6 +17,6 @@ PortfolioRequestDto(
 
         String imageUrl,
         String projectUrl,
-        String skills
+        List<String> skills
 )
 { }

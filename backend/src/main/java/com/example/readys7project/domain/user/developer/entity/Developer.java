@@ -2,11 +2,14 @@ package com.example.readys7project.domain.user.developer.entity;
 
 import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.domain.user.enums.ParticipateType;
+import com.example.readys7project.global.converter.StringListConverter;
 import com.example.readys7project.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+
+import java.util.List;
 
 
 @Getter
@@ -43,8 +46,9 @@ public class Developer extends BaseEntity {
     @Column(name = "max_hourly_pay")
     private Integer maxHourlyPay;   // 시간당 요금
 
+    @Convert(converter = StringListConverter.class)
     @Column(columnDefinition = "json")
-    private String skills;   // 개발자 보유 스킬
+    private List<String> skills;   // 개발자 보유 스킬
 
     @Column(name = "response_time")
     private String responseTime;   // 응답 시간 (예: "1시간 이내")

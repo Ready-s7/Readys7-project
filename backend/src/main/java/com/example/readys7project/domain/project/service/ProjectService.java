@@ -6,6 +6,7 @@ import com.example.readys7project.domain.project.dto.ProjectDto;
 import com.example.readys7project.domain.project.dto.request.ProjectRequestDto;
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.project.enums.ProjectStatus;
+import com.example.readys7project.domain.project.repository.ProjectQueryRepositoryImpl;
 import com.example.readys7project.domain.project.repository.ProjectRepository;
 import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.domain.user.auth.enums.UserRole;
@@ -15,6 +16,8 @@ import com.example.readys7project.domain.user.client.repository.ClientRepository
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.ProjectException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -101,45 +104,27 @@ public class ProjectService {
     }
 
     /**
-     * 프로젝느 검색
+     * 프로젝트 검색
      * - category, status, skill 조건으로 필터링
      * - 각 조건은 null일 경우 무시 (동적 쿼리)
      * - 인증 없이 누구나 조회 가능
      */
     @Transactional(readOnly = true)
-    public List<ProjectDto> searchProjects(String category, String status, String skill) {
+    public Page<ProjectDto> searchProjects(Long categoryId, String status, List<String> skill, Pageable pageable) {
 
-        // 1. status 문자열을 Enum으로 변환 (null이면 전체 조회)
+        // 1. category 조회 (null이면 전체 조회)
+        Category category = categoryId != null
+                ? categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new ProjectException(ErrorCode.CATEGORY_NOT_FOUND))
+                : null;
+
+        // 2. status 문자열을 Enum으로 변환 (null이면 전체 조회)
         ProjectStatus projectStatus = status != null ?
             ProjectStatus.valueOf(status.toUpperCase()) : null;
 
-        // 2. 조건에 맞는 프로젝트 목록 조회 후 DTO 변환하여 반환
-        return projectRepository.searchProjects(category, projectStatus, skill).stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * 내가 등록한 프로젝트 목록 조회 (CLIENT 전용)
-     * - 로그인한 사용자가 등록한 프로젝트만 조회
-     * - CLIENT 역할이 아닌 경우 차단
-     */
-    @Transactional(readOnly = true)
-    public List<ProjectDto> getMyProjects(String userEmail) {
-
-        // 1. 요청한 사용자 존재 여부 검증
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
-
-        // 2. 요청한 사용자의 Client 역할 검증
-        Client client = clientRepository.findByUser(user)
-                .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
-
-
-        // 3. 해당 Client가 등록한 프로젝트 목록 조회 후 DTO 변환하여 반환
-        return projectRepository.findByClientId(client.getId()).stream()
-                .map(this::convertToDto)
-                .toList();
+        // 3. 조건에 맞는 프로젝트 목록 조회 후 DTO 변환하여 반환
+        return projectRepository.searchProjects(category, projectStatus, skill, pageable)
+                .map(this::convertToDto);
     }
 
     /**
@@ -175,7 +160,7 @@ public class ProjectService {
 
         // 6. 프로젝트 정보 업데이트
         // Dirty Checking에 의해 트랜잭션 종료 시 자동으로 UPDATE 쿼리가 실행됨
-        project.update(
+        project.updateProject(
                 request.title(),
                 request.description(),
                 category,

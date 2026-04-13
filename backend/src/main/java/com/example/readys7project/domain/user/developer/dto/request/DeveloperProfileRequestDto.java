@@ -5,13 +5,15 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
+import java.util.List;
+
 @ValidHourlyPayRange   // 커스텀 어노테이션
 public record DeveloperProfileRequestDto (
 
         @NotBlank(message = "직함은 필수입니다")
         String title,
 
-        String skills,        // JSON 문자열 ex: ["React", "Spring"]
+        List<String> skills,        // JSON 문자열 ex: ["React", "Spring"]
 
         @NotNull(message = "최소 시급은 필수입니다")
         @Positive(message = "최소 시급은 0보다 커야합니다")  // @Positive -> 양수만 허용

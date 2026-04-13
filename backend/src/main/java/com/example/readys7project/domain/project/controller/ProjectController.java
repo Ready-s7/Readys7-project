@@ -1,5 +1,6 @@
 package com.example.readys7project.domain.project.controller;
 
+import com.example.readys7project.domain.category.entity.Category;
 import com.example.readys7project.domain.project.dto.ProjectDto;
 import com.example.readys7project.domain.project.dto.request.ProjectRequestDto;
 import com.example.readys7project.domain.project.service.ProjectService;
@@ -7,6 +8,8 @@ import com.example.readys7project.global.dto.ApiResponseDto;
 import com.example.readys7project.global.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -45,23 +48,12 @@ public class ProjectController {
 
     // 프로젝트 검색
     @GetMapping("/v1/projects/search")
-    public ResponseEntity<ApiResponseDto<List<ProjectDto>>> searchProjects(
-            @RequestParam(required = false) String category,
+    public ResponseEntity<ApiResponseDto<Page<ProjectDto>>> searchProjects(
+            @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String skill) {
-        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, projectService.searchProjects(category, status, skill)));
-    }
-
-    // 내가 등록한 프로젝트 조회
-    @GetMapping("/v1/projects/my-projects")
-    public ResponseEntity<ApiResponseDto<List<ProjectDto>>> getMyProjects(
-            @AuthenticationPrincipal CustomUserDetails customUserDetails
-    ) {
-        String email = customUserDetails.getEmail();
-
-        return ResponseEntity.ok(
-                ApiResponseDto.success(HttpStatus.OK,
-                        projectService.getMyProjects(email)));
+            @RequestParam(required = false) List<String> skill,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, projectService.searchProjects(categoryId, status, skill, pageable)));
     }
 
     // 프로젝트 수정 (본인 Client만 가능)

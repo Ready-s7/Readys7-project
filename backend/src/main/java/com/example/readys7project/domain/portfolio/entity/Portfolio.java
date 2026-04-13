@@ -2,6 +2,7 @@ package com.example.readys7project.domain.portfolio.entity;
 
 
 import com.example.readys7project.domain.user.developer.entity.Developer;
+import com.example.readys7project.global.converter.StringListConverter;
 import com.example.readys7project.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -12,6 +13,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+
+import java.util.List;
 
 
 @Entity
@@ -42,9 +45,9 @@ public class Portfolio extends BaseEntity {
     @Column(name = "project_url", length = 2083)
     private String projectUrl;
 
-
+    @Convert(converter = StringListConverter.class)
     @Column(name = "skills", columnDefinition = "json")
-    private String skills;
+    private List<String> skills;
 
 
     private boolean isDeleted = false;
