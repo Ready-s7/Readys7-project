@@ -73,7 +73,7 @@ public class ProposalService {
         Proposal savedProposal = proposalRepository.save(proposal);
 
         // 프로젝트의 제안 수 증가
-        projectService.incrementProposalCount(project.getId());
+//        projectService.incrementProposalCount(project.getId());
 
         return convertToDto(savedProposal);
     }
@@ -168,6 +168,17 @@ public class ProposalService {
                 || user.getUserRole().equals(UserRole.ADMIN)
         )) {
             throw new ProposalException(ErrorCode.USER_FORBIDDEN);
+        }
+
+        // ACCEPTED로 변경하려는 경우에만 검증
+        if (request.status().equals(ProposalStatus.ACCEPTED)) {
+            boolean alreadyAccepted = proposalRepository.existsByProjectIdAndStatus(
+                    proposal.getProject().getId(),
+                    ProposalStatus.ACCEPTED
+            );
+            if (alreadyAccepted) {
+                throw new ProposalException(ErrorCode.PROPOSAL_ALREADY_ACCEPTED);
+            }
         }
 
         // 상태 변경

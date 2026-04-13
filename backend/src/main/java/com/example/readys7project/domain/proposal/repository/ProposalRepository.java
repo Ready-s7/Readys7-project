@@ -2,6 +2,7 @@ package com.example.readys7project.domain.proposal.repository;
 
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.proposal.entity.Proposal;
+import com.example.readys7project.domain.proposal.enums.ProposalStatus;
 import com.example.readys7project.domain.user.developer.entity.Developer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,5 +17,7 @@ public interface ProposalRepository extends JpaRepository<Proposal, Long> {
     Page<Proposal> findByProjectId(Long projectId, Pageable pageable);
     Page<Proposal> findByDeveloperId(Long developerId, Pageable pageable);
     Optional<Proposal> findByProjectIdAndDeveloperId(Long projectId, Long developerId);
-    Optional<Proposal> findByProjectAndDeveloper(Project project, Developer developer);
+    boolean existsByProjectIdAndStatus(Long projectId, ProposalStatus status);
+
+    Optional<Proposal> findByProjectAndDeveloper(Project project, Developer loginDeveloper);
 }

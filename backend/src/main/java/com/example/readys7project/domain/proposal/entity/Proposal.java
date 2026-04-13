@@ -9,11 +9,13 @@ import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.ProposalException;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SoftDelete;
 
 @Getter
 @Entity
 @Table(name = "proposals")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SoftDelete
 public class Proposal extends BaseEntity {
 
     @Id

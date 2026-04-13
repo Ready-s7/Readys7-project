@@ -30,16 +30,25 @@ public enum ErrorCode {
     // Proposal
     PROPOSAL_NOT_FOUND(HttpStatus.NOT_FOUND, "제안서를 찾을 수 없습니다."),
     PROPOSAL_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 해당 프로젝트에 제안서를 제출했습니다."),
-
-    // Common
-    INVALID_INPUT(HttpStatus.BAD_REQUEST, "잘못된 입력값입니다."),
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."),
+    PROPOSAL_ALREADY_ACCEPTED(HttpStatus.CONFLICT, "이미 승인된 제안서가 존재하는 프로젝트입니다."),
+    PROPOSAL_NOT_ACCEPTED(HttpStatus.BAD_REQUEST, "제안서가 승인되지 않은 상태입니다."),
 
     // Admin
     INVALID_ADMIN_ROLE(HttpStatus.UNAUTHORIZED, "잘못된 역할입니다."),
     ADMIN_STATUS_NOT_MATCH(HttpStatus.BAD_REQUEST, "승인 대기중 상태가 아닙니다."),
     ADMIN_NOT_FOUND(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다"),
-    ADMIN_ALREADY_APPROVE(HttpStatus.BAD_REQUEST, "이미 승인된 관리자 입니다.");
+    ADMIN_ALREADY_APPROVE(HttpStatus.BAD_REQUEST, "이미 승인된 관리자 입니다."),
+
+    // ChatRoom
+    CHATROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "채팅방을 찾을 수 없습니다."),
+    CHATROOM_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 채팅방입니다."),
+
+    // Message
+    MESSAGE_PUBLISH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "메시지 발행에 실패했습니다."),
+
+    // Common
+    INVALID_INPUT(HttpStatus.BAD_REQUEST, "잘못된 입력값입니다."),
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다.");
 
     private final HttpStatus status;
     private final String message;
