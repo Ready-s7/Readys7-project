@@ -57,11 +57,11 @@ public class User extends BaseEntity {
     // 유저 정보 수정 메서드
     public void updateUserInformation(String name, String phoneNumber, String description) {
 
-        if (name != null) this.name = name;
+        if (name != null && !name.isBlank()) this.name = name;
 
-        if (phoneNumber != null) this.phoneNumber = phoneNumber;
+        if (phoneNumber != null && !phoneNumber.isBlank()) this.phoneNumber = phoneNumber;
 
-        if (description != null) this.description = description;
+        if (description != null && !description.isBlank()) this.description = description;
     }
 
         /* @NotEmpty -> null은 막는데, "" 빈 문자열은 허용
