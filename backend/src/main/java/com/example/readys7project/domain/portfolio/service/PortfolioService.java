@@ -187,21 +187,17 @@ public class PortfolioService {
     // 모든 수정 필드가 null이면 업데이트할 내용이 없는 요청으로 본다.
     // 선택적으로 들어온 문자열 필드는 공백만 포함한 값인지 검증한다.
     private void validateUpdateRequest(PortfolioUpdateRequestDto request) {
-        if (request.title() == null &&
-                request.description() == null &&
-                request.imageUrl() == null &&
-                request.projectUrl() == null &&
-                request.skills() == null) {
+        if ((request.title() == null || request.title().isBlank()) &&
+                (request.description() == null || request.description().isBlank()) &&
+                (request.imageUrl() == null || request.imageUrl().isBlank()) &&
+                (request.projectUrl() == null || request.projectUrl().isBlank()) &&
+                request.skills() == null )
+        {
             throw new PortfolioException(ErrorCode.PORTFOLIO_NOT_FOUND);
         }
 
-        if (request.title() != null && request.title().isBlank()) {
-            throw new PortfolioException(ErrorCode.INVALID_INPUT);
-        }
 
-        if (request.description() != null && request.description().isBlank()) {
-            throw new PortfolioException(ErrorCode.INVALID_INPUT);
-        }
+
     }
 
 

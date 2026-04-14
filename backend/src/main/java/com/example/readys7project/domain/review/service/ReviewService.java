@@ -249,13 +249,10 @@ public class ReviewService {
     // comment만 보내도 됨
     // 둘다 안보내면 안됨.
     private void validateUpdateRequest(ReviewUpdateRequestDto request){
-        if (request.rating() == null && request.comment() == null) {
+        if (request.rating() == null && (request.comment() == null&& request.comment().isBlank())) {
             throw new ReviewException(ErrorCode.REVIEW_UPDATE_DATA_NULL);
         }
 
-        if (request.comment() != null && request.comment().isBlank()) {
-            throw new ReviewException(ErrorCode.INVALID_INPUT);
-        }
     }
     private User findUserById(Long userId) {
         return userRepository.findById(userId)

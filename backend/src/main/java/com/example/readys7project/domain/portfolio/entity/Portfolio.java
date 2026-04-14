@@ -74,11 +74,11 @@ public class Portfolio extends BaseEntity {
             this.description = request.description();
         }
 
-        if (request.imageUrl() != null) {
+        if (request.imageUrl() != null && !request.imageUrl().isBlank()) {
             this.imageUrl = request.imageUrl();
         }
 
-        if (request.projectUrl() != null) {
+        if (request.projectUrl() != null && !request.projectUrl().isBlank()) {
             this.projectUrl = request.projectUrl();
         }
 
