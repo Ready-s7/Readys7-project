@@ -41,8 +41,10 @@ public class CategoryController {
     // 카테고리 검색
     @GetMapping("/v1/categories/search")
     public ResponseEntity<ApiResponseDto<List<CategoryDto>>> searchCategories(
-            @RequestParam String name) {
-        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, categoryService.searchCategories(name)));
+            @RequestParam String name,
+            @RequestParam(required = false) String description) {  // optional이므로 required = false
+        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK,
+                categoryService.searchCategories(name, description)));
     }
 
     // 카테고리 수정 (ADMIN 만 가능)

@@ -85,10 +85,8 @@ public class CategoryService {
      * - 인증 없이 누구나 검색 가능
      */
     @Transactional(readOnly = true)
-    public List<CategoryDto> searchCategories(String name) {
-
-        // 이름 기준 LIKE 검색 후 DTO 변환하여 반환
-        return categoryRepository.findByNameContainingWithAdmin(name).stream()
+    public List<CategoryDto> searchCategories(String name, String description) {
+        return categoryRepository.searchCategories(name, description).stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
