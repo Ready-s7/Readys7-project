@@ -4,6 +4,8 @@ import com.example.readys7project.domain.user.enums.ParticipateType;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
 
+import java.util.List;
+
 @Builder
 public record DeveloperRegisterRequestDto (
 
@@ -19,7 +21,7 @@ public record DeveloperRegisterRequestDto (
         Integer maxHourlyPay,
 
         @NotBlank(message = "기술은 한 개 이상 입력해야합니다.")
-        String skills,
+        List<String> skills,
 
         @NotBlank(message = "일 시작 여부는 필수입니다.")
         Boolean availableForWork,
