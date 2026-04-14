@@ -8,7 +8,6 @@ import com.example.readys7project.domain.user.auth.dto.UserDto;
 import com.example.readys7project.domain.user.auth.dto.request.AdminRegisterRequestDto;
 import com.example.readys7project.domain.user.auth.dto.request.ClientRegisterRequestDto;
 import com.example.readys7project.domain.user.auth.dto.request.DeveloperRegisterRequestDto;
-import com.example.readys7project.domain.user.auth.dto.request.UserRegisterRequestDto;
 import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.domain.user.auth.repository.UserRepository;
@@ -37,88 +36,121 @@ public class AuthService {
     private final ClientRepository clientRepository;
     private final AdminRepository adminRepository;
 
-    // User 회원가입 로직
+    // Client 회원가입 로직
     @Transactional
-    public UserDto register(
-            UserRegisterRequestDto userRegisterRequestDto,
-            AdminRegisterRequestDto adminRegisterRequestDto,
-            ClientRegisterRequestDto clientRegisterRequestDto,
-            DeveloperRegisterRequestDto developerRegisterRequestDto
+    public UserDto registerClient(
+            ClientRegisterRequestDto clientRegisterRequestDto
     ) {
-        // User 이메일이 존재하는지 중복 체크
-        if (userRepository.existsByEmail(userRegisterRequestDto.email())) {
+        // 해당 이메일이 이미 존재하는지 확인
+        if (userRepository.existsByEmail(clientRegisterRequestDto.email())) {
             throw new UserException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
-        // userRegisterRequestDto온 필드값 User에 넣어주기
+        // 유저 객체 생성
         User user = User.builder()
-                .email(userRegisterRequestDto.email())
-                .password(passwordEncoder.encode(userRegisterRequestDto.password()))
-                .name(userRegisterRequestDto.name())
-                .userRole(UserRole.valueOf(userRegisterRequestDto.role().toUpperCase()))
-                .phoneNumber(userRegisterRequestDto.phoneNumber())
-                .description(userRegisterRequestDto.description())
+                .email(clientRegisterRequestDto.email())
+                .password(passwordEncoder.encode(clientRegisterRequestDto.password()))
+                .name(clientRegisterRequestDto.name())
+                .userRole(UserRole.CLIENT)
+                .phoneNumber(clientRegisterRequestDto.phoneNumber())
+                .description(clientRegisterRequestDto.description())
                 .build();
 
         // 유저 레포에 저장
         User savedUser = userRepository.save(user);
 
+        // 클라이언트 레포에 저장
+        clientRepository.save(Client.builder()
+                .user(savedUser)
+                .title(clientRegisterRequestDto.title())
+                .participateType(clientRegisterRequestDto.participateType())
+                .build());
 
-        // ADMIN으로 등록시
-        if (user.getUserRole() == UserRole.ADMIN) {
-            Admin admin = Admin.builder()
-                    .user(savedUser)
-                    .adminRole(adminRegisterRequestDto.adminRole())
-                    .build();
-            // 어드민 레포에 저장
-            adminRepository.save(admin);
-        }
-
-         // DEVELOPER로 등록시
-        if (user.getUserRole() == UserRole.DEVELOPER) {
-            Developer developer = Developer.builder()
-                    .user(savedUser)
-                    .title(developerRegisterRequestDto.title())
-                    .minHourlyPay(developerRegisterRequestDto.minHourlyPay())
-                    .maxHourlyPay(developerRegisterRequestDto.maxHourlyPay())
-                    .skills(developerRegisterRequestDto.skills())
-                    .availableForWork(developerRegisterRequestDto.availableForWork())
-                    .build();
-            // 개발자 레포에 저장
-            developerRepository.save(developer);
-        }
-
-        // CLIENT로 등록시
-        if (user.getUserRole() == UserRole.CLIENT) {
-            Client client = Client.builder()
-                    .user(savedUser)
-                    .title(clientRegisterRequestDto.title())
-                    .participateType(clientRegisterRequestDto.participateType())
-                    .build();
-
-            // 클라이언트 레포에 저장
-            clientRepository.save(client);
-        }
-
-        // User를 UserDto로 변환해서 리턴
+        // Dto 반환
         return convertToUserDto(savedUser);
     }
 
+    @Transactional
+    public UserDto registerDeveloper(DeveloperRegisterRequestDto developerRegisterRequestDto) {
+
+        // 해당 이메일이 이미 존재하는지 확인
+        if (userRepository.existsByEmail(developerRegisterRequestDto.email())) {
+            throw new UserException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        }
+
+        // 유저 생성
+        User user = User.builder()
+                .email(developerRegisterRequestDto.email())
+                .password(passwordEncoder.encode(developerRegisterRequestDto.password()))
+                .name(developerRegisterRequestDto.name())
+                .userRole(UserRole.DEVELOPER)
+                .phoneNumber(developerRegisterRequestDto.phoneNumber())
+                .build();
+
+        // 유저 레포에 저장
+        User savedUser = userRepository.save(user);
+
+        // 개발자 레포에 저장
+        developerRepository.save(Developer.builder()
+                .user(savedUser)
+                .title(developerRegisterRequestDto.title())
+                .minHourlyPay(developerRegisterRequestDto.minHourlyPay())
+                .maxHourlyPay(developerRegisterRequestDto.maxHourlyPay())
+                .skills(developerRegisterRequestDto.skills())
+                .availableForWork(developerRegisterRequestDto.availableForWork())
+                .build());
+
+        // Dto 반환
+        return convertToUserDto(savedUser);
+    }
+
+    @Transactional
+    public UserDto registerAdmin(AdminRegisterRequestDto adminRegisterRequestDto) {
+
+        // 해당 이메일이 이미 존재하는지 확인
+        if (userRepository.existsByEmail(adminRegisterRequestDto.email())) {
+            throw new UserException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        }
+
+        // 유저 생성
+        User user = User.builder()
+                .email(adminRegisterRequestDto.email())
+                .password(passwordEncoder.encode(adminRegisterRequestDto.password()))
+                .name(adminRegisterRequestDto.name())
+                .userRole(UserRole.ADMIN)
+                .phoneNumber(adminRegisterRequestDto.phoneNumber())
+                .build();
+
+        // 유저 레포에 저장
+        User savedUser = userRepository.save(user);
+
+        // 어드민 레포에 저장
+        adminRepository.save(Admin.builder()
+                .user(savedUser)
+                .adminRole(adminRegisterRequestDto.adminRole())
+                .build());
+
+        // Dto 반환
+        return convertToUserDto(savedUser);
+    }
+
+
     // Access Token + Refresh Token + email을 묶어서 반환하는 record
-    public record AuthTokenDto(String accessToken, String refreshToken, String email) {}
+    public record AuthTokenDto(String accessToken, String refreshToken, String email) {
+    }
 
     @Transactional
     public AuthTokenDto login(LoginRequestDto request) {
-        // 1. email로 User 조회
+        // email로 User 조회
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
 
-        // 2. 비밀번호 검증
+        // 비밀번호 검증
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new UserException(ErrorCode.USER_INFO_MISMATCH);
         }
 
-        // 4. Access Token 발급
+        // Access Token 발급
         String accessToken = jwtTokenProvider.createToken(
                 user.getEmail()
         );
@@ -130,7 +162,7 @@ public class AuthService {
             refreshTokenRepository.flush();
         }
 
-        // 5. Refresh Token 발급 및 저장 (Rotation)
+        // Refresh Token 발급 및 저장 (Rotation)
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail());
 
 
@@ -147,23 +179,23 @@ public class AuthService {
 
     @Transactional
     public AuthTokenDto reissue(String refreshToken) {
-        // 1. Refresh Token 유효성 검증
+        // Refresh Token 유효성 검증
         jwtTokenProvider.validateToken(refreshToken);
 
-        // 2. DB에서 Refresh Token 조회
+        // DB에서 Refresh Token 조회
         RefreshToken savedToken = refreshTokenRepository.findByToken(refreshToken)
                 .orElseThrow(() -> new UserException(ErrorCode.USER_UNAUTHORIZED));
 
-        // 3. email로 User 조회
+        // email로 User 조회
         User user = userRepository.findByEmail(savedToken.getEmail())
                 .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
 
-        // 5. Refresh Token Rotation
+        // Refresh Token Rotation
         String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getEmail());
         savedToken.rotate(newRefreshToken, jwtTokenProvider.getRefreshTokenExpiresAt());
         refreshTokenRepository.save(savedToken);
 
-        // 6. 새 Access Token 발급
+        // 새 Access Token 발급
         String newAccessToken = jwtTokenProvider.createToken(
                 user.getEmail()
         );
