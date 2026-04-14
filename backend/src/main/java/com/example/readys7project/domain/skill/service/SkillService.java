@@ -152,7 +152,7 @@ public class SkillService {
 
     private void validateAdminStatus(Admin admin) {
         if (!admin.getStatus().equals(AdminStatus.APPROVED)) {
-            throw new SkillException(ErrorCode.USER_FORBIDDEN);
+            throw new SkillException(ErrorCode.ADMIN_NOT_APPROVED);
         }
     }
 }

@@ -54,7 +54,7 @@ dependencies {
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 }
 
-def querydslDir = "$buildDir/generated/sources/annotationProcessor/java/main"
+def querydslDir = "build/generated/sources/annotationProcessor/java/main"
 
 sourceSets {
     main {
