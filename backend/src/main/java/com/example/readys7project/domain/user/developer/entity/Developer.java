@@ -65,7 +65,7 @@ public class Developer extends BaseEntity {
 
     @Builder
     public Developer(User user, String title, Double rating, Integer reviewCount,
-                     Integer completedProjects, String skills, Integer minHourlyPay, Integer maxHourlyPay,
+                     Integer completedProjects, List<String> skills, Integer minHourlyPay, Integer maxHourlyPay,
                      String responseTime, Boolean availableForWork, ParticipateType participateType
     ) {
         this.user = user;
@@ -83,7 +83,7 @@ public class Developer extends BaseEntity {
 
 
     // 프로필 수정 (DEVELOPER 전용)
-    public void updateProfile(String title, String skills, Integer minHourlyPay, Integer maxHourlyPay, String responseTime,
+    public void updateProfile(String title, List<String> skills, Integer minHourlyPay, Integer maxHourlyPay, String responseTime,
                               Boolean availableForWork
     ) {
         this.title = title;

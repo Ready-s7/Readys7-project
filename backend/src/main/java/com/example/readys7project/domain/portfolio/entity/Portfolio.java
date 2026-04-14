@@ -54,7 +54,7 @@ public class Portfolio extends BaseEntity {
 
 
     @Builder
-    public Portfolio(Developer developer, String title, String description, String imageUrl, String projectUrl, String skills) {
+    public Portfolio(Developer developer, String title, String description, String imageUrl, String projectUrl, List<String> skills) {
         this.developer = developer;
         this.title = title;
         this.description = description;
@@ -63,7 +63,7 @@ public class Portfolio extends BaseEntity {
         this.skills = skills;
     }
 
-    public void portfolioUpdate(String title, String description, String imageUrl, String projectUrl, String skills) {
+    public void portfolioUpdate(String title, String description, String imageUrl, String projectUrl, List<String> skills) {
         this.title = title;
         this.description = description;
         this.imageUrl = imageUrl;
