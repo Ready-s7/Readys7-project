@@ -87,7 +87,7 @@ public class CategoryService {
     public List<CategoryDto> searchCategories(String name) {
 
         // 이름 기준 LIKE 검색 후 DTO 변환하여 반환
-        return categoryRepository.findByNameContaining(name).stream()
+        return categoryRepository.findByNameContainingWithAdmin(name).stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }

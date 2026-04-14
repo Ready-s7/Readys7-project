@@ -6,14 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
-public interface CategoryRepository extends JpaRepository<Category, Long> {
+public interface CategoryRepository extends JpaRepository<Category, Long>, CategoryQueryRepository {
 
     // 카테고리 이름 중복 체크용
     boolean existsByName(String name);
-
-    // 카테고리 이름 기준 LIKE 검색용
-    List<Category> findByNameContaining(String name);
-
-    @Query("SELECT c FROM Category c JOIN FETCH c.admin ORDER BY c.displayOrder ASC")
-    List<Category> findAllWithAdminOrderByDisplayOrderAsc();
 }

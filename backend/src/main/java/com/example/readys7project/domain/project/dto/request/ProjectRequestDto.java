@@ -1,6 +1,7 @@
 package com.example.readys7project.domain.project.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -27,6 +28,7 @@ public record ProjectRequestDto(
     @NotNull(message = "기간은 필수입니다.")
     Integer duration,
 
+    @NotEmpty(message = "기술은 필수입니다.")
     List<String> skills,
 
     @NotNull(message = "최대 지원자 수는 필수입니다.")
