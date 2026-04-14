@@ -1,15 +1,14 @@
 package com.example.readys7project.domain.user.client.controller;
 
 
+import com.example.readys7project.domain.user.client.dto.response.ClientsResponseDto;
 import com.example.readys7project.domain.user.client.dto.request.UpdateClientProfileRequestDto;
-import com.example.readys7project.domain.user.client.dto.response.GetAllClientsListResponseDto;
-import com.example.readys7project.domain.user.client.dto.response.GetClientDetailResponseDto;
-import com.example.readys7project.domain.user.client.dto.response.GetClientProjectsListResponseDto;
-import com.example.readys7project.domain.user.client.dto.response.UpdateClientProfileResponseDto;
+import com.example.readys7project.domain.user.client.dto.response.*;
 import com.example.readys7project.domain.user.client.service.ClientService;
 import com.example.readys7project.global.dto.ApiResponseDto;
 import com.example.readys7project.global.security.CustomUserDetails;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,7 +26,7 @@ public class ClientController {
 
     // 클라이언트 목록 조회
     @GetMapping("/v1/clients")
-    public ResponseEntity<ApiResponseDto<GetAllClientsListResponseDto>> getClients(
+    public ResponseEntity<ApiResponseDto<PageResponseDto<ClientsResponseDto>>> getClients(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size
@@ -41,7 +40,7 @@ public class ClientController {
 
     // 클라이언트 상세 조회
     @GetMapping("/v1/clients/{clientId}")
-    public ResponseEntity<ApiResponseDto<GetClientDetailResponseDto>> getClientDetail(
+    public ResponseEntity<ApiResponseDto<ClientsResponseDto>> getClientDetail(
             @PathVariable Long clientId,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
@@ -62,7 +61,7 @@ public class ClientController {
 
     // 내 프로젝트 목록 조회
     @GetMapping("/v1/clients/my-projects")
-    public ResponseEntity<ApiResponseDto<GetClientProjectsListResponseDto>> getMyProjects(
+    public ResponseEntity<ApiResponseDto<PageResponseDto<ClientProjectsListResponseDto>>> getMyProjects(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size

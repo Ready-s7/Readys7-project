@@ -4,7 +4,7 @@ import com.example.readys7project.domain.user.enums.ParticipateType;
 import lombok.Builder;
 
 @Builder
-public record GetClientDetailResponseDto (
+public record ClientsResponseDto(
 
         Long id,
 
@@ -22,4 +22,4 @@ public record GetClientDetailResponseDto (
 
         String description
 
-){}
+) {}
