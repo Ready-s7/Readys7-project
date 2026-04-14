@@ -1,7 +1,7 @@
 spring:
   jpa:
     hibernate:
-      ddl-auto: update  # 로컬은 매번 초기화
+      ddl-auto: create-drop  # 로컬은 매번 초기화
 
 logging:
   level:
