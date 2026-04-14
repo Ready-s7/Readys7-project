@@ -117,4 +117,9 @@ public class Project extends BaseEntity {
         }
     }
 
+    // 프로젝트 상태 변경 로직
+    public void changeStatus(ProjectStatus newStatus) {
+        this.status = newStatus;
+    }
+
 }

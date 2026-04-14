@@ -214,6 +214,52 @@ public class ProjectService {
         project.increaseProposalCount();
     }
 
+    @Transactional
+    public ProjectDto changeProjectStatus(Long projectId, String statusStr, String email) {
+
+        // 1. 프로젝트 존재 여부 검증
+        Project project = findProject(projectId);
+
+        // 2. 사용자 존재 여부 검증
+        User user = findUser(email);
+
+        // 3. CLIENT 또는 ADMIN만 변경 가능
+        if (user.getUserRole() != UserRole.CLIENT && user.getUserRole() != UserRole.ADMIN) {
+            throw new ProjectException(ErrorCode.USER_FORBIDDEN);
+        }
+
+        // 4. CLIENT인 경우 본인 프로젝트인지 검증
+        if (user.getUserRole() == UserRole.CLIENT) {
+            Client client = validateClient(user);
+            validateClientProject(project, client);
+        }
+
+        // 5. 요청한 상태값을 Enum으로 변환
+        ProjectStatus newStatus = ProjectStatus.valueOf(statusStr.toUpperCase());
+
+        // 6. 현재 상태에서 허용된 전환인지 검증
+        validateStatusTransition(project.getStatus(), newStatus);
+
+        // 7. 상태 변경 (Dirty Checking으로 자동 저장)
+        project.changeStatus(newStatus);
+
+        return convertToDto(project);
+    }
+
+    // 허용된 상태 전환 검증
+    private void validateStatusTransition(ProjectStatus current, ProjectStatus next) {
+        boolean allowed = switch (current) {
+            case OPEN, CLOSED -> next == ProjectStatus.IN_PROGRESS || next == ProjectStatus.CANCELLED;
+            case IN_PROGRESS -> next == ProjectStatus.COMPLETED   || next == ProjectStatus.CANCELLED;
+            // COMPLETED, CANCELLED는 최종 상태 → 변경 불가
+            default -> false;
+        };
+
+        if (!allowed) {
+            throw new ProjectException(ErrorCode.PROJECT_STATUS_UPDATE_FAILED);
+        }
+    }
+
     /**
      * 프로젝트 엔티티 → ProjectDto 변환
      * - Entity가 Controller 밖으로 노출되지 않도록 DTO로 변환
@@ -272,8 +318,4 @@ public class ProjectService {
             throw new ProjectException(ErrorCode.USER_FORBIDDEN);
         }
     }
-
-
-
-
 }

@@ -56,11 +56,11 @@ public class Admin extends BaseEntity {
 
     // 슈퍼관리자가 승인해주는 메서드
 
-    public void updateAdminStatus(AdminStatus adminStatus) {
+    public void updateAdminStatus(AdminStatus status) {
         if (this.status != AdminStatus.PENDING) {
             throw new AdminException(ErrorCode.ADMIN_STATUS_NOT_MATCH);
         }
-        this.status = adminStatus;
+        this.status = status;
     }
 
     // builderMethodName -> 각 빌더에 고유한 이름을 지정해줄 수 있는 메서드
@@ -76,11 +76,6 @@ public class Admin extends BaseEntity {
     // InitData에서 사용할 슈퍼 어드민 정적 팩토리 메서드
 
     public static Admin createSuperAdmin(User user) {
-        return Admin.superAdminBuiler()
-                .user(user)
-                .adminRole(AdminRole.SUPER_ADMIN)
-                .status(AdminStatus.APPROVED)
-                .build();
-
+        return new Admin(user, AdminRole.SUPER_ADMIN, AdminStatus.APPROVED);
     }
 }

@@ -71,6 +71,18 @@ public class ProjectController {
                 .success(HttpStatus.OK, projectService.updateProject(projectId, request, email)));
     }
 
+    // 프로젝트 상태 변경 (CLIENT 본인 / ADMIN)
+    @PatchMapping("/v1/projects/{projectId}/status")
+    public ResponseEntity<ApiResponseDto<ProjectDto>> changeProjectStatus(
+            @PathVariable Long projectId,
+            @RequestParam String status,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails
+    ) {
+        String email = customUserDetails.getEmail();
+        return ResponseEntity.ok(ApiResponseDto
+                .success(HttpStatus.OK, projectService.changeProjectStatus(projectId, status, email)));
+    }
+
     // 프로젝트 삭제 (본인 Client만 가능)
     @DeleteMapping("/v1/projects/{projectId}")
     public ResponseEntity<ApiResponseDto<Void>> deleteProject(
