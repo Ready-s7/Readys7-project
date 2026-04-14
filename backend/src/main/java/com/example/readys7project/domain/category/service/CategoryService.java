@@ -53,7 +53,7 @@ public class CategoryService {
             throw new CategoryException(ErrorCode.CATEGORY_ALREADY_EXISTS);
         }
 
-        // 6. 카테고리 이름 중복 검증
+        // 6. 카테고리 생성
         Category category = Category.builder()
                 .name(request.name())
                 .icon(request.icon())

@@ -155,7 +155,7 @@ public class ProjectService {
                 request.maxProposalCount()
         );
 
-        // 7. 수정된 프로젝트를 DTO로 변환하여 반환
+        // 4. 수정된 프로젝트를 DTO로 변환하여 반환
         return convertToDto(project);
     }
 
