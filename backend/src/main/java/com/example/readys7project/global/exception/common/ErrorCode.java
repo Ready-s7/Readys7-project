@@ -51,6 +51,7 @@ public enum ErrorCode {
     CHATROOM_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 채팅방입니다."),
 
     // Message
+    MESSAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "메시지를 찾을 수 없습니다."),
     MESSAGE_PUBLISH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "메시지 발행에 실패했습니다."),
 
     // Skill

@@ -3,7 +3,6 @@ package com.example.readys7project.domain.user.auth.controller;
 import com.example.readys7project.domain.user.auth.dto.UserDto;
 import com.example.readys7project.domain.user.auth.dto.request.AdminRegisterRequestDto;
 import com.example.readys7project.domain.user.auth.dto.request.DeveloperRegisterRequestDto;
-import com.example.readys7project.domain.user.auth.dto.request.UserRegisterRequestDto;
 import com.example.readys7project.domain.user.auth.service.AuthService;
 import com.example.readys7project.domain.user.auth.dto.request.ClientRegisterRequestDto;
 import com.example.readys7project.global.dto.ApiResponseDto;
@@ -18,25 +17,39 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
 
-    @PostMapping("/v1/auth/register")
-    public ResponseEntity<ApiResponseDto<UserDto>> register(
-            @Valid @RequestBody UserRegisterRequestDto userRegisterRequestDto,
-            @Valid @RequestBody @RequestParam(required = false) AdminRegisterRequestDto adminRegisterRequestDto,
-            @Valid @RequestBody @RequestParam(required = false) ClientRegisterRequestDto clientRegisterRequestDto,
-            @Valid @RequestBody @RequestParam(required = false) DeveloperRegisterRequestDto developerRegisterRequestDto
+    // 클라이언트 회원가입
+    @PostMapping("/v1/auth/register/clients")
+    public ResponseEntity<ApiResponseDto<UserDto>> registerClient(
+            @Valid @RequestBody ClientRegisterRequestDto clientRegisterRequestDto
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success
-                (HttpStatus.CREATED, authService.register(
-                        userRegisterRequestDto,
-                        adminRegisterRequestDto,
-                        clientRegisterRequestDto,
+                (HttpStatus.CREATED, authService.registerClient(
+                        clientRegisterRequestDto)));
+    }
+
+    // 개발자 회원가입
+    @PostMapping("/v1/auth/register/developers")
+    public ResponseEntity<ApiResponseDto<UserDto>> registerDeveloper(
+            @Valid @RequestBody DeveloperRegisterRequestDto developerRegisterRequestDto
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success
+                (HttpStatus.CREATED, authService.registerDeveloper(
                         developerRegisterRequestDto)));
+    }
+
+    // 관리자 회원가입
+    @PostMapping("/v1/auth/register/admins")
+    public ResponseEntity<ApiResponseDto<UserDto>> registerAdmin(
+            @Valid @RequestBody AdminRegisterRequestDto adminRegisterRequestDto
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success
+                (HttpStatus.CREATED, authService.registerAdmin(
+                        adminRegisterRequestDto)));
     }
 
     /**

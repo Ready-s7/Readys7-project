@@ -34,6 +34,8 @@ public class InitData implements ApplicationRunner {
                     .password(passwordEncoder.encode("12345678"))
                     .name("슈퍼 어드민")
                     .userRole(UserRole.ADMIN)
+                    .phoneNumber("010-1212-1212")
+                    .description("내가 짱이다.")
                     .build();
 
             User savedUser = userRepository.save(user);

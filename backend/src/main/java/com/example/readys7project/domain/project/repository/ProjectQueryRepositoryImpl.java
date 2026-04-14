@@ -4,6 +4,8 @@ import com.example.readys7project.domain.category.entity.Category;
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.project.entity.QProject;
 import com.example.readys7project.domain.project.enums.ProjectStatus;
+import com.example.readys7project.domain.user.auth.entity.QUser;
+import com.example.readys7project.domain.user.client.entity.QClient;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -73,5 +75,32 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0);
+    }
+
+    @Override
+    public Page<Project> findByClientWithPageable(Long clientId, Pageable pageable) {
+
+        QProject qProject = QProject.project;
+        QClient qClient = QClient.client;
+        QUser qUser = QUser.user;
+
+        List<Project> content = jpaQueryFactory
+                .selectFrom(qProject)
+                .join(qProject.client, qClient).fetchJoin()
+                .join(qClient.user, qUser).fetchJoin()
+                .where(qProject.client.id.eq(clientId))
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .orderBy(qProject.createdAt.desc())
+                .fetch();
+
+        Long total = jpaQueryFactory
+                .select(qProject.count())
+                .from(qProject)
+                .where(qProject.client.id.eq(clientId))
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total != null ? total : 0);
+
     }
 }

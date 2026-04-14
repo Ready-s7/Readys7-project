@@ -6,9 +6,9 @@ import lombok.Builder;
 import java.time.LocalDateTime;
 
 @Builder
-public record ClientProjectSummaryResponseDto (
+public record ClientProjectsListResponseDto(
 
-        Long Id,
+        Long id,
 
         String title,
 

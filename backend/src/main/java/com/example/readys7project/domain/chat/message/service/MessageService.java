@@ -2,6 +2,7 @@ package com.example.readys7project.domain.chat.message.service;
 
 import com.example.readys7project.domain.chat.chatroom.entity.ChatRoom;
 import com.example.readys7project.domain.chat.chatroom.repository.ChatRoomRepository;
+import com.example.readys7project.domain.chat.message.MessageEventType;
 import com.example.readys7project.domain.chat.message.dto.request.SendMessageRequestDto;
 import com.example.readys7project.domain.chat.message.dto.response.MessageCursorResponseDto;
 import com.example.readys7project.domain.chat.message.dto.response.MessageResponseDto;
@@ -12,7 +13,6 @@ import com.example.readys7project.domain.user.auth.repository.UserRepository;
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.MessageException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,21 +31,14 @@ public class MessageService {
     @Transactional
     public MessageResponseDto saveMessage(Long roomId, SendMessageRequestDto request, String email) {
 
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new MessageException(ErrorCode.USER_NOT_FOUND)
-        );
+        // user 가져오기
+        User user = findUser(email);
 
-        ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(
-                () -> new MessageException(ErrorCode.CHATROOM_NOT_FOUND)
-        );
+        // 채팅방 가져오기
+        ChatRoom chatRoom = findChatRoom(roomId);
 
         // 참여자 검증
-        boolean isParticipant = chatRoom.getClient().getUser().getId().equals(user.getId())
-                || chatRoom.getDeveloper().getUser().getId().equals(user.getId());
-
-        if (!isParticipant) {
-            throw new MessageException(ErrorCode.USER_FORBIDDEN);
-        }
+        validateUserByChatRoom(chatRoom, user);
 
         Message message = Message.builder()
                 .chatRoom(chatRoom)
@@ -62,27 +55,18 @@ public class MessageService {
 
         unreadCountService.increment(roomId, receiverId);
 
-        return convertToDto(savedMessage);
+        return convertToDto(savedMessage, MessageEventType.SEND);
     }
 
     @Transactional
     public MessageResponseDto saveSystemMessage(Long roomId, String email, boolean isEntering) {
 
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new MessageException(ErrorCode.USER_NOT_FOUND)
-        );
+        User user = findUser(email);
 
-        ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(
-                () -> new MessageException(ErrorCode.CHATROOM_NOT_FOUND)
-        );
+        ChatRoom chatRoom = findChatRoom(roomId);
 
         // 참여자 검증
-        boolean isParticipant = chatRoom.getClient().getUser().getId().equals(user.getId())
-                || chatRoom.getDeveloper().getUser().getId().equals(user.getId());
-
-        if (!isParticipant) {
-            throw new MessageException(ErrorCode.USER_FORBIDDEN);
-        }
+        validateUserByChatRoom(chatRoom, user);
 
         // 입장 시에만 unread count 초기화
         if (isEntering) {
@@ -103,29 +87,23 @@ public class MessageService {
 
         Message savedMessage = messageRepository.save(message);
 
-        return convertToDto(savedMessage);
+        return convertToDto(
+                savedMessage,
+                isEntering ? MessageEventType.ENTER : MessageEventType.LEAVE
+        );
     }
 
     @Transactional(readOnly = true)
     public MessageCursorResponseDto getMessages(Long roomId, Long lastMessageId, Pageable pageable, String email) {
 
         // user 가져오기
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new MessageException(ErrorCode.USER_NOT_FOUND)
-        );
+        User user = findUser(email);
 
         // chatRoom 가져오기
-        ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(
-                () -> new MessageException(ErrorCode.CHATROOM_NOT_FOUND)
-        );
+        ChatRoom chatRoom = findChatRoom(roomId);
 
         // 해당 채팅방 참여자인지 검증
-        boolean isParticipant = chatRoom.getClient().getUser().getId().equals(user.getId())
-                || chatRoom.getDeveloper().getUser().getId().equals(user.getId());
-
-        if (!isParticipant) {
-            throw new MessageException(ErrorCode.USER_FORBIDDEN);
-        }
+        validateUserByChatRoom(chatRoom, user);
 
         // pageSize + 1개 조회 (hasNext 판단용)
         List<Message> messages = messageRepository.findMessages(roomId, lastMessageId, pageable);
@@ -142,7 +120,7 @@ public class MessageService {
         Long nextCursor = hasNext ? messages.get(messages.size() - 1).getId() : null;
 
         List<MessageResponseDto> messageResponseDtos = messages.stream()
-                .map(this::convertToDto)
+                .map(message -> convertToDto(message, message.getEventType()))
                 .toList();
 
         return MessageCursorResponseDto.builder()
@@ -152,15 +130,68 @@ public class MessageService {
                 .build();
     }
 
-    private MessageResponseDto convertToDto(Message message) {
+    @Transactional
+    public MessageResponseDto updateMessage(Long messageId, String content, String email) {
+
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new MessageException(ErrorCode.MESSAGE_NOT_FOUND));
+
+        if (!message.getUser().getEmail().equals(email)) {
+            throw new MessageException(ErrorCode.USER_FORBIDDEN);
+        }
+
+        message.updateContent(content);
+        messageRepository.saveAndFlush(message);
+
+        return convertToDto(message, MessageEventType.EDIT);
+    }
+
+    @Transactional
+    public MessageResponseDto deleteMessage(Long messageId, String email) {
+
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new MessageException(ErrorCode.MESSAGE_NOT_FOUND));
+
+        if (!message.getUser().getEmail().equals(email)) {
+            throw new MessageException(ErrorCode.USER_FORBIDDEN);
+        }
+
+        messageRepository.deleteById(messageId);
+
+        return convertToDto(message, MessageEventType.DELETE);
+    }
+
+    private MessageResponseDto convertToDto(Message message, MessageEventType eventType) {
         return MessageResponseDto.builder()
                 .id(message.getId())
                 .senderId(message.getUser().getId())
                 .senderName(message.getUser().getName())
                 .content(message.getContent())
+                .eventType(eventType)
                 .isRead(message.getIsRead())
                 .isSystem(message.getIsSystem())
                 .sentAt(message.getCreatedAt())
                 .build();
+    }
+
+    private User findUser(String email) {
+        return userRepository.findByEmail(email).orElseThrow(
+                () -> new MessageException(ErrorCode.USER_NOT_FOUND)
+        );
+    }
+
+    private ChatRoom findChatRoom(Long roomId) {
+        return chatRoomRepository.findById(roomId).orElseThrow(
+                () -> new MessageException(ErrorCode.CHATROOM_NOT_FOUND)
+        );
+    }
+
+    private void validateUserByChatRoom(ChatRoom chatRoom, User user) {
+        boolean isParticipant = chatRoom.getClient().getUser().getId().equals(user.getId())
+                || chatRoom.getDeveloper().getUser().getId().equals(user.getId());
+
+        if (!isParticipant) {
+            throw new MessageException(ErrorCode.USER_FORBIDDEN);
+        }
     }
 }
