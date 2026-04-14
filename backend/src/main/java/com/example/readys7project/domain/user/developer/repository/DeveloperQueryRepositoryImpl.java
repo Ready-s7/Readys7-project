@@ -16,6 +16,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+
+import com.querydsl.core.types.dsl.Expressions;
 import java.util.List;
 
 @Repository
@@ -60,13 +62,25 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
             BooleanBuilder skillBuilder = new BooleanBuilder();
             for (String s : skills) {
                 if (s != null && !s.isBlank()){
-                    skillBuilder.or(qDeveloper.skills.contains(s));   // (조건1) skills 목록에 해당 skill 포함 여부
+                    skillBuilder.or(
+                            // [요구사항 반영]
+                            // 1. skills 필드는 @Convert로 JSON 컬럼에 저장되므로 QueryDSL contains() 사용 불가
+                            // 2. MySQL JSON_CONTAINS 함수로 JSO 배열 내 정확한 값 일치 여부 검사
+                            // 3. UPPER()를 통해 대소문자 구분 없이 검색 가능.
+                            // 4. ex) "java", "JAVA", "Java" 모두 "JAVA" 로 조회 가능
+                            // 5. ex) "java" 검색 시 "JavaScript"는 조회되지 않음. (정확한 일치)
+                            Expressions.booleanTemplate(
+                                    "function('json_contains', UPPER({0}), function('json_quote', {1})) = 1",
+                                    qDeveloper.skills,
+                                    s.toUpperCase()                      // Java단에서 미리 대문자로 변환
+                            )
+                    );
                 }
             }
             builder.and(skillBuilder);                         // 생성된 OR 조건 뭉치를 메인 빌더에 추가
         }
         if (minRating != null) {
-            builder.and(qDeveloper.rating.goe(minRating));    // (조건2) rating >= minRating
+            builder.and(qDeveloper.rating.goe(minRating));    // rating >= minRating
         }
 
         // 실제 데이터 조회
@@ -97,13 +111,17 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
         QUser qUser = QUser.user;
         QCategory qCategory = QCategory.category;
 
+        // [fetchJoin()이 아닌 Join()으로 한 이유]
+        // fetchJoin()은 select/from의 주인에 딸린 연관관계만 가능. select 대상이 proposal이 아닌 project이므로
+        // fetchJoin() 사용 시 owner(Proposal)가 select에 없어 SemanticException 발생.
+        // fetchJoin() -> join()으로 변경하여 해결
         List<Project> content = queryFactory
                 .select(qProposal.project)
                 .from(qProposal)
-                .join(qProposal.project, qProject).fetchJoin()
-                .join(qProject.client, qClient).fetchJoin()
-                .join(qClient.user, qUser).fetchJoin()
-                .join(qProject.category, qCategory).fetchJoin()
+                .join(qProposal.project, qProject)
+                .join(qProject.client, qClient)
+                .join(qClient.user, qUser)
+                .join(qProject.category, qCategory)
                 .where(
                         qProposal.developer.eq(developer)                      // 본인 제안서
                         .and(qProposal.status.eq(ProposalStatus.ACCEPTED))     // 상태가 ACCEPTED인 것만
