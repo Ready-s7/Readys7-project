@@ -21,4 +21,6 @@ public interface ProjectQueryRepository {
             List<String> skills,
             Pageable pageable
     );
+
+    Page<Project> findByClientWithPageable(Long clientId, Pageable pageable);
 }

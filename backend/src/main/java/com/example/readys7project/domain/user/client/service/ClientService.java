@@ -5,9 +5,11 @@ import com.example.readys7project.domain.project.repository.ProjectRepository;
 import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.domain.user.auth.repository.UserRepository;
-import com.example.readys7project.domain.user.client.dto.response.ClientsResponseDto;
 import com.example.readys7project.domain.user.client.dto.request.UpdateClientProfileRequestDto;
-import com.example.readys7project.domain.user.client.dto.response.*;
+import com.example.readys7project.domain.user.client.dto.response.ClientProjectsListResponseDto;
+import com.example.readys7project.domain.user.client.dto.response.ClientsResponseDto;
+import com.example.readys7project.domain.user.client.dto.response.PageResponseDto;
+import com.example.readys7project.domain.user.client.dto.response.UpdateClientProfileResponseDto;
 import com.example.readys7project.domain.user.client.entity.Client;
 import com.example.readys7project.domain.user.client.repository.ClientRepository;
 import com.example.readys7project.global.exception.common.ErrorCode;
@@ -20,7 +22,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -56,11 +57,11 @@ public class ClientService {
         Pageable converted = convertPageable(pageable);
 
         // Client 페이징 조회
-        Page<Client> clientPage = clientRepository.findAll(converted);
+        Page<Client> clientPage = clientRepository.findAllWithPageable(converted);
 
         // ClientPage를 ClientsResponseDto로 변환
         List<ClientsResponseDto> clientList = clientPage.getContent().stream()
-                .map(ClientsResponseDto::from)
+                .map(this::convertToDto)
                 .toList();
 
         // PageResponseDto 공통 페이징 DTO로 반환
@@ -82,7 +83,7 @@ public class ClientService {
                 .orElseThrow(() -> new ClientException(ErrorCode.CLIENT_NOT_FOUND));
 
         // Dto 반환
-        return ClientsResponseDto.from(client);
+        return convertToDto(client);
     }
 
     @Transactional
@@ -142,11 +143,17 @@ public class ClientService {
                 .orElseThrow(() -> new ClientException(ErrorCode.CLIENT_NOT_FOUND));
 
         // ClientId로 프로젝트 페이징 조회
-        Page<Project> projectPage = projectRepository.findByClientId(client.getId(), converted);
+        Page<Project> projectPage = projectRepository.findByClientWithPageable(client.getId(), converted);
 
         // Project를 ClientProjectSummaryResponseDto로 변환
         List<ClientProjectsListResponseDto> projectList = projectPage.getContent().stream()
-                .map(ClientProjectsListResponseDto::from)
+                .map(project -> ClientProjectsListResponseDto.builder()
+                        .id(project.getId())
+                        .title(project.getTitle())
+                        .projectStatus(project.getStatus())
+                        .currentProposalCount(project.getCurrentProposalCount())
+                        .postedDate(project.getCreatedAt())
+                        .build())
                 .toList();
 
         // Dto 반환
@@ -185,4 +192,17 @@ public class ClientService {
             throw new ClientException(ErrorCode.USER_FORBIDDEN);
         }
     }
+
+    private ClientsResponseDto convertToDto(Client client) {
+        return ClientsResponseDto.builder()
+                .id(client.getId())
+                .name(client.getUser().getName())
+                .title(client.getTitle())
+                .completedProject(client.getCompletedProject())
+                .rating(client.getRating())
+                .participateType(client.getParticipateType())
+                .description(client.getUser().getDescription())
+                .build();
+    }
+
 }
