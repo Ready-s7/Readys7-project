@@ -321,6 +321,21 @@ public class InitData implements ApplicationRunner {
                 .duration(90)
                 .maxProposalCount(3)
                 .build());
+        // maxProposalCount를 1로 설정하면
+        // increaseProposalCount() 1번 호출만으로 CLOSED 됨
+        Project closedProject = Project.builder()
+                .client(client1)
+                .category(backendCategory)
+                .title("마감된 Java 백엔드 프로젝트")
+                .description("Spring Boot 기반 API 서버 개발")
+                .skills(List.of("Java", "Spring"))
+                .minBudget(500)
+                .maxBudget(1000)
+                .duration(30)
+                .maxProposalCount(1)   // ← 최대 1개
+                .build();
+
+        closedProject.increaseProposalCount(); // ← 1번 호출 → 자동으로 CLOSED
 
         log.info("[InitData] Project 3개 생성 완료");
     }
