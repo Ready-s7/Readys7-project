@@ -21,7 +21,7 @@ public class ClientQueryRepositoryImpl implements ClientQueryRepository {
     public Page<Client> findAllWithPageable(Pageable pageable) {
 
         List<Client> content = jpaQueryFactory
-                .select(client)
+                .selectFrom(client)
                 .join(client.user, user).fetchJoin()
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())

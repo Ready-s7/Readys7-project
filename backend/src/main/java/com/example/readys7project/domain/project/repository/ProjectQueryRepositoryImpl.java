@@ -7,6 +7,7 @@ import com.example.readys7project.domain.project.enums.ProjectStatus;
 import com.example.readys7project.domain.user.auth.entity.QUser;
 import com.example.readys7project.domain.user.client.entity.QClient;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -44,16 +45,30 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
             builder.and(qProject.status.eq(status));
         }
 
-        // 스킬 조건 - OR 조건 (skills 중 하나라도 JSON 문자열에 포함되면 조회)
-        // skills 필드가 JSON 문자열이므로 LIKE로 각 스킬을 검색
+        // 스킬 조건
         if (skills != null && !skills.isEmpty()) {
+            // OR 조건들을 담을 별도의 빌더 생성
+            // ex) "Java" OR "Python" OR "Spring" 형태로 조건을 쌓기 위함
             BooleanBuilder skillBuilder = new BooleanBuilder();
+
             for (String skill : skills) {
-                // JSON 문자열 안에 해당 스킬이 포함되어 있는지 LIKE 검색
-                // 예: skills = ["Java", "Python"] 에서 "Java" 검색 시
-                // LIKE '%Java%' 로 검색
-                skillBuilder.or(qProject.skills.contains(skill));
+                skillBuilder.or(
+                        // QueryDSL이 기본 지원하지 않는 MySQL 전용 JSON 함수를 사용하기 위해
+                        // booleanTemplate으로 네이티브 SQL 함수를 문자열 템플릿 형태로 직접 주입
+                        Expressions.booleanTemplate(
+                                // JSON_CONTAINS : JSON 배열 안에 특정 값이 원소로 정확히 존재하는지 검사 (true/false 반환)
+                                // JSON_QUOTE    : 일반 문자열을 JSON 문자열 형식으로 변환 ("Java" → '"Java"')
+                                //                 이 함수가 없으면 MySQL이 'Java'를 JSON으로 파싱하려다 오동작 발생
+                                // {0}           : 첫 번째 인자 자리 → DB의 skills JSON 컬럼
+                                // {1}           : 두 번째 인자 자리 → 사용자가 검색 조건으로 입력한 skill 문자열
+                                "JSON_CONTAINS({0}, JSON_QUOTE({1}))",
+                                qProject.skills, // {0} : skills JSON 컬럼 바인딩
+                                skill             // {1} : 검색할 스킬 문자열 바인딩
+                        )
+                );
             }
+            // 완성된 OR 조건 묶음을 메인 빌더에 AND 조건으로 추가
+            // ex) category = 'IT' AND (skills에 'Java' 포함 OR skills에 'Python' 포함)
             builder.and(skillBuilder);
         }
 

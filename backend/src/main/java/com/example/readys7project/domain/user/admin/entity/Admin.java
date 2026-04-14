@@ -31,9 +31,11 @@ public class Admin extends BaseEntity {
     private User user;
 
     @Column(name = "admin_role", nullable = false)
+    @Enumerated(EnumType.STRING)
     private AdminRole adminRole;
 
     @Column(name = "status", nullable = false)
+    @Enumerated(EnumType.STRING)
     private AdminStatus status;
 
     private boolean isDeleted = false;
@@ -54,31 +56,26 @@ public class Admin extends BaseEntity {
 
     // 슈퍼관리자가 승인해주는 메서드
 
-    public void updateAdminStatus(AdminStatus adminStatus) {
+    public void updateAdminStatus(AdminStatus status) {
         if (this.status != AdminStatus.PENDING) {
             throw new AdminException(ErrorCode.ADMIN_STATUS_NOT_MATCH);
         }
-        this.status = adminStatus;
+        this.status = status;
     }
 
     // builderMethodName -> 각 빌더에 고유한 이름을 지정해줄 수 있는 메서드
     // @Builder 어노테이션을 여러 생성자에 붙이면 빌더 메서드 이름이 충돌할 수 있는데,
     // 이것을 방지하기 위해서 슈퍼어드민 전용 빌더 이름을 지정
     @Builder(builderMethodName = "superAdminBuiler")
-    public Admin(User user, AdminRole adminRole, AdminStatus adminStatus) {
+    public Admin(User user, AdminRole adminRole, AdminStatus status) {
         this.user = user;
         this.adminRole = adminRole;
-        this.status = adminStatus;
+        this.status = status;
     }
 
     // InitData에서 사용할 슈퍼 어드민 정적 팩토리 메서드
 
     public static Admin createSuperAdmin(User user) {
-        return Admin.superAdminBuiler()
-                .user(user)
-                .adminRole(AdminRole.SUPER_ADMIN)
-                .adminStatus(AdminStatus.APPROVED)
-                .build();
-
+        return new Admin(user, AdminRole.SUPER_ADMIN, AdminStatus.APPROVED);
     }
 }

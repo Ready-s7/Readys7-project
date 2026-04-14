@@ -9,4 +9,6 @@ public interface CategoryQueryRepository {
     List<Category> findAllWithAdminOrderByDisplayOrderAsc();
 
     List<Category> findByNameContainingWithAdmin(String name);
+
+    List<Category> searchCategories(String name, String description);
 }

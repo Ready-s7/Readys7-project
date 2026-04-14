@@ -25,6 +25,7 @@ public enum ErrorCode {
     PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "프로젝트를 찾을 수 없습니다."),
     PROJECT_ALREADY_CLOSED(HttpStatus.BAD_REQUEST,"이미 마감된 프로젝트입니다."),
     PROJECT_BUDGET_BAD_REQUEST(HttpStatus.BAD_REQUEST,"잘못된 예산 설정입니다."),
+    PROJECT_STATUS_UPDATE_FAILED(HttpStatus.BAD_REQUEST,"허용되지 않은 상태 전환입니다."),
 
     // Category
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND,"카테고리를 찾을 수 없습니다."),
@@ -35,6 +36,7 @@ public enum ErrorCode {
     PROPOSAL_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 해당 프로젝트에 제안서를 제출했습니다."),
     PROPOSAL_ALREADY_ACCEPTED(HttpStatus.CONFLICT, "이미 승인된 제안서가 존재하는 프로젝트입니다."),
     PROPOSAL_NOT_ACCEPTED(HttpStatus.BAD_REQUEST, "제안서가 승인되지 않은 상태입니다."),
+    PROPOSAL_ACCEPTED_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "제안서 승인에 실패했습니다."),
 
     // Admin
     INVALID_ADMIN_ROLE(HttpStatus.UNAUTHORIZED, "잘못된 역할입니다."),

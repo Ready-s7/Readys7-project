@@ -1,6 +1,7 @@
 
 package com.example.readys7project.domain.proposal.service;
 
+import com.example.readys7project.domain.project.enums.ProjectStatus;
 import com.example.readys7project.domain.user.developer.entity.Developer;
 import com.example.readys7project.domain.user.developer.repository.DeveloperRepository;
 import com.example.readys7project.domain.project.entity.Project;
@@ -181,8 +182,22 @@ public class ProposalService {
             }
         }
 
-        // 상태 변경
-        proposal.updateStatus(request.status(), user.getUserRole());
+        Project project = projectRepository.findById(proposal.getProject().getId()).orElseThrow(
+                () -> new ProposalException(ErrorCode.PROJECT_NOT_FOUND)
+        );
+
+        try {
+            // 상태 변경
+            proposal.updateStatus(request.status(), user.getUserRole());
+
+            // 제안서가 승인된다면 프로젝트 상태도 작업 중으로 변경
+            if (request.status().equals(ProposalStatus.ACCEPTED)) {
+                project.changeStatus(ProjectStatus.IN_PROGRESS);
+            }
+
+        } catch (ProposalException e) {
+            throw new ProposalException(ErrorCode.PROPOSAL_ACCEPTED_FAILED);
+        }
 
         return convertToDto(proposal);
     }
