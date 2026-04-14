@@ -64,6 +64,9 @@ public class AuthService {
                 .user(savedUser)
                 .title(clientRegisterRequestDto.title())
                 .participateType(clientRegisterRequestDto.participateType())
+                .rating(0.0)
+                .reviewCount(0)
+                .completedProject(0)
                 .build());
 
         // Dto 반환
@@ -98,6 +101,9 @@ public class AuthService {
                 .maxHourlyPay(developerRegisterRequestDto.maxHourlyPay())
                 .skills(developerRegisterRequestDto.skills())
                 .availableForWork(developerRegisterRequestDto.availableForWork())
+                        .rating(0.0)
+                        .reviewCount(0)
+                        .completedProjects(0)
                 .build());
 
         // Dto 반환

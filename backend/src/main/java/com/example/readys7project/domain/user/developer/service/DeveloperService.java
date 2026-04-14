@@ -11,12 +11,13 @@ import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.domain.user.auth.repository.UserRepository;
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.DeveloperException;
-import com.example.readys7project.global.exception.domain.UserException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 
 @Service
@@ -41,53 +42,85 @@ public class DeveloperService {
     }
 
     // 개발자 검색 (skill, minRating)
-    public Page<DeveloperDto> searchDevelopers(String skill, Double minRating, Pageable pageable) {
-        return developerRepository.searchDevelopers(skill, minRating, pageable)
+    public Page<DeveloperDto> searchDevelopers(List<String> skills, Double minRating, Pageable pageable) {
+        return developerRepository.searchDevelopers(skills, minRating, pageable)
                 .map(this::convertToDto);
     }
 
     // 개발자 프로필 수정 (DEVELOPER 전용)
     @Transactional
     public DeveloperDto updateProfile(DeveloperProfileRequestDto request, String userEmail) {
-        Developer developer = getDeveloperByEmail(userEmail);
+        // 모든 필드가 Null(또는 빈값)인지 검증 -> 공통 메서드 4번
+        validateUpdateData(request);
+
+        User user = getUserByEmail(userEmail);
+        validateUserRole(user, UserRole.DEVELOPER);
+        Developer developer = getDeveloperByUser(user);
 
         developer.updateProfile(request.title(), request.skills(), request.minHourlyPay(),
                 request.maxHourlyPay(), request.responseTime(), request.availableForWork());
-
         return convertToDto(developer);
     }
 
-    // 평점 업데이트
+    // 평점 업데이트 (ReviewService 같은 내부 클래스에서만 호출가능)
     @Transactional
     public void updateRating(Long developerId, Double newRating, Integer newReviewCount) {
+
+        // 1. 평점 범위 무결성 검증 (0~5점 사이인지 확인) -> 방어적 프로그램을 위해서 추가
+        if (newRating < 0 || newRating > 5.0) {
+            throw new DeveloperException(ErrorCode.REVIEW_INVALID_RATING_RANGE);
+        }
+        // 2. 개발자 조회
         Developer developer = developerRepository.findById(developerId)
                 .orElseThrow(() -> new DeveloperException(ErrorCode.DEVELOPER_NOT_FOUND));
-
+        // 3. 리뷰 개수 무결성 검증 (새 리뷰 개수가 현재 저장된 개수보다 작으면 에러)
+        if (newReviewCount == null || newReviewCount < developer.getReviewCount()) {
+            throw new DeveloperException(ErrorCode.REVIEW_INVALID_COUNT);
+        }
         developer.updateRating(newRating, newReviewCount);
     }
 
     // 내 프로젝트 목록 조회
     public Page<ProjectDto> getMyProjects(String userEmail, Pageable pageable) {
-        Developer developer = getDeveloperByEmail(userEmail);
+        User user = getUserByEmail(userEmail);
+        validateUserRole(user, UserRole.DEVELOPER);
+        Developer developer = getDeveloperByUser(user);
 
         return developerRepository.findMyProjects(developer, pageable)
                 .map(this::convertToProjectDto);
     }
 
-    // 공통 메서드 추출 (검증)
-    private Developer getDeveloperByEmail(String userEmail) {
-        // 1. JWT에서 파싱된 이메일로 DB 조회 -> User 존재 여부 확인
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
 
-        // 2. 해당 User의 역할이 DEVELOPER인지 확인
-        if (user.getUserRole() != UserRole.DEVELOPER) {
-            throw new UserException(ErrorCode.USER_FORBIDDEN);
+    // 공통 메서드 1. 이메일로 User 조회
+    private User getUserByEmail(String userEmail) {
+        return userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new DeveloperException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    // 공통 메서드 2. User 역할 검증
+    private void validateUserRole(User user, UserRole expectedRole) {
+        if (user.getUserRole() != expectedRole) {
+            throw new DeveloperException(ErrorCode.USER_FORBIDDEN);
         }
+    }
 
-        // 3. 해당 유저와 연결된 Developer 엔티티 조회 후 반환
-        return developerRepository.findByUserEmail(userEmail)
+    // 공통 메서드 3. 역할 검증된 User로 Developer 조회
+    private Developer getDeveloperByUser(User user) {
+        return developerRepository.findByUser(user)
                 .orElseThrow(() -> new DeveloperException(ErrorCode.DEVELOPER_NOT_FOUND));
+    }
+
+    // 공통 메서드 4. 수정 요청 데이터가 모두 비어있는지 확인 (입구컷)
+    private void validateUpdateData(DeveloperProfileRequestDto request) {
+        boolean isAllNull = (request.title() == null || request.title().isBlank()) &&
+                (request.skills() == null || request.skills().isEmpty()) &&
+                request.minHourlyPay() == null &&
+                request.maxHourlyPay() == null &&
+                (request.responseTime() == null || request.responseTime().isBlank()) &&
+                request.availableForWork() == null;
+        if (isAllNull) {
+            throw new DeveloperException(ErrorCode.SKILL_UPDATE_DATA_NULL);
+        }
     }
 
     // Developer 엔티티 → DeveloperDto 변환 (개발자 프로필 조회 응답용)

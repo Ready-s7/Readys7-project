@@ -15,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 public class DeveloperController {
@@ -36,11 +38,11 @@ public class DeveloperController {
     // 개발자 검색 (skill, minRating)
     @GetMapping("/v1/developers/search")
     public ResponseEntity<ApiResponseDto<Page<DeveloperDto>>> searchDevelopers(
-            @RequestParam(required = false) String skill,
+            @RequestParam(required = false) List<String> skills,
             @RequestParam(required = false) Double minRating,
             Pageable pageable) {
         return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, developerService.searchDevelopers(
-                skill, minRating, pageable)));
+                skills, minRating, pageable)));
     }
 
     // 개발자 프로필 수정 (DEVELOPER 전용)

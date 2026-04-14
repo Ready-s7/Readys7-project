@@ -1,5 +1,6 @@
 package com.example.readys7project.domain.user.auth.dto.request;
 
+import com.example.readys7project.domain.user.developer.dto.validation.HourlyPayRange;
 import com.example.readys7project.domain.user.developer.dto.validation.ValidHourlyPayRange;
 import com.example.readys7project.domain.user.enums.ParticipateType;
 import jakarta.validation.constraints.*;
@@ -52,5 +53,5 @@ public record DeveloperRegisterRequestDto(
         @NotNull(message = "사업자 유형은 필수입니다.")
         ParticipateType participateType
 
-) {
+) implements HourlyPayRange {
 }

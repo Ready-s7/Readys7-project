@@ -48,7 +48,7 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
 
     // 개발자 검색 (skill, minRating)
     @Override
-    public Page<Developer> searchDevelopers(String skill, Double minRating, Pageable pageable) {
+    public Page<Developer> searchDevelopers(List<String> skills, Double minRating, Pageable pageable) {
         QDeveloper qDeveloper = QDeveloper.developer;
         QUser qUser = QUser.user;
 
@@ -56,8 +56,14 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
         // 조건이 있을 때만 동적으로 where절에 추가하는 QueryDSL 도구
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (skill != null && !skill.isBlank()) {
-            builder.and(qDeveloper.skills.contains(skill));   // (조건1) skills 목록에 해당 skill 포함 여부
+        if (skills != null && !skills.isEmpty()) {
+            BooleanBuilder skillBuilder = new BooleanBuilder();
+            for (String s : skills) {
+                if (s != null && !s.isBlank()){
+                    skillBuilder.or(qDeveloper.skills.contains(s));   // (조건1) skills 목록에 해당 skill 포함 여부
+                }
+            }
+            builder.and(skillBuilder);                         // 생성된 OR 조건 뭉치를 메인 빌더에 추가
         }
         if (minRating != null) {
             builder.and(qDeveloper.rating.goe(minRating));    // (조건2) rating >= minRating
