@@ -1,11 +1,9 @@
 package com.example.readys7project.domain.user.auth.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
 public record UpdateUserInformationRequestDto (
 
-        @NotBlank(message = "이름은 필수입니다")
         String name,
 
         @Pattern(

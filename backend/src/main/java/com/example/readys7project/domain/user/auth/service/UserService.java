@@ -20,8 +20,6 @@ import com.example.readys7project.global.exception.domain.UserException;
 import com.example.readys7project.global.security.CustomUserDetails;
 import com.example.readys7project.global.security.refreshtoken.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
-import org.eclipse.jdt.internal.compiler.ast.Clinit;
-import org.hibernate.sql.Delete;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +46,9 @@ public class UserService {
          원래는 findByIdAndActiveTrue 이런식으로 쿼리메서드를 만들어서 사용해야하지만
          @SoftDelete이 있으므로, findById로 충분*/
 
+        // DB를 한번 더 조회하는 이유
+        // 1. 최신 데이터 보장 -> 토큰 발급 이후 수정된 정보 반영
+        // 2. 탈퇴 유저 필터링 ->
         User targetUser = userRepository.findById(user.getId())
                 .orElseThrow( () -> new UserException(ErrorCode.USER_NOT_FOUND));
 
@@ -125,7 +126,7 @@ public class UserService {
         // Client인 경우, clientRepository에서 찾아보고 회원 삭제
         if (user.getUserRole() == UserRole.CLIENT) {
             Client client = clientRepository.findByUser(targetUser)
-                            .orElseThrow( () -> new ClientException(ErrorCode.USER_NOT_FOUND));
+                            .orElseThrow( () -> new ClientException(ErrorCode.CLIENT_NOT_FOUND));
 
             clientRepository.deleteById(client.getId());
         }
@@ -133,7 +134,7 @@ public class UserService {
         // Developer인 경우, clientRepository에서 찾아보고 회원 삭제
         if (user.getUserRole() == UserRole.DEVELOPER) {
             Developer developer = developerRepository.findByUser(targetUser)
-                            .orElseThrow( () -> new DeveloperException(ErrorCode.USER_NOT_FOUND));
+                            .orElseThrow( () -> new DeveloperException(ErrorCode.DEVELOPER_NOT_FOUND));
 
             developerRepository.deleteById(developer.getId());
         }
@@ -141,7 +142,7 @@ public class UserService {
         // Admin인 경우, adminRepository에서 찾아보고 회원 삭제
         if (user.getUserRole() == UserRole.ADMIN) {
             Admin admin = adminRepository.findByUser(targetUser)
-                            .orElseThrow( () -> new AdminException(ErrorCode.USER_NOT_FOUND));
+                            .orElseThrow( () -> new AdminException(ErrorCode.ADMIN_NOT_FOUND));
 
             adminRepository.deleteById(admin.getId());
         }

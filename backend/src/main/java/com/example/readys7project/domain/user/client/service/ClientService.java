@@ -145,7 +145,7 @@ public class ClientService {
         // ClientId로 프로젝트 페이징 조회
         Page<Project> projectPage = projectRepository.findByClientWithPageable(client.getId(), converted);
 
-        // Project를 ClientProjectSummaryResponseDto로 변환
+        // Project를 ClientProjectsListResponseDto 변환
         List<ClientProjectsListResponseDto> projectList = projectPage.getContent().stream()
                 .map(project -> ClientProjectsListResponseDto.builder()
                         .id(project.getId())
