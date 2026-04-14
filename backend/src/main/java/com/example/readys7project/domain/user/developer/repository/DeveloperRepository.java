@@ -10,5 +10,4 @@ import java.util.Optional;
 @Repository
 public interface DeveloperRepository extends JpaRepository<Developer, Long>, DeveloperQueryRepository {
     Optional<Developer> findByUser(User user);
-    Optional<Developer> findByUserEmail(String email);
 }

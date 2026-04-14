@@ -160,6 +160,25 @@ public class ClientService {
         return PageResponseDto.of(projectPage, projectList);
     }
 
+
+    // 평점 업데이트 (ReviewService 같은 내부 클래스에서만 호출가능)
+    @Transactional
+    public void updateRating(Long clientId, Double newRating, Integer newReviewCount) {
+
+        // 1. 평점 범위 무결성 검증 (0~5점 사이인지 확인) -> 방어적 프로그램을 위해서 추가
+        if (newRating < 0 || newRating > 5.0) {
+            throw new ClientException(ErrorCode.REVIEW_INVALID_RATING_RANGE);
+        }
+        // 2. 클라이언트 조회
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new ClientException(ErrorCode.CLIENT_NOT_FOUND));
+        // 3. 리뷰 개수 무결성 검증 (새 리뷰 개수가 현재 저장된 개수보다 작으면 에러)
+        if (newReviewCount == null || newReviewCount < client.getReviewCount()) {
+            throw new ClientException(ErrorCode.REVIEW_INVALID_COUNT);
+        }
+        client.updateRating(newRating, newReviewCount);
+    }
+
     //
     public static Pageable convertPageable(Pageable pageable) {
         return PageRequest.of(

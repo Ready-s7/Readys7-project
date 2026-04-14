@@ -73,4 +73,11 @@ public class Client extends BaseEntity {
         if(participateType != null) this.participateType = participateType;
     }
 
+    // 평점 업데이트
+    public void updateRating(Double rating, Integer reviewCount) {
+        this.rating = rating;
+        this.reviewCount = reviewCount;
+    }
+
+
 }

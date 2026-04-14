@@ -45,6 +45,8 @@ public enum ErrorCode {
 
     // Review
     REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "리뷰를 찾을 수 없습니다."),
+    REVIEW_INVALID_RATING_RANGE(HttpStatus.BAD_REQUEST, "평점은 0.0에서 5.0 사이여야 합니다."),
+    REVIEW_INVALID_COUNT(HttpStatus.BAD_REQUEST, "리뷰 개수가 올바르지 않습니다."),
 
     // ChatRoom
     CHATROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "채팅방을 찾을 수 없습니다."),

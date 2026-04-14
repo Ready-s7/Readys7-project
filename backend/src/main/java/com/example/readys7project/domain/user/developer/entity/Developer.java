@@ -86,12 +86,24 @@ public class Developer extends BaseEntity {
     public void updateProfile(String title, List<String> skills, Integer minHourlyPay, Integer maxHourlyPay, String responseTime,
                               Boolean availableForWork
     ) {
-        this.title = title;
-        this.skills = skills;
-        this.minHourlyPay = minHourlyPay;
-        this.maxHourlyPay = maxHourlyPay;
-        this.responseTime = responseTime;
-        this.availableForWork = availableForWork;
+        if (title != null && !title.isBlank()) {
+            this.title = title;
+        }
+        if (skills != null && !skills.isEmpty()) {
+            this.skills = skills;
+        }
+        if (minHourlyPay != null) {
+            this.minHourlyPay = minHourlyPay;
+        }
+        if (maxHourlyPay != null) {
+            this.maxHourlyPay = maxHourlyPay;
+        }
+        if (responseTime != null && !responseTime.isBlank()) {
+            this.responseTime = responseTime;
+        }
+        if (availableForWork != null) {
+            this.availableForWork = availableForWork;
+        }
     }
 
     // 평점 업데이트
