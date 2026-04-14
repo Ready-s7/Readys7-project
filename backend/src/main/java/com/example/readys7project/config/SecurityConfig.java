@@ -47,14 +47,14 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/auth/**").permitAll()
+                    .requestMatchers("/v1/auth/**").permitAll()
                     .requestMatchers("/h2-console/**").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v1/projects").permitAll()        // 목록 조회만 허용
-                    .requestMatchers(HttpMethod.GET, "/api/v1/projects/search").permitAll() // 검색만 허용
-                    .requestMatchers("/api/v1/projects/**").authenticated()                 // 나머지 인증 필요
-                    .requestMatchers("/api/v1/developers/profile").authenticated()
-                    .requestMatchers("/api/v1/developers/my-projects").authenticated()
-                    .requestMatchers("/api/v1/developers/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/v1/projects").permitAll()        // 목록 조회만 허용
+                    .requestMatchers(HttpMethod.GET, "/v1/projects/search").permitAll() // 검색만 허용
+                    .requestMatchers("/v1/projects/**").authenticated()                 // 나머지 인증 필요
+                    .requestMatchers("/v1/developers/profile").authenticated()
+                    .requestMatchers("/v1/developers/my-projects").authenticated()
+                    .requestMatchers("/v1/developers/**").permitAll()
                     .requestMatchers("/ws/**").authenticated()
                     .anyRequest().authenticated()
             )
