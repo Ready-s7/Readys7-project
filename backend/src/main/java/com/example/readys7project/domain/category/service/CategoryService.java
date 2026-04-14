@@ -16,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -74,8 +73,7 @@ public class CategoryService {
     public List<CategoryDto> getAllCategories() {
 
         // displayOrder 기준 오름차순 정렬하여 전체 조회 후 DTO 변환하여 반환
-        return categoryRepository.findAll().stream()
-                .sorted(Comparator.comparing(Category::getDisplayOrder))
+        return categoryRepository.findAllWithAdminOrderByDisplayOrderAsc().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
@@ -116,8 +114,7 @@ public class CategoryService {
         validateAdminStatus(admin);
 
         // 5. 수정할 카테고리 존재 여부 검증
-        Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new CategoryException(ErrorCode.CATEGORY_NOT_FOUND));
+        Category category = findCategory(categoryId);
 
         // 6. 변경하려는 이름이 다른 카테고리와 중복되는지 검증
         // 현재 카테고리 이름과 동일한 경우는 중복으로 처리하지 않음
@@ -155,12 +152,11 @@ public class CategoryService {
         // 3. ADMIN 역할의 유저 불러오기
         Admin admin = findAdmin(user);
 
-        // 4. 불러온 ADMIN의 승인 상태 검증
+        // 4. ADMIN의 승인 상태 검증
         validateAdminStatus(admin);
 
         // 5. 삭제할 카테고리 존재 여부 검증
-        Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new CategoryException(ErrorCode.CATEGORY_NOT_FOUND));
+        Category category = findCategory(categoryId);
 
         // 6. 카테고리 삭제
         categoryRepository.delete(category);
@@ -173,6 +169,7 @@ public class CategoryService {
     private CategoryDto convertToDto(Category category) {
         return CategoryDto.builder()
                 .id(category.getId())
+                .adminId(category.getAdmin().getId())
                 .name(category.getName())
                 .icon(category.getIcon())
                 .description(category.getDescription())
@@ -181,24 +178,34 @@ public class CategoryService {
     }
 
     private User findUser(String email) {
+        // 요청한 사용자 존재 여부 검증
         return userRepository.findByEmail(email).orElseThrow(
                 () -> new CategoryException(ErrorCode.USER_NOT_FOUND)
         );
     }
 
-    private void validateAdmin(User user) {
-        if (!user.getUserRole().equals(UserRole.ADMIN)) {
-            throw new CategoryException(ErrorCode.USER_FORBIDDEN);
-        }
-    }
-
     private Admin findAdmin(User user) {
+        // ADMIN 역할의 유저 불러오기
         return adminRepository.findByUser(user).orElseThrow(
                 () -> new CategoryException(ErrorCode.ADMIN_NOT_FOUND)
         );
     }
 
+    private Category findCategory(Long categoryId) {
+        // 카테고리 존재 여부 검증
+        return categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new CategoryException(ErrorCode.CATEGORY_NOT_FOUND));
+    }
+
+    private void validateAdmin(User user) {
+        // 요청한 사용자의 ADMIN 역할 검증
+        if (!user.getUserRole().equals(UserRole.ADMIN)) {
+            throw new CategoryException(ErrorCode.USER_FORBIDDEN);
+        }
+    }
+
     private void validateAdminStatus(Admin admin) {
+        // ADMIN의 승인 상태 검증
         if (!admin.getStatus().equals(AdminStatus.APPROVED)) {
             throw new CategoryException(ErrorCode.ADMIN_NOT_APPROVED);
         }

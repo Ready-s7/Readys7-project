@@ -1,5 +1,6 @@
 package com.example.readys7project.domain.category.entity;
 
+import com.example.readys7project.domain.user.admin.entity.Admin;
 import com.example.readys7project.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -21,6 +22,10 @@ public class Category extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_id")
+    private Admin admin;
+
     @Column(nullable = false, unique = true)
     private String name;
 
@@ -36,7 +41,8 @@ public class Category extends BaseEntity {
     private boolean isDeleted = false;
 
     @Builder
-    public Category(String name, String icon, String description, Integer displayOrder) {
+    public Category(Admin admin, String name, String icon, String description, Integer displayOrder) {
+        this.admin = admin;
         this.name = name;
         this.icon = icon;
         this.description = description;
