@@ -6,7 +6,6 @@ import com.example.readys7project.domain.project.dto.ProjectDto;
 import com.example.readys7project.domain.project.dto.request.ProjectRequestDto;
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.project.enums.ProjectStatus;
-import com.example.readys7project.domain.project.repository.ProjectQueryRepositoryImpl;
 import com.example.readys7project.domain.project.repository.ProjectRepository;
 import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.domain.user.auth.enums.UserRole;
@@ -134,31 +133,15 @@ public class ProjectService {
     @Transactional
     public ProjectDto updateProject(Long id, ProjectRequestDto request, String userEmail) {
 
-        // 1. 수정할 프로젝트 존재 여부 검증
-        Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new ProjectException(ErrorCode.PROJECT_NOT_FOUND));
+        // 1.CLIENT 권한 및 프로젝트 소유권 검증 (공통 메서드 호출)
+        // 검증된 project 반환받음
+        Project project = validateProjectClient(id, userEmail);
 
-        // 2. 요청한 사용자 존재 여부 검증
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
-
-        // 3. 요청한 사용자의 Client 역할 검증
-        // CLIENT 역할이 아닌 경우 차단
-        Client client = clientRepository.findByUser(user)
-                .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
-
-        // 4. 프로젝트 소유자 본인 여부 검증
-        // project.getClient().getId() = 프로젝트를 등록한 Client의 id
-        // client.getId() = 현재 요청한 사용자의 Client id
-        if (!project.getClient().getId().equals(client.getId())) {
-            throw new ProjectException(ErrorCode.USER_FORBIDDEN);
-        }
-
-        // 5. 변경할 카테고리 존재 여부 검증
+        // 2. 변경할 카테고리 존재 여부 검증
         Category category = categoryRepository.findById(request.categoryId())
                 .orElseThrow(() -> new ProjectException(ErrorCode.CATEGORY_NOT_FOUND));
 
-        // 6. 프로젝트 정보 업데이트
+        // 3. 프로젝트 정보 업데이트
         // Dirty Checking에 의해 트랜잭션 종료 시 자동으로 UPDATE 쿼리가 실행됨
         project.updateProject(
                 request.title(),
@@ -182,24 +165,11 @@ public class ProjectService {
     @Transactional
     public void deleteProject(Long id, String userEmail) {
 
-        // 1. 삭제할 프로젝트 존재 여부 검증
-        Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new ProjectException(ErrorCode.PROJECT_NOT_FOUND));
+        // 1.CLIENT 권한 및 프로젝트 소유권 검증 (공통 메서드 호출)
+        // 검증된 project 반환받음
+        Project project = validateProjectClient(id, userEmail);
 
-        // 2. 요청한 사용자 존재 여부 검증
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
-
-        // 3. 요청한 사용자의 Client 역할 검증
-        Client client = clientRepository.findByUser(user)
-                .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
-
-        // 4. 프로젝트 소유자 본인 여부 검증
-        if (!project.getClient().getId().equals(client.getId())) {
-            throw new ProjectException(ErrorCode.USER_FORBIDDEN);
-        }
-
-        // 5. 프로젝트 삭제 (SoftDelete → deleted = true 로 변경)
+        // 2. 프로젝트 삭제 (SoftDelete → deleted = true 로 변경)
         projectRepository.delete(project);
     }
 
@@ -252,5 +222,38 @@ public class ProjectService {
                 project.getCreatedAt(),
                 project.getUpdatedAt()
         );
+    }
+
+    /**
+     * CLIENT 권한 및 프로젝트 소유권 검증 (공통 메서드)
+     *  1. 프로젝트 존재 여부 검증
+     *  2. 사용자 존재 여부 검증
+     *  3. 사용자의 CLIENT 역할 검증
+     *  4. CLIENT의 프로젝트 소유권 검증
+     */
+    private Project validateProjectClient(Long id, String userEmail) {
+
+        // 1. 프로젝트 존재 여부 검증
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new ProjectException(ErrorCode.PROJECT_NOT_FOUND));
+
+        // 2. 요청한 사용자 존재 여부 검증
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
+
+        // 3. 요청한 사용자의 Client 역할 검증
+        // CLIENT 역할이 아닌 경우 차단
+        Client client = clientRepository.findByUser(user)
+                .orElseThrow(() -> new ProjectException(ErrorCode.USER_NOT_FOUND));
+
+        // 4. 프로젝트 소유자 본인 여부 검증
+        // project.getClient().getId() = 프로젝트를 등록한 Client의 id
+        // client.getId() = 현재 요청한 사용자의 Client id
+        if (!project.getClient().getId().equals(client.getId())) {
+            throw new ProjectException(ErrorCode.USER_FORBIDDEN);
+        }
+
+        // 검증 완료된 project 반환
+        return project;
     }
 }

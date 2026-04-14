@@ -1,6 +1,5 @@
 package com.example.readys7project.domain.project.controller;
 
-import com.example.readys7project.domain.category.entity.Category;
 import com.example.readys7project.domain.project.dto.ProjectDto;
 import com.example.readys7project.domain.project.dto.request.ProjectRequestDto;
 import com.example.readys7project.domain.project.service.ProjectService;

@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,31 +34,26 @@ public class CategoryService {
      * - 카테고리 이름 중복을 허용하지 않음
      */
     @Transactional
-    public CategoryDto createCategory(CategoryRequestDto request, String userEmail) {
+    public CategoryDto createCategory(CategoryRequestDto request, String email) {
 
         // 1. 요청한 사용자 존재 여부 검증
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new CategoryException(ErrorCode.USER_NOT_FOUND));
+        User user = findUser(email);
 
-        // 2. ADMIN 역할 여부 검증(CLIENT, DEVELOPER는 카테고리 생성 불가)
-        if (user.getUserRole() != UserRole.ADMIN) {
-            throw new CategoryException(ErrorCode.USER_FORBIDDEN);
-        }
+        // 2. 사용자 ADMIN 역할 여부 검증
+        validateAdmin(user);
 
-        // 3. Admin 테이블에서 APPROVED 상태인지 확인
-        Admin admin = adminRepository.findByUser(user)
-                .orElseThrow(() -> new CategoryException(ErrorCode.ADMIN_NOT_FOUND));
+        // 3. ADMIN 역할의 유저 불러오기
+        Admin admin = findAdmin(user);
 
-        if (admin.getStatus() != AdminStatus.APPROVED) {
-            throw new CategoryException(ErrorCode.ADMIN_NOT_APPROVED);
-        }
+        // 4. 불러온 ADMIN의 승인 상태 검증
+        validateAdminStatus(admin);
 
-        // 4. 카테고리 이름 중복 검증
+        // 5. 카테고리 이름 중복 검증
         if (categoryRepository.existsByName(request.name())) {
             throw new CategoryException(ErrorCode.CATEGORY_ALREADY_EXISTS);
         }
 
-        // 5. 카테고리 이름 중복 검증
+        // 6. 카테고리 이름 중복 검증
         Category category = Category.builder()
                 .name(request.name())
                 .icon(request.icon())
@@ -65,7 +61,7 @@ public class CategoryService {
                 .displayOrder(request.displayOrder())
                 .build();
 
-        // 6. 저장 후 DTO로 변환하여 반환
+        // 7. 저장 후 DTO로 변환하여 반환
         return convertToDto(categoryRepository.save(category));
     }
 
@@ -79,7 +75,7 @@ public class CategoryService {
 
         // displayOrder 기준 오름차순 정렬하여 전체 조회 후 DTO 변환하여 반환
         return categoryRepository.findAll().stream()
-                .sorted((a,b) -> a.getDisplayOrder().compareTo(b.getDisplayOrder()))
+                .sorted(Comparator.comparing(Category::getDisplayOrder))
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
@@ -105,37 +101,32 @@ public class CategoryService {
      * - @Transactional 덕분에 별도 save() 호출 없이 변경사항이 자동 반영 (Dirty Checking)
      */
     @Transactional
-    public CategoryDto updateCategory(Long categoryId, CategoryRequestDto request, String userEmail) {
+    public CategoryDto updateCategory(Long categoryId, CategoryRequestDto request, String email) {
 
         // 1. 요청한 사용자 존재 여부 검증
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new CategoryException(ErrorCode.USER_NOT_FOUND));
+        User user = findUser(email);
 
-        // 2. ADMIN 역할 여부 검증
-        if (user.getUserRole() != UserRole.ADMIN) {
-            throw new CategoryException(ErrorCode.USER_FORBIDDEN);
-        }
+        // 2. 사용자 ADMIN 역할 여부 검증
+        validateAdmin(user);
 
-        // 2단계: Admin 테이블에서 APPROVED 상태인지 확인
-        Admin admin = adminRepository.findByUser(user)
-                .orElseThrow(() -> new CategoryException(ErrorCode.ADMIN_NOT_FOUND));
+        // 3. ADMIN 역할의 유저 불러오기
+        Admin admin = findAdmin(user);
 
-        if (admin.getStatus() != AdminStatus.APPROVED) {
-            throw new CategoryException(ErrorCode.ADMIN_NOT_APPROVED);
-        }
+        // 4. 불러온 ADMIN의 승인 상태 검증
+        validateAdminStatus(admin);
 
-        // 3. 수정할 카테고리 존재 여부 검증
+        // 5. 수정할 카테고리 존재 여부 검증
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new CategoryException(ErrorCode.CATEGORY_NOT_FOUND));
 
-        // 4. 변경하려는 이름이 다른 카테고리와 중복되는지 검증
+        // 6. 변경하려는 이름이 다른 카테고리와 중복되는지 검증
         // 현재 카테고리 이름과 동일한 경우는 중복으로 처리하지 않음
         if (!category.getName().equals(request.name())
                  && categoryRepository.existsByName(request.name())) {
             throw new CategoryException(ErrorCode.CATEGORY_ALREADY_EXISTS);
         }
 
-        // 5. 카테고리 정보 업데이트
+        // 7. 카테고리 정보 업데이트
         // Dirty Checking에 의해 트랜잭션 종료 시 자동으로 UPDATE 쿼리가 실행됨
         category.updateCategory(
                 request.name(),
@@ -144,7 +135,7 @@ public class CategoryService {
                 request.displayOrder()
         );
 
-        // 6. 수정된 카테고리를 DTO로 변환하여 반환
+        // 8. 수정된 카테고리를 DTO로 변환하여 반환
         return convertToDto(category);
     }
 
@@ -153,29 +144,25 @@ public class CategoryService {
      * - ADMIN 역할을 가진 사용자만 카테고리 삭제 가능
      */
     @Transactional
-    public void deleteCategory(Long categoryId, String userEmail) {
+    public void deleteCategory(Long categoryId, String email) {
 
         // 1. 요청한 사용자 존재 여부 검증
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new CategoryException(ErrorCode.USER_NOT_FOUND));
+       User user = findUser(email);
 
-        // 2. ADMIN 역할 여부 검증
-        if (user.getUserRole() != UserRole.ADMIN) {
-            throw new CategoryException(ErrorCode.USER_FORBIDDEN);
-        }
+        // 2. 사용자 ADMIN 역할 여부 검증
+        validateAdmin(user);
 
-        Admin admin = adminRepository.findByUser(user)
-                .orElseThrow(() -> new CategoryException(ErrorCode.ADMIN_NOT_FOUND));
+        // 3. ADMIN 역할의 유저 불러오기
+        Admin admin = findAdmin(user);
 
-        if (admin.getStatus() != AdminStatus.APPROVED) {
-            throw new CategoryException(ErrorCode.ADMIN_NOT_APPROVED);
-        }
+        // 4. 불러온 ADMIN의 승인 상태 검증
+        validateAdminStatus(admin);
 
-        // 3. 삭제할 카테고리 존재 여부 검증
+        // 5. 삭제할 카테고리 존재 여부 검증
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new CategoryException(ErrorCode.CATEGORY_NOT_FOUND));
 
-        // 4. 카테고리 삭제
+        // 6. 카테고리 삭제
         categoryRepository.delete(category);
     }
 
@@ -191,5 +178,29 @@ public class CategoryService {
                 .description(category.getDescription())
                 .displayOrder(category.getDisplayOrder())
                 .build();
+    }
+
+    private User findUser(String email) {
+        return userRepository.findByEmail(email).orElseThrow(
+                () -> new CategoryException(ErrorCode.USER_NOT_FOUND)
+        );
+    }
+
+    private void validateAdmin(User user) {
+        if (!user.getUserRole().equals(UserRole.ADMIN)) {
+            throw new CategoryException(ErrorCode.USER_FORBIDDEN);
+        }
+    }
+
+    private Admin findAdmin(User user) {
+        return adminRepository.findByUser(user).orElseThrow(
+                () -> new CategoryException(ErrorCode.ADMIN_NOT_FOUND)
+        );
+    }
+
+    private void validateAdminStatus(Admin admin) {
+        if (!admin.getStatus().equals(AdminStatus.APPROVED)) {
+            throw new CategoryException(ErrorCode.ADMIN_NOT_APPROVED);
+        }
     }
 }
