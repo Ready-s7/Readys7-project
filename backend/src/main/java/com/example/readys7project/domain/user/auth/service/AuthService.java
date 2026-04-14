@@ -211,6 +211,7 @@ public class AuthService {
     }
 
     // 로그아웃
+    @Transactional
     public void logout(String email) {
         // 토큰 삭제 -> 로그아웃
         refreshTokenRepository.deleteByEmail(email);
