@@ -1,6 +1,8 @@
 package com.example.readys7project.domain.portfolio.entity;
 
 
+import com.example.readys7project.domain.portfolio.dto.request.PortfolioRequestDto;
+import com.example.readys7project.domain.portfolio.dto.request.PortfolioUpdateRequestDto;
 import com.example.readys7project.domain.user.developer.entity.Developer;
 import com.example.readys7project.global.converter.StringListConverter;
 import com.example.readys7project.global.entity.BaseEntity;
@@ -33,10 +35,10 @@ public class Portfolio extends BaseEntity {
     @JoinColumn(name = "developer_id", nullable = false)
     private Developer developer;
 
-    @Column(nullable = false, length = 50)
+    @Column(name = "title", nullable = false, length = 100)
     private String title;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(name = "description", columnDefinition = "TEXT", nullable = false)
     private String description;
 
     @Column(name = "image_url", length = 2083)
@@ -49,7 +51,7 @@ public class Portfolio extends BaseEntity {
     @Column(name = "skills", columnDefinition = "json")
     private List<String> skills;
 
-
+    @Column(name = "is_deleted")
     private boolean isDeleted = false;
 
 
@@ -63,11 +65,25 @@ public class Portfolio extends BaseEntity {
         this.skills = skills;
     }
 
-    public void portfolioUpdate(String title, String description, String imageUrl, String projectUrl, List<String> skills) {
-        this.title = title;
-        this.description = description;
-        this.imageUrl = imageUrl;
-        this.projectUrl = projectUrl;
-        this.skills = skills;
+    public void portfolioUpdate(PortfolioUpdateRequestDto request) {
+        if (request.title() != null && !request.title().isBlank()) {
+            this.title = request.title();
+        }
+
+        if (request.description() != null && !request.description().isBlank()) {
+            this.description = request.description();
+        }
+
+        if (request.imageUrl() != null) {
+            this.imageUrl = request.imageUrl();
+        }
+
+        if (request.projectUrl() != null) {
+            this.projectUrl = request.projectUrl();
+        }
+
+        if (request.skills() != null) {
+            this.skills = request.skills();
+        }
     }
 }

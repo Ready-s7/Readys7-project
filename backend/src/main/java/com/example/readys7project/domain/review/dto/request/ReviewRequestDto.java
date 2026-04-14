@@ -1,9 +1,6 @@
 package com.example.readys7project.domain.review.dto.request;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +19,7 @@ public record ReviewRequestDto (
      Integer rating,
 
     @NotBlank(message = "코멘트는 필수입니다")
+    @Size(max = 100, message = "코멘트는 100자 이하여야 합니다.")
      String comment
-) {
-}
+)
+{ }

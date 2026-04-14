@@ -10,6 +10,8 @@ import java.util.List;
 
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Long>, ReviewQueryRepository {
-    List<Review> findByDeveloperId(Long developerId);
 
+// n+1 문제 해소야함.
+    List<Review> findByDeveloperId(Long developerId);
+    List<Review> findByClientId(Long clientId);
 }

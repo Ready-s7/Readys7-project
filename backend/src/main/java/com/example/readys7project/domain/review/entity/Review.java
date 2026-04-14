@@ -1,5 +1,6 @@
 package com.example.readys7project.domain.review.entity;
 
+import com.example.readys7project.domain.review.dto.request.ReviewUpdateRequestDto;
 import com.example.readys7project.domain.user.client.entity.Client;
 import com.example.readys7project.domain.user.developer.entity.Developer;
 import com.example.readys7project.domain.project.entity.Project;
@@ -38,13 +39,14 @@ public class Review extends BaseEntity {
     private Project project;
 
     // 리뷰 평점
-    @Column(nullable = false)
+    @Column(name = "rating", nullable = false)
     private Integer rating; // 1-5
 
     // 리뷰 코멘트
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(name = "comment", columnDefinition = "TEXT", nullable = false)
     private String comment;
 
+    @Column(name = "is_deleted")
     private boolean isDeleted = false;
 
     @Builder
@@ -57,8 +59,13 @@ public class Review extends BaseEntity {
     }
 
     // 리뷰 수정 메서드
-    public void update(Integer rating, String comment){
-        this.rating = rating;
-        this.comment = comment;
+    public void updateReview(ReviewUpdateRequestDto request){
+        if (request.rating() != null) {
+            this.rating = request.rating();
+        }
+
+        if (request.comment() != null && !request.comment().isBlank()) {
+            this.comment = request.comment();
+        }
     }
 }
