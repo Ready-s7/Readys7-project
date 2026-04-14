@@ -47,6 +47,10 @@ public record DeveloperRegisterRequestDto(
         @NotEmpty(message = "기술은 한 개 이상 입력해야합니다.")
         List<String> skills,
 
+        @NotBlank(message = "응답시간 입력은 필수입니다.")
+        @Pattern(regexp = "^\\d+(시간|분)$", message = "형식이 올바르지 않습니다. (예: 10시간, 30분)")
+        String responseTime,
+
         @NotNull(message = "일 시작 여부는 필수입니다.")
         Boolean availableForWork,
 

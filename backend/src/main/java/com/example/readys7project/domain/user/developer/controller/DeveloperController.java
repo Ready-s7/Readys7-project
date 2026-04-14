@@ -29,6 +29,15 @@ public class DeveloperController {
         return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, developerService.getAllDevelopers(pageable)));
     }
 
+    // 내 프로젝트 목록 조회
+    @GetMapping("/v1/developers/me/my-projects")
+    public ResponseEntity<ApiResponseDto<Page<ProjectDto>>> getMyProjects(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            Pageable pageable) {
+        String email = userDetails.getEmail();
+        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, developerService.getMyProjects(email, pageable)));
+    }
+
     // 개발자 상세 조회
     @GetMapping("/v1/developers/{developerId}")
     public ResponseEntity<ApiResponseDto<DeveloperDto>> getDeveloperById(@PathVariable Long developerId) {
@@ -52,14 +61,5 @@ public class DeveloperController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         String email = userDetails.getEmail();
         return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, developerService.updateProfile(request, email)));
-    }
-
-    // 내 프로젝트 목록 조회
-    @GetMapping("/v1/developers/my-projects")
-    public ResponseEntity<ApiResponseDto<Page<ProjectDto>>> getMyProjects(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            Pageable pageable) {
-        String email = userDetails.getEmail();
-        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, developerService.getMyProjects(email, pageable)));
     }
 }

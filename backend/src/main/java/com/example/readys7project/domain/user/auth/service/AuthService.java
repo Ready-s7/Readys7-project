@@ -100,10 +100,11 @@ public class AuthService {
                 .minHourlyPay(developerRegisterRequestDto.minHourlyPay())
                 .maxHourlyPay(developerRegisterRequestDto.maxHourlyPay())
                 .skills(developerRegisterRequestDto.skills())
+                .responseTime(developerRegisterRequestDto.responseTime())
                 .availableForWork(developerRegisterRequestDto.availableForWork())
-                        .rating(0.0)
-                        .reviewCount(0)
-                        .completedProjects(0)
+                .rating(0.0)
+                .reviewCount(0)
+                .completedProjects(0)
                 .build());
 
         // Dto 반환

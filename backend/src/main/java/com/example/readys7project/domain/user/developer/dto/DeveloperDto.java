@@ -3,6 +3,7 @@ package com.example.readys7project.domain.user.developer.dto;
 import com.example.readys7project.domain.user.enums.ParticipateType;
 import lombok.Builder;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Builder
@@ -19,6 +20,8 @@ public record DeveloperDto(
         String responseTime,
         String description,     // User에서 가져옴
         Boolean availableForWork,
-        ParticipateType participateType
+        ParticipateType participateType,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
 ) {
 }

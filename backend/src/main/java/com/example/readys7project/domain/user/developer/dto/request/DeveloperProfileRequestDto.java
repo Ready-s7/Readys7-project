@@ -2,6 +2,7 @@ package com.example.readys7project.domain.user.developer.dto.request;
 
 import com.example.readys7project.domain.user.developer.dto.validation.HourlyPayRange;
 import com.example.readys7project.domain.user.developer.dto.validation.ValidHourlyPayRange;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public record DeveloperProfileRequestDto (
         @Positive(message = "최대 시급은 0보다 커야합니다")
         Integer maxHourlyPay,
 
+        @Pattern(regexp = "^(\\d+(시간|분))?$", message = "형식이 올바르지 않습니다. (예: 10시간, 30분)")
         String responseTime,
 
         Boolean availableForWork

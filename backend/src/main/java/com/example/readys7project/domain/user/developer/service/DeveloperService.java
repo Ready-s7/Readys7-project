@@ -54,7 +54,7 @@ public class DeveloperService {
         validateUpdateData(request);
 
         User user = getUserByEmail(userEmail);
-        validateUserRole(user, UserRole.DEVELOPER);
+        validateUserRole(user);
         Developer developer = getDeveloperByUser(user);
 
         developer.updateProfile(request.title(), request.skills(), request.minHourlyPay(),
@@ -83,7 +83,7 @@ public class DeveloperService {
     // 내 프로젝트 목록 조회
     public Page<ProjectDto> getMyProjects(String userEmail, Pageable pageable) {
         User user = getUserByEmail(userEmail);
-        validateUserRole(user, UserRole.DEVELOPER);
+        validateUserRole(user);
         Developer developer = getDeveloperByUser(user);
 
         return developerRepository.findMyProjects(developer, pageable)
@@ -98,8 +98,8 @@ public class DeveloperService {
     }
 
     // 공통 메서드 2. User 역할 검증
-    private void validateUserRole(User user, UserRole expectedRole) {
-        if (user.getUserRole() != expectedRole) {
+    private void validateUserRole(User user) {
+        if (user.getUserRole() != UserRole.DEVELOPER) {
             throw new DeveloperException(ErrorCode.USER_FORBIDDEN);
         }
     }
@@ -139,7 +139,9 @@ public class DeveloperService {
                 developer.getResponseTime(),
                 user.getDescription(),
                 developer.getAvailableForWork(),
-                developer.getParticipateType()
+                developer.getParticipateType(),
+                developer.getCreatedAt(),
+                developer.getUpdatedAt()
         );
     }
 
