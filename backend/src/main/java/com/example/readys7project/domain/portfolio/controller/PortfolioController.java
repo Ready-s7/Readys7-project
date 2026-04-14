@@ -3,6 +3,7 @@ package com.example.readys7project.domain.portfolio.controller;
 
 import com.example.readys7project.domain.portfolio.dto.PortfolioDto;
 import com.example.readys7project.domain.portfolio.dto.request.PortfolioRequestDto;
+import com.example.readys7project.domain.portfolio.dto.request.PortfolioUpdateRequestDto;
 import com.example.readys7project.domain.portfolio.service.PortfolioService;
 import com.example.readys7project.global.dto.ApiResponseDto;
 import com.example.readys7project.global.security.CustomUserDetails;
@@ -36,7 +37,7 @@ public class PortfolioController {
     @PatchMapping("/v1/portfolios")
     public ResponseEntity<ApiResponseDto<PortfolioDto>> updatePortfolio(
             @RequestParam Long developerId,
-            @Valid @RequestBody PortfolioRequestDto request,
+            @Valid @RequestBody PortfolioUpdateRequestDto request,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
         String email = customUserDetails.getEmail();

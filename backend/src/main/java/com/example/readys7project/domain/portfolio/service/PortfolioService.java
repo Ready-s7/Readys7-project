@@ -3,6 +3,7 @@ package com.example.readys7project.domain.portfolio.service;
 
 import com.example.readys7project.domain.portfolio.dto.PortfolioDto;
 import com.example.readys7project.domain.portfolio.dto.request.PortfolioRequestDto;
+import com.example.readys7project.domain.portfolio.dto.request.PortfolioUpdateRequestDto;
 import com.example.readys7project.domain.portfolio.entity.Portfolio;
 import com.example.readys7project.domain.portfolio.repository.PortfolioRepository;
 import com.example.readys7project.domain.user.auth.entity.User;
@@ -41,15 +42,10 @@ public class PortfolioService {
     @Transactional
     public PortfolioDto createPortfolio(PortfolioRequestDto request, String email) {
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new PortfolioException(ErrorCode.USER_NOT_FOUND));
+        User user = findUserByEmail(email);
+        validatePortfolioWriterRole(user);
 
-        if (user.getUserRole() != UserRole.DEVELOPER) {
-            throw new PortfolioException(ErrorCode.USER_FORBIDDEN);
-        }
-
-        Developer developer = developerRepository.findByUser(user)
-                .orElseThrow(() -> new PortfolioException(ErrorCode.DEVELOPER_NOT_FOUND));
+        Developer developer = findDeveloperByUser(user);
 
         Portfolio portfolio= Portfolio.builder()
                 .developer(developer)
@@ -78,45 +74,25 @@ public class PortfolioService {
      8. 반환
      */
     @Transactional
-    public PortfolioDto updatePortfolio(Long developerId, PortfolioRequestDto request, String email) {
+    public PortfolioDto updatePortfolio(Long developerId, PortfolioUpdateRequestDto request, String email) {
+        validateUpdateRequest(request);
 
-        // 로그인 사용자 조회
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new PortfolioException(ErrorCode.USER_NOT_FOUND));
+        // 로그인 검증.
+        User user = findUserByEmail(email);
 
-        // 포트폴리오 수정은 개발자만 가능
-        if (user.getUserRole() != UserRole.DEVELOPER) {
-            throw new PortfolioException(ErrorCode.USER_FORBIDDEN);
+        // 역할 검증.
+        validatePortfolioWriterRole(user);
 
-        }
+        Developer developer = findDeveloperByUser(user);
+        Portfolio portfolio = findPortfolio(developerId);
 
-        // 로그인 사용자에 연결된 개발자 엔티티 조회
-            Developer developer = developerRepository.findByUser(user)
-                    .orElseThrow(() -> new PortfolioException(ErrorCode.DEVELOPER_NOT_FOUND));
+        // 너가 이 포트폴리오 갖고 있는 사람인지 검증.
+        validatePortfolioOwner(developer, portfolio);
 
 
-        // 수정 대상 포트폴리오 조회
-            Portfolio portfolio = portfolioRepository.findByDeveloperId(developerId)
-                    .orElseThrow(() -> new PortfolioException(ErrorCode.PORTFOLIO_NOT_FOUND));
+        portfolio.portfolioUpdate(request);
 
-        // 로그인한 개발자의 포트폴리오가 아니라면 수정 불가
-        if (!portfolio.getDeveloper().getId().equals(developer.getId())) {
-            throw new PortfolioException(ErrorCode.USER_FORBIDDEN);
-        }
-
-        // 포트폴리오 내용 수정
-        portfolio.portfolioUpdate(
-                request.title(),
-                request.description(),
-                request.imageUrl(),
-                request.projectUrl(),
-                request.skills()
-        );
-
-        // 수정된 포트폴리오 저장
-        Portfolio updatedPortfolio = portfolioRepository.save(portfolio);
-
-        return convertToDto(updatedPortfolio);
+        return convertToDto(portfolio);
     }
 
 
@@ -133,32 +109,19 @@ public class PortfolioService {
     public void deletePortfolio(Long developerId, String email){
 
         // 로그인 사용자 조회
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new PortfolioException(ErrorCode.USER_NOT_FOUND));
+        User user = findUserByEmail(email);
 
-        // 개발자만 가능.
-        if (user.getUserRole() != UserRole.DEVELOPER) {
-            throw new PortfolioException(ErrorCode.USER_FORBIDDEN);
-        }
+        Portfolio portfolio = findPortfolio(developerId);
+        // 관리자는 삭제 가능.
+        if(user.getUserRole()!=UserRole.ADMIN){
+            validatePortfolioWriterRole(user);
 
-        // 사용자 개발자 엔티티로 조회
-            Developer developer = developerRepository.findByUser(user)
-                    .orElseThrow(() -> new PortfolioException(ErrorCode.DEVELOPER_NOT_FOUND));
-
-
-        // 포트폴리오 조회
-        Portfolio portfolio = portfolioRepository.findByDeveloperId(developerId)
-                .orElseThrow(() -> new PortfolioException(ErrorCode.PORTFOLIO_NOT_FOUND));
-
-        // 자기가 만든 포트폴리오만 삭제가 가능.
-        if (!portfolio.getDeveloper().getId().equals(developer.getId())) {
-            throw new PortfolioException(ErrorCode.USER_FORBIDDEN);
+            Developer developer = findDeveloperByUser(user);
+            validatePortfolioOwner(developer, portfolio);
         }
 
         portfolioRepository.delete(portfolio);
-
     }
-
 
     // 개발자 포트폴리오 조회
     // 일단 비회원도 조회 가능.
@@ -176,8 +139,6 @@ public class PortfolioService {
 
 
 
-
-
 // 반환 메서드
     private PortfolioDto convertToDto(Portfolio portfolio) {
         return PortfolioDto.builder()
@@ -191,6 +152,52 @@ public class PortfolioService {
                 .createdAt(portfolio.getCreatedAt())
                 .updatedAt(portfolio.getUpdatedAt())
                 .build();
+    }
+
+    // 공통 메서드들
+    private User findUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new PortfolioException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    private Developer findDeveloperByUser(User user) {
+        return developerRepository.findByUser(user)
+                .orElseThrow(() -> new PortfolioException(ErrorCode.DEVELOPER_NOT_FOUND));
+    }
+
+    private Portfolio findPortfolio(Long portfolioId) {
+        return portfolioRepository.findById(portfolioId)
+                .orElseThrow(() -> new PortfolioException(ErrorCode.PORTFOLIO_NOT_FOUND));
+    }
+
+    // 역할 검증.
+    private void validatePortfolioWriterRole(User user) {
+        if (user.getUserRole() != UserRole.DEVELOPER) {
+            throw new PortfolioException(ErrorCode.USER_FORBIDDEN);
+        }
+    }
+
+    // 너가 이 포트폴리오 주인인지 검증
+    private void validatePortfolioOwner(Developer developer, Portfolio portfolio) {
+        if (!portfolio.getDeveloper().getId().equals(developer.getId())) {
+            throw new PortfolioException(ErrorCode.USER_FORBIDDEN);
+        }
+    }
+
+    // 모든 수정 필드가 null이면 업데이트할 내용이 없는 요청으로 본다.
+    // 선택적으로 들어온 문자열 필드는 공백만 포함한 값인지 검증한다.
+    private void validateUpdateRequest(PortfolioUpdateRequestDto request) {
+        if ((request.title() == null || request.title().isBlank()) &&
+                (request.description() == null || request.description().isBlank()) &&
+                (request.imageUrl() == null || request.imageUrl().isBlank()) &&
+                (request.projectUrl() == null || request.projectUrl().isBlank()) &&
+                request.skills() == null )
+        {
+            throw new PortfolioException(ErrorCode.PORTFOLIO_NOT_FOUND);
+        }
+
+
+
     }
 
 
