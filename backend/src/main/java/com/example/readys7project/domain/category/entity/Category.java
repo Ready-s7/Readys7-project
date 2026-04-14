@@ -55,9 +55,9 @@ public class Category extends BaseEntity {
             String description,
             Integer displayOrder
     ) {
-        this.name = name;
-        this.icon = icon;
-        this.description = description;
-        this.displayOrder = displayOrder;
+        if (name != null && !name.isBlank()) this.name = name;
+        if (icon != null && !icon.isBlank()) this.icon = icon;
+        if (description != null && !description.isBlank()) this.description = description;
+        if (displayOrder != null) this.displayOrder = displayOrder;
     }
 }

@@ -2,6 +2,7 @@ package com.example.readys7project.domain.project.controller;
 
 import com.example.readys7project.domain.project.dto.ProjectDto;
 import com.example.readys7project.domain.project.dto.request.ProjectRequestDto;
+import com.example.readys7project.domain.project.dto.request.ProjectUpdateRequestDto;
 import com.example.readys7project.domain.project.service.ProjectService;
 import com.example.readys7project.global.dto.ApiResponseDto;
 import com.example.readys7project.global.security.CustomUserDetails;
@@ -62,7 +63,7 @@ public class ProjectController {
     @PutMapping("/v1/projects/{projectId}")
     public ResponseEntity<ApiResponseDto<ProjectDto>> updateProject(
             @PathVariable Long projectId,
-            @Valid @RequestBody ProjectRequestDto request,
+            @Valid @RequestBody ProjectUpdateRequestDto request,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
         String email = customUserDetails.getEmail();         // 검증 추가

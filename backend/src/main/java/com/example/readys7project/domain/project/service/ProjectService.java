@@ -4,6 +4,7 @@ import com.example.readys7project.domain.category.entity.Category;
 import com.example.readys7project.domain.category.repository.CategoryRepository;
 import com.example.readys7project.domain.project.dto.ProjectDto;
 import com.example.readys7project.domain.project.dto.request.ProjectRequestDto;
+import com.example.readys7project.domain.project.dto.request.ProjectUpdateRequestDto;
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.project.enums.ProjectStatus;
 import com.example.readys7project.domain.project.repository.ProjectRepository;
@@ -130,7 +131,7 @@ public class ProjectService {
      * - @Transactional 덕분에 별도 save() 호출 없이 변경사항이 자동 반영 (Dirty Checking)
      */
     @Transactional
-    public ProjectDto updateProject(Long id, ProjectRequestDto request, String userEmail) {
+    public ProjectDto updateProject(Long id, ProjectUpdateRequestDto request, String userEmail) {
 
         // 1. 프로젝트 존재 여부 검증
         Project project = findProject(id);

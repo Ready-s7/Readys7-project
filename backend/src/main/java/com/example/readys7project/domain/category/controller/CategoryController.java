@@ -2,6 +2,7 @@ package com.example.readys7project.domain.category.controller;
 
 import com.example.readys7project.domain.category.dto.CategoryDto;
 import com.example.readys7project.domain.category.dto.request.CategoryRequestDto;
+import com.example.readys7project.domain.category.dto.request.CategoryUpdateRequestDto;
 import com.example.readys7project.domain.category.service.CategoryService;
 import com.example.readys7project.global.dto.ApiResponseDto;
 import com.example.readys7project.global.security.CustomUserDetails;
@@ -48,7 +49,7 @@ public class CategoryController {
     @PatchMapping("/v1/categories/{categoryId}")
     public ResponseEntity<ApiResponseDto<CategoryDto>> updateCategory(
             @PathVariable Long categoryId,
-            @Valid@RequestBody CategoryRequestDto request,
+            @Valid@RequestBody CategoryUpdateRequestDto request,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
         String email = customUserDetails.getEmail();

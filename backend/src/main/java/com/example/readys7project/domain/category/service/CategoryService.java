@@ -2,6 +2,7 @@ package com.example.readys7project.domain.category.service;
 
 import com.example.readys7project.domain.category.dto.CategoryDto;
 import com.example.readys7project.domain.category.dto.request.CategoryRequestDto;
+import com.example.readys7project.domain.category.dto.request.CategoryUpdateRequestDto;
 import com.example.readys7project.domain.category.entity.Category;
 import com.example.readys7project.domain.category.repository.CategoryRepository;
 import com.example.readys7project.domain.user.admin.entity.Admin;
@@ -99,7 +100,7 @@ public class CategoryService {
      * - @Transactional 덕분에 별도 save() 호출 없이 변경사항이 자동 반영 (Dirty Checking)
      */
     @Transactional
-    public CategoryDto updateCategory(Long categoryId, CategoryRequestDto request, String email) {
+    public CategoryDto updateCategory(Long categoryId, CategoryUpdateRequestDto request, String email) {
 
         // 1. 요청한 사용자 존재 여부 검증
         User user = findUser(email);

@@ -98,14 +98,14 @@ public class Project extends BaseEntity {
             Integer duration,
             Integer maxProposalCount
     ) {
-        this.title = title;
-        this.description = description;
-        this.category = category;
-        this.skills = skills;
-        this.minBudget = minBudget;
-        this.maxBudget = maxBudget;
-        this.duration = duration;
-        this.maxProposalCount = maxProposalCount;
+        if (title != null && !title.isBlank()) this.title = title;
+        if (description != null && !description.isBlank()) this.description = description;
+        if (category != null) this.category = category;
+        if (skills != null) this.skills = skills;
+        if (minBudget != null) this.minBudget = minBudget;
+        if (maxBudget != null) this.maxBudget = maxBudget;
+        if (duration != null) this.duration = duration;
+        if (maxProposalCount != null) this.maxProposalCount = maxProposalCount;
 
     }
 
