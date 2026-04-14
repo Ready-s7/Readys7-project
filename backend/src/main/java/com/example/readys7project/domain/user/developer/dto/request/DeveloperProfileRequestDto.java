@@ -1,5 +1,6 @@
 package com.example.readys7project.domain.user.developer.dto.request;
 
+import com.example.readys7project.domain.user.developer.dto.validation.HourlyPayRange;
 import com.example.readys7project.domain.user.developer.dto.validation.ValidHourlyPayRange;
 import jakarta.validation.constraints.Positive;
 
@@ -21,4 +22,4 @@ public record DeveloperProfileRequestDto (
         String responseTime,
 
         Boolean availableForWork
-) {}
+) implements HourlyPayRange {}
