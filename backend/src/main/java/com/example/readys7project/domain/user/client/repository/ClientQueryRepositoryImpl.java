@@ -13,7 +13,7 @@ import static com.example.readys7project.domain.user.auth.entity.QUser.user;
 import static com.example.readys7project.domain.user.client.entity.QClient.client;
 
 @RequiredArgsConstructor
-public class ClientCustomRepositoryImpl implements ClientCustomRepository {
+public class ClientQueryRepositoryImpl implements ClientQueryRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
 

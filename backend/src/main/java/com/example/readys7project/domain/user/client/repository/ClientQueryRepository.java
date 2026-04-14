@@ -6,7 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ClientCustomRepository{
+public interface ClientQueryRepository {
 
     Page<Client> findAllWithPageable(Pageable pageable);
 }
