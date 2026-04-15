@@ -423,9 +423,6 @@ public class InitData implements ApplicationRunner {
         projectRepository.save(reviewProject2);
 
         Project reviewProject3 = Project.builder()
-        // maxProposalCount를 1로 설정하면
-        // increaseProposalCount() 1번 호출만으로 CLOSED 됨
-        Project closedProject = projectRepository.save(Project.builder()
                 .client(client1)
                 .category(aiCategory)
                 .title("추천 모델 성능 개선")
@@ -685,7 +682,9 @@ public class InitData implements ApplicationRunner {
 
     private void saveSkillIfAbsent(Admin admin, SkillCategory category, List<String> skillNames) {
 
-        if (skillNames == null || skillNames.isEmpty()) { return; }
+        if (skillNames == null || skillNames.isEmpty()) {
+            return;
+        }
 
         // DB에 이미 존재하는 기술들의 이름만 한번의 쿼리로 가져옴
         List<String> existingNames = skillRepository.findAllByNameIn(skillNames)
@@ -707,6 +706,7 @@ public class InitData implements ApplicationRunner {
         if (!newSkills.isEmpty()) {
             skillRepository.saveAll(newSkills);
         }
+    }
     /**
      * 리뷰 더미 데이터
      * 리뷰 갯수는 6개가 자동으로 생성 되도록 설정.
