@@ -50,9 +50,9 @@ public class Project extends BaseEntity {
     private Category category; // web, mobile, ai, blockchain, game, design
 
     @Column(nullable = false, name = "min_budget")
-    private Integer minBudget; // 최저예산, String 타입으로 받을시 검색/필터링/정렬 전부 불가능 // 단위: 만원 or 원
+    private Long minBudget; // 최저예산, String 타입으로 받을시 검색/필터링/정렬 전부 불가능 // 단위: 만원 or 원
     @Column(nullable = false, name = "max_budget")
-    private Integer maxBudget; // 최대예산
+    private Long maxBudget; // 최대예산
 
     @Column(nullable = false, name = "duration") // 그래서 String에서 Integer 타입으로 변경
     private Integer duration; // 마찬가지
@@ -71,7 +71,7 @@ public class Project extends BaseEntity {
 
     @Builder
     public Project(Client client, String title, String description, List<String> skills, Category category,
-                   Integer minBudget,Integer maxBudget, Integer duration, Integer maxProposalCount) {
+                   Long minBudget, Long maxBudget, Integer duration, Integer maxProposalCount) {
         this.client = client;
         this.title = title;
         this.description = description;
@@ -93,8 +93,8 @@ public class Project extends BaseEntity {
             String description,
             Category category,
             List<String> skills,
-            Integer minBudget,
-            Integer maxBudget,
+            Long minBudget,
+            Long maxBudget,
             Integer duration,
             Integer maxProposalCount
     ) {

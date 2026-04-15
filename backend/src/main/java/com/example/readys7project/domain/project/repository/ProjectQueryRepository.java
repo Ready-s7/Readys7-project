@@ -16,6 +16,7 @@ public interface ProjectQueryRepository {
      * - 각 조건은 null 또는 empty일 경우 무시 (동적 쿼리)
      */
     Page<Project> searchProjects(
+            String keyword,
             Category category,
             ProjectStatus status,
             List<String> skills,

@@ -53,12 +53,11 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/v1/auth/**").permitAll()
                     .requestMatchers("/h2-console/**").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/v1/projects").permitAll()        // 목록 조회만 허용
-                    .requestMatchers(HttpMethod.GET, "/v1/projects/search").permitAll() // 검색만 허용
-                    .requestMatchers("/v1/projects/**").authenticated()                 // 나머지 인증 필요
+                    .requestMatchers(HttpMethod.GET, "/v1/projects/**").permitAll()    // 모든 프로젝트 관련 GET 허용
+                    .requestMatchers(HttpMethod.GET, "/v1/categories/**").permitAll()  // 카테고리 조회 허용
+                    .requestMatchers(HttpMethod.GET, "/v1/developers/**").permitAll()  // 개발자 목록/프로필 조회 허용
                     .requestMatchers("/v1/developers/profile").authenticated()
                     .requestMatchers("/v1/developers/my-projects").authenticated()
-                    .requestMatchers("/v1/developers/**").permitAll()
                     .requestMatchers("/ws/**").permitAll()
                     .anyRequest().authenticated()
             )

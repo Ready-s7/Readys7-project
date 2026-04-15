@@ -356,8 +356,8 @@ public class InitData implements ApplicationRunner {
                 .description("Spring Boot 기반 쇼핑몰 REST API 개발 프로젝트입니다. "
                         + "회원, 상품, 주문, 결제 기능이 필요합니다.")
                 .skills(List.of("Java", "Spring Boot", "JPA", "MySQL", "Redis"))
-                .minBudget(3000000)
-                .maxBudget(5000000)
+                .minBudget(3000000L)
+                .maxBudget(5000000L)
                 .duration(60)
                 .maxProposalCount(5)
                 .build());
@@ -370,8 +370,8 @@ public class InitData implements ApplicationRunner {
                 .description("React + TypeScript 기반 관리자 대시보드 개발. "
                         + "차트, 테이블, 실시간 알림 기능 포함.")
                 .skills(List.of("React", "TypeScript", "Chart.js", "Tailwind CSS"))
-                .minBudget(2000000)
-                .maxBudget(4000000)
+                .minBudget(2000000L)
+                .maxBudget(4000000L)
                 .duration(45)
                 .maxProposalCount(3)
                 .build());
@@ -384,8 +384,8 @@ public class InitData implements ApplicationRunner {
                 .description("사용자 행동 데이터 기반 상품 추천 시스템 개발. "
                         + "협업 필터링 및 콘텐츠 기반 필터링 혼합 방식.")
                 .skills(List.of("Python", "TensorFlow", "FastAPI", "Docker"))
-                .minBudget(5000000)
-                .maxBudget(10000000)
+                .minBudget(5000000L)
+                .maxBudget(10000000L)
                 .duration(90)
                 .maxProposalCount(3)
                 .build());
@@ -400,8 +400,8 @@ public class InitData implements ApplicationRunner {
                 .description("기존 Spring Boot 기반 API 서버의 성능 개선과 유지보수를 진행하는 프로젝트입니다. "
                         + "인증, 주문, 결제 모듈 안정화 작업이 포함됩니다.")
                 .skills(List.of("Java", "Spring Boot", "JPA"))
-                .minBudget(500000)
-                .maxBudget(1000000)
+                .minBudget(500000L)
+                .maxBudget(1000000L)
                 .duration(30)
                 .maxProposalCount(1)
                 .build();
@@ -414,8 +414,8 @@ public class InitData implements ApplicationRunner {
                 .title("관리자 페이지 UI 개선")
                 .description("React + TypeScript 기반 관리자 페이지의 화면 구조 개선과 공통 컴포넌트 정리를 진행하는 프로젝트입니다.")
                 .skills(List.of("React", "TypeScript", "Tailwind CSS"))
-                .minBudget(500000)
-                .maxBudget(1000000)
+                .minBudget(500000L)
+                .maxBudget(1000000L)
                 .duration(30)
                 .maxProposalCount(1)
                 .build();
@@ -428,8 +428,8 @@ public class InitData implements ApplicationRunner {
                 .title("추천 모델 성능 개선")
                 .description("기존 추천 시스템의 정확도 개선을 위해 모델 튜닝과 간단한 API 연동을 진행하는 프로젝트입니다.")
                 .skills(List.of("Python", "TensorFlow", "FastAPI"))
-                .minBudget(500000)
-                .maxBudget(1000000)
+                .minBudget(500000L)
+                .maxBudget(1000000L)
                 .duration(30)
                 .maxProposalCount(1)
                 .build();
@@ -442,8 +442,8 @@ public class InitData implements ApplicationRunner {
                 .title("주문 관리 서버 기능 추가")
                 .description("주문 상태 변경, 결제 이력 조회 등 백엔드 기능을 추가하는 프로젝트입니다.")
                 .skills(List.of("Java", "Spring Boot", "MySQL"))
-                .minBudget(500000)
-                .maxBudget(1000000)
+                .minBudget(500000L)
+                .maxBudget(1000000L)
                 .duration(30)
                 .maxProposalCount(1)
                 .build();
@@ -456,8 +456,8 @@ public class InitData implements ApplicationRunner {
                 .title("대시보드 프론트엔드 고도화")
                 .description("기존 대시보드의 차트와 테이블 UI를 개선하고 반응형 화면을 보강하는 프로젝트입니다.")
                 .skills(List.of("React", "TypeScript", "Chart.js"))
-                .minBudget(500000)
-                .maxBudget(1000000)
+                .minBudget(500000L)
+                .maxBudget(1000000L)
                 .duration(30)
                 .maxProposalCount(1)
                 .build();
@@ -470,8 +470,8 @@ public class InitData implements ApplicationRunner {
                 .title("AI 분석 기능 시범 적용")
                 .description("사용자 행동 데이터를 기반으로 간단한 분석 기능과 예측 모델을 시범 적용하는 프로젝트입니다.")
                 .skills(List.of("Python", "TensorFlow", "Docker"))
-                .minBudget(500000)
-                .maxBudget(1000000)
+                .minBudget(500000L)
+                .maxBudget(1000000L)
                 .duration(30)
                 .maxProposalCount(1)
                 .build();

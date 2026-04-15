@@ -128,6 +128,7 @@ public class DeveloperService {
         User user = developer.getUser();
         return new DeveloperDto(
                 developer.getId(),
+                user.getId(),
                 user.getName(),
                 developer.getTitle(),
                 developer.getRating(),

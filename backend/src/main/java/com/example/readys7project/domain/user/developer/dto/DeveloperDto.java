@@ -9,6 +9,7 @@ import java.util.List;
 @Builder
 public record DeveloperDto(
         Long id,
+        Long userId,
         String name,
         String title,
         Double rating,

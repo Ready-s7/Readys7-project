@@ -15,15 +15,19 @@ import org.springframework.stereotype.Component;
 public class RedisMessageSubscriber implements MessageListener {
 
     private final SimpMessagingTemplate messagingTemplate;
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper redisObjectMapper;
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
         try {
             // Redis에서 받은 메시지를 DTO로 역직렬화
-            MessageResponseDto responseDto = objectMapper.readValue(
+            MessageResponseDto responseDto = redisObjectMapper.readValue(
                     message.getBody(), MessageResponseDto.class
             );
+
+            if (responseDto == null) {
+                return;
+            }
 
             // 채널명에서 roomId 추출 (chat-room:{roomId})
             String channel = new String(message.getChannel());
@@ -33,6 +37,7 @@ public class RedisMessageSubscriber implements MessageListener {
             messagingTemplate.convertAndSend("/receive/chat/rooms/" + roomId, responseDto);
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new MessageException(ErrorCode.MESSAGE_PUBLISH_FAILED);
         }
     }

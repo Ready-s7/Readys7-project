@@ -112,7 +112,7 @@ public class ProjectService {
      * - 인증 없이 누구나 조회 가능
      */
     @Transactional(readOnly = true)
-    public Page<ProjectDto> searchProjects(Long categoryId, String status, List<String> skill, Pageable pageable) {
+    public Page<ProjectDto> searchProjects(String keyword, Long categoryId, String status, List<String> skill, Pageable pageable) {
 
         // 1. category 조회 (null이면 전체 조회)
         Category category = categoryId != null ? findCategory(categoryId) : null;
@@ -122,7 +122,7 @@ public class ProjectService {
             ProjectStatus.valueOf(status.toUpperCase()) : null;
 
         // 3. 조건에 맞는 프로젝트 목록 조회 후 DTO 변환하여 반환
-        return projectRepository.searchProjects(category, projectStatus, skill, pageable)
+        return projectRepository.searchProjects(keyword, category, projectStatus, skill, pageable)
                 .map(this::convertToDto);
     }
 

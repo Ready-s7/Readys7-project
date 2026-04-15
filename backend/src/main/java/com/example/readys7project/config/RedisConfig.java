@@ -33,26 +33,31 @@ public class RedisConfig {
         return new LettuceConnectionFactory(redisHost, redisPort);
     }
 
-    // LocalDateTime 처리가 가능한 공통 직렬화 도구
     @Bean
-    public GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer() {
+    public ObjectMapper redisObjectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         // 타입 정보를 포함하여 역직렬화 시 정확한 타입으로 변환되도록 설정
         objectMapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance, ObjectMapper.DefaultTyping.NON_FINAL);
-        return new GenericJackson2JsonRedisSerializer(objectMapper);
+        return objectMapper;
+    }
+
+    // LocalDateTime 처리가 가능한 공통 직렬화 도구
+    @Bean
+    public GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer(ObjectMapper redisObjectMapper) {
+        return new GenericJackson2JsonRedisSerializer(redisObjectMapper);
     }
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate(
             RedisConnectionFactory connectionFactory,
-            GenericJackson2JsonRedisSerializer serializer
+            GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer
     ) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(serializer);
+        template.setValueSerializer(genericJackson2JsonRedisSerializer);
         return template;
     }
 
