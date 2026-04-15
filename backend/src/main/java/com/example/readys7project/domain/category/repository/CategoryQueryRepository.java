@@ -1,6 +1,9 @@
 package com.example.readys7project.domain.category.repository;
 
 import com.example.readys7project.domain.category.entity.Category;
+import com.example.readys7project.domain.search.dto.response.CategoryPopularSearchResponseDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -11,4 +14,7 @@ public interface CategoryQueryRepository {
     List<Category> findByNameContainingWithAdmin(String name);
 
     List<Category> searchCategories(String name, String description);
+
+    // 인기 검색 페이징 구현
+    Page<CategoryPopularSearchResponseDto> categoriesPopularSearch(String keyword, Pageable pageable);
 }

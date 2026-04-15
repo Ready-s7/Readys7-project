@@ -3,6 +3,7 @@ package com.example.readys7project.domain.project.repository;
 import com.example.readys7project.domain.category.entity.Category;
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.project.enums.ProjectStatus;
+import com.example.readys7project.domain.search.dto.response.ProjectPopularSearchResponseDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -23,4 +24,7 @@ public interface ProjectQueryRepository {
     );
 
     Page<Project> findByClientWithPageable(Long clientId, Pageable pageable);
+
+    // 인기 검색 구현 (페이징)
+    Page<ProjectPopularSearchResponseDto> projectsPopularSearch(String keyword, Pageable pageable);
 }
