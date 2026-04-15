@@ -8,6 +8,9 @@ import com.example.readys7project.domain.project.repository.ProjectRepository;
 import com.example.readys7project.domain.proposal.entity.Proposal;
 import com.example.readys7project.domain.proposal.enums.ProposalStatus;
 import com.example.readys7project.domain.proposal.repository.ProposalRepository;
+import com.example.readys7project.domain.skill.entity.Skill;
+import com.example.readys7project.domain.skill.enums.SkillCategory;
+import com.example.readys7project.domain.skill.repository.SkillRepository;
 import com.example.readys7project.domain.user.admin.entity.Admin;
 import com.example.readys7project.domain.user.admin.repository.AdminRepository;
 import com.example.readys7project.domain.user.auth.entity.User;
@@ -41,6 +44,7 @@ public class InitData implements ApplicationRunner {
     private final ProjectRepository projectRepository;
     private final ProposalRepository proposalRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SkillRepository skillRepository;
 
     private static final String DEFAULT_PASSWORD = "12345678";
 
@@ -48,12 +52,14 @@ public class InitData implements ApplicationRunner {
     @Transactional
     public void run(ApplicationArguments args) {
         initSuperAdmin();
+        initSkills();
         initClients();
         initDevelopers();
         initCategories();
         initProjects();
         initProposals();
     }
+
 
     // ─────────────────────────────────────────────
     // 1. Super Admin
@@ -417,5 +423,51 @@ public class InitData implements ApplicationRunner {
         log.info("[InitData] Proposal 3개 생성 완료 (PENDING / ACCEPTED / WITHDRAWN)");
         log.info("[InitData] ===== 전체 이닛데이터 생성 완료 =====");
         log.info("[InitData] 채팅방 생성 테스트: client1@test.com 로그인 → project2(관리자 대시보드)에서 dev2와 채팅방 생성 가능");
+    }
+
+    private void initSkills() {
+
+        Admin superAdmin = adminRepository.findByUserEmail("superAdmin@system.com")
+                .orElseThrow(() -> new IllegalStateException("[InitData] SuperAdmin이 없습니다."));
+
+        saveSkillIfAbsent(superAdmin, SkillCategory.BACKEND, List.of(
+                "Java", "Spring Boot", "MySQL", "Redis", "Python",
+                "Kotlin", "Scala", "Oracle", "C++", "C#", "C", "Node.js", "Go"));
+        saveSkillIfAbsent(superAdmin, SkillCategory.FRONTEND, List.of(
+                "React", "TypeScript", "JavaScript", "Vue.js",
+                "Swift", "Next.js", "Figma", "HTML", "CSS", "Blender",
+                "Autodesk Maya", "3ds Max", "ZBrush", "Designer", "Substance Painter"));
+        saveSkillIfAbsent(superAdmin, SkillCategory.INFRA, List.of(
+                "AWS", "Docker", "GitHub", "Jira", "Slack", "Discord"));
+        saveSkillIfAbsent(superAdmin, SkillCategory.AI, List.of("AI"));
+        saveSkillIfAbsent(superAdmin, SkillCategory.GAME, List.of(
+                "Unreal", "Unity", "Godot", "RPG Maker", "GameMaker", "Construct 3"));
+
+    }
+
+    private void saveSkillIfAbsent(Admin admin, SkillCategory category, List<String> skillNames) {
+
+        if (skillNames == null || skillNames.isEmpty()) { return; }
+
+        // DB에 이미 존재하는 기술들의 이름만 한번의 쿼리로 가져옴
+        List<String> existingNames = skillRepository.findAllByNameIn(skillNames)
+                .stream()
+                .map(Skill::getName)
+                .toList();
+
+        // 입력 받은 리스트 중 DB에 없는 이름만 골라내어 Entity로 변환
+        List<Skill> newSkills = skillNames.stream()
+                .filter(name -> !existingNames.contains(name))
+                .map(name -> Skill.builder()
+                        .admin(admin)
+                        .name(name)
+                        .skillCategory(category)
+                        .build())
+                .toList();
+
+        // 새로운 데이터가 있을 때만 saveAll 호출
+        if (!newSkills.isEmpty()) {
+            skillRepository.saveAll(newSkills);
+        }
     }
 }
