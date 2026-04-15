@@ -333,6 +333,7 @@ public class ReviewService {
         UserRole targetUser=user.getUserRole();
 
         reviewRepository.delete(review);
+        reviewRepository.flush();
 
         if (targetUser==UserRole.CLIENT){
             updateDeveloperRating(developerId);
@@ -361,7 +362,7 @@ public class ReviewService {
         List<Review> reviews = reviewRepository.findByDeveloperId(developerId);
 
         if (reviews.isEmpty()) {
-            return;
+            return; // 리뷰가 0개면 그냥 return!
         }
 
         double averageRating = reviews.stream()
@@ -373,14 +374,20 @@ public class ReviewService {
         averageRating = Math.round(averageRating * 10.0) / 10.0;
 
         developerService.updateRating(developerId, averageRating, reviews.size());
+
+        if (reviews.isEmpty()) {
+            developerService.updateRating(developerId, 0.0, 0); // ← 이렇게 수정 필요!
+        }
+
     }
 
     // 리뷰 평점 계산기. 클라이언트 용.
     private void updateClientRating(Long clientId) {
         List<Review> reviews = reviewRepository.findByClientId(clientId);
 
+
         if (reviews.isEmpty()) {
-            return;
+            return; // 리뷰가 0개면 그냥 return!
         }
 
         double averageRating = reviews.stream()
@@ -392,5 +399,9 @@ public class ReviewService {
         averageRating = Math.round(averageRating * 10.0) / 10.0;
 
         clientService.updateRating(clientId, averageRating, reviews.size());
+
+        if (reviews.isEmpty()) {
+            clientService.updateRating(clientId, 0.0, 0); //
+        }
     }
 }

@@ -173,7 +173,7 @@ public class ClientService {
         Client client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new ClientException(ErrorCode.CLIENT_NOT_FOUND));
         // 3. 리뷰 개수 무결성 검증 (새 리뷰 개수가 현재 저장된 개수보다 작으면 에러)
-        if (newReviewCount == null || newReviewCount < client.getReviewCount()) {
+        if (newReviewCount == null) {
             throw new ClientException(ErrorCode.REVIEW_INVALID_COUNT);
         }
         client.updateRating(newRating, newReviewCount);

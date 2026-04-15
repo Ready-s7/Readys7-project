@@ -36,13 +36,13 @@ public class PortfolioController {
     // 개발자 포트폴리오 수정
     @PatchMapping("/v1/portfolios")
     public ResponseEntity<ApiResponseDto<PortfolioDto>> updatePortfolio(
-            @RequestParam Long developerId,
+            @RequestParam Long portfolioId,
             @Valid @RequestBody PortfolioUpdateRequestDto request,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
         String email = customUserDetails.getEmail();
         return ResponseEntity.ok(
-                ApiResponseDto.success(HttpStatus.OK, portfolioService.updatePortfolio(developerId, request, email))
+                ApiResponseDto.success(HttpStatus.OK, portfolioService.updatePortfolio(portfolioId, request, email))
         );
     }
 

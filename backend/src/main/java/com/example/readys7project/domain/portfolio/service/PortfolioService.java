@@ -74,7 +74,7 @@ public class PortfolioService {
      8. 반환
      */
     @Transactional
-    public PortfolioDto updatePortfolio(Long developerId, PortfolioUpdateRequestDto request, String email) {
+    public PortfolioDto updatePortfolio(Long portfolioId, PortfolioUpdateRequestDto request, String email) {
         validateUpdateRequest(request);
 
         // 로그인 검증.
@@ -84,7 +84,7 @@ public class PortfolioService {
         validatePortfolioWriterRole(user);
 
         Developer developer = findDeveloperByUser(user);
-        Portfolio portfolio = findPortfolio(developerId);
+        Portfolio portfolio = findPortfolio(portfolioId);
 
         // 너가 이 포트폴리오 갖고 있는 사람인지 검증.
         validatePortfolioOwner(developer, portfolio);
