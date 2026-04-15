@@ -15,7 +15,8 @@ public enum SkillCategory {
     MOBILE("MOBILE"),
     EMBEDDED("EMBEDDED"),
     BIGDATA("BIGDATA"),
-    AI("AI");
+    AI("AI"),
+    INFRA("INFRA");
 
     private final String title;
 

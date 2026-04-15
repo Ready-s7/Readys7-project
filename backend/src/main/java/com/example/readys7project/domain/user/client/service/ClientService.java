@@ -179,7 +179,7 @@ public class ClientService {
         client.updateRating(newRating, newReviewCount);
     }
 
-    //
+    // 공통 페이징
     public static Pageable convertPageable(Pageable pageable) {
         return PageRequest.of(
                 Math.max(0, pageable.getPageNumber() -1),
