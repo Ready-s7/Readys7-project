@@ -74,7 +74,7 @@ public class DeveloperService {
         Developer developer = developerRepository.findById(developerId)
                 .orElseThrow(() -> new DeveloperException(ErrorCode.DEVELOPER_NOT_FOUND));
         // 3. 리뷰 개수 무결성 검증 (새 리뷰 개수가 현재 저장된 개수보다 작으면 에러)
-        if (newReviewCount == null || newReviewCount < developer.getReviewCount()) {
+        if (newReviewCount == null) {
             throw new DeveloperException(ErrorCode.REVIEW_INVALID_COUNT);
         }
         developer.updateRating(newRating, newReviewCount);

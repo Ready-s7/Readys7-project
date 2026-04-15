@@ -8,6 +8,8 @@ import com.example.readys7project.domain.project.repository.ProjectRepository;
 import com.example.readys7project.domain.proposal.entity.Proposal;
 import com.example.readys7project.domain.proposal.enums.ProposalStatus;
 import com.example.readys7project.domain.proposal.repository.ProposalRepository;
+import com.example.readys7project.domain.review.entity.Review;
+import com.example.readys7project.domain.review.repository.ReviewRepository;
 import com.example.readys7project.domain.user.admin.entity.Admin;
 import com.example.readys7project.domain.user.admin.repository.AdminRepository;
 import com.example.readys7project.domain.user.auth.entity.User;
@@ -40,6 +42,7 @@ public class InitData implements ApplicationRunner {
     private final CategoryRepository categoryRepository;
     private final ProjectRepository projectRepository;
     private final ProposalRepository proposalRepository;
+    private final ReviewRepository reviewRepository;
     private final PasswordEncoder passwordEncoder;
 
     private static final String DEFAULT_PASSWORD = "12345678";
@@ -53,6 +56,7 @@ public class InitData implements ApplicationRunner {
         initCategories();
         initProjects();
         initProposals();
+        initReviews();
     }
 
     // ─────────────────────────────────────────────
@@ -94,8 +98,8 @@ public class InitData implements ApplicationRunner {
             clientRepository.save(Client.builder()
                     .user(user)
                     .title("스타트업 CTO")
-                    .rating(4.5)
-                    .reviewCount(3)
+                    .rating(5.0)
+                    .reviewCount(1)
                     .completedProject(3)
                     .participateType(ParticipateType.COMPANY)
                     .build());
@@ -117,8 +121,8 @@ public class InitData implements ApplicationRunner {
             clientRepository.save(Client.builder()
                     .user(user)
                     .title("개인 사업자")
-                    .rating(4.0)
-                    .reviewCount(1)
+                    .rating(0.0)
+                    .reviewCount(0)
                     .completedProject(1)
                     .participateType(ParticipateType.INDIVIDUAL)
                     .build());
@@ -145,8 +149,8 @@ public class InitData implements ApplicationRunner {
             developerRepository.save(Developer.builder()
                     .user(user)
                     .title("시니어 백엔드 개발자")
-                    .rating(4.8)
-                    .reviewCount(10)
+                    .rating(5.0)
+                    .reviewCount(1)
                     .completedProjects(8)
                     .minHourlyPay(50000)
                     .maxHourlyPay(80000)
@@ -173,8 +177,8 @@ public class InitData implements ApplicationRunner {
             developerRepository.save(Developer.builder()
                     .user(user)
                     .title("풀스택 개발자")
-                    .rating(4.3)
-                    .reviewCount(5)
+                    .rating(0.0)
+                    .reviewCount(0)
                     .completedProjects(4)
                     .minHourlyPay(35000)
                     .maxHourlyPay(60000)
@@ -201,8 +205,8 @@ public class InitData implements ApplicationRunner {
             developerRepository.save(Developer.builder()
                     .user(user)
                     .title("AI/ML 개발자")
-                    .rating(4.6)
-                    .reviewCount(7)
+                    .rating(0.0)
+                    .reviewCount(0)
                     .completedProjects(6)
                     .minHourlyPay(60000)
                     .maxHourlyPay(100000)
@@ -324,7 +328,7 @@ public class InitData implements ApplicationRunner {
                 .build());
         // maxProposalCount를 1로 설정하면
         // increaseProposalCount() 1번 호출만으로 CLOSED 됨
-        Project closedProject = Project.builder()
+        Project completedProject = Project.builder()
                 .client(client1)
                 .category(backendCategory)
                 .title("마감된 Java 백엔드 프로젝트")
@@ -335,8 +339,10 @@ public class InitData implements ApplicationRunner {
                 .duration(30)
                 .maxProposalCount(1)   // ← 최대 1개
                 .build();
+        completedProject.changeStatus(ProjectStatus.COMPLETED);
+        projectRepository.save(completedProject);
 
-        closedProject.increaseProposalCount(); // ← 1번 호출 → 자동으로 CLOSED
+//        closedProject.increaseProposalCount(); // ← 1번 호출 → 자동으로 CLOSED
 
         log.info("[InitData] Project 3개 생성 완료");
     }
@@ -370,6 +376,7 @@ public class InitData implements ApplicationRunner {
         Project project1 = projects.get(0); // 쇼핑몰 백엔드 API
         Project project2 = projects.get(1); // 관리자 대시보드
         Project project3 = projects.get(2); // AI 추천 시스템
+        Project project4 = projects.get(3);
 
         // Proposal 1 - PENDING (project1에 dev1이 지원, 검토 중)
         proposalRepository.save(Proposal.builder()
@@ -414,8 +421,51 @@ public class InitData implements ApplicationRunner {
                 .status(ProposalStatus.WITHDRAWN)
                 .build());
 
+        proposalRepository.save(Proposal.builder()
+                .project(project4)
+                .developer(dev1)
+                .coverLetter("완료 프로젝트 리뷰 테스트용 제안서입니다.")
+                .proposedBudget("900")
+                .proposedDuration("25")
+                .status(ProposalStatus.ACCEPTED)
+                .build());
+
+        project4.changeStatus(ProjectStatus.COMPLETED);
+        projectRepository.save(project4);
+
+
+
         log.info("[InitData] Proposal 3개 생성 완료 (PENDING / ACCEPTED / WITHDRAWN)");
         log.info("[InitData] ===== 전체 이닛데이터 생성 완료 =====");
         log.info("[InitData] 채팅방 생성 테스트: client1@test.com 로그인 → project2(관리자 대시보드)에서 dev2와 채팅방 생성 가능");
+    }
+    private void initReviews() {
+        if (reviewRepository.count() > 0) {
+            return;
+        }
+
+        Client client1 = clientRepository.findByUser(
+                userRepository.findByEmail("client1@test.com")
+                        .orElseThrow(() -> new IllegalStateException("[InitData] client1이 존재하지 않습니다."))
+        ).orElseThrow(() -> new IllegalStateException("[InitData] client1 엔티티가 존재하지 않습니다."));
+
+        Developer dev1 = developerRepository.findByUser(
+                userRepository.findByEmail("dev1@test.com")
+                        .orElseThrow(() -> new IllegalStateException("[InitData] dev1이 존재하지 않습니다."))
+        ).orElseThrow(() -> new IllegalStateException("[InitData] dev1 엔티티가 존재하지 않습니다."));
+
+        Project project4 = projectRepository.findById(4L)
+                .orElseThrow(() -> new IllegalStateException("[InitData] project4가 존재하지 않습니다."));
+
+
+        reviewRepository.save(Review.builder()
+                .client(client1)
+                .developer(dev1)
+                .project(project4)
+                .rating(5)
+                .comment("클라이언트가 남긴 초기 리뷰입니다.")
+                .build());
+
+        log.info("[InitData] Review 2개 생성 완료");
     }
 }
