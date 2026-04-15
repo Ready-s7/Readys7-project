@@ -4,18 +4,25 @@ import com.example.readys7project.domain.category.entity.Category;
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.project.entity.QProject;
 import com.example.readys7project.domain.project.enums.ProjectStatus;
+import com.example.readys7project.domain.search.dto.response.ProjectPopularSearchResponseDto;
 import com.example.readys7project.domain.user.auth.entity.QUser;
 import com.example.readys7project.domain.user.client.entity.QClient;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import io.netty.util.internal.StringUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
+
+import static com.example.readys7project.domain.project.entity.QProject.project;
 
 @Repository
 @RequiredArgsConstructor
@@ -31,7 +38,7 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
             List<String> skills,
             Pageable pageable
     ) {
-        QProject qProject = QProject.project;
+        QProject qProject = project;
 
         // 동적 조건 빌더 - 각 조건이 null이면 자동으로 무시됨
         BooleanBuilder builder = new BooleanBuilder();
@@ -105,7 +112,7 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
     @Override
     public Page<Project> findByClientWithPageable(Long clientId, Pageable pageable) {
 
-        QProject qProject = QProject.project;
+        QProject qProject = project;
         QClient qClient = QClient.client;
         QUser qUser = QUser.user;
 
@@ -127,5 +134,52 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
 
         return new PageImpl<>(content, pageable, total != null ? total : 0);
 
+    }
+
+
+    // 인기 검색어
+    @Override
+    public Page<ProjectPopularSearchResponseDto> projectsPopularSearch(String keyword, Pageable pageable) {
+
+        // 1. 데이터 조회
+
+        // ProjectPopularSearchResponseDto에 정의된 필요한 5개의 필드만 가져옴
+        // Project 내부의 기본 필드들만 가져오기 때문에 다른 테이블 조회를 하지 않음 -> Fetch Join 안써도 N+1 발생 X
+        List<ProjectPopularSearchResponseDto> content = jpaQueryFactory
+                .select(Projections.constructor(ProjectPopularSearchResponseDto.class,
+                        project.id,
+                        project.title,
+                        project.minBudget,
+                        project.maxBudget,
+                        project.status
+                ))
+                .from(project)
+                .where(titleLike(keyword))
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .orderBy(project.createdAt.desc())
+                .fetch();
+
+        // 전체 데이터 개수 조회
+        Long total = jpaQueryFactory
+                .select(project.count())
+                .from(project)
+                .where(titleLike(keyword))
+                .fetchOne();
+
+        // 개수 조회 결과가 null일 수 있으므로, null이면 0L을 리턴, NPE 방어 코드
+        long totalCount = total != null ? total : 0L;
+
+        return new PageImpl<>(content, pageable, totalCount);
+
+
+    }
+
+    // 동적 쿼리 BooleanExpression 활용
+    private BooleanExpression titleLike(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return null;
+        }
+        return project.title.containsIgnoreCase(keyword);
     }
 }

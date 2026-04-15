@@ -71,7 +71,11 @@ public enum ErrorCode {
 
 
     // Portfolio
-    PORTFOLIO_NOT_FOUND(HttpStatus.NOT_FOUND, "포트폴리오를 찾을 수 없습니다.");
+    PORTFOLIO_NOT_FOUND(HttpStatus.NOT_FOUND, "포트폴리오를 찾을 수 없습니다."),
+
+    // PopularSearch
+    SEARCH_LENGTH_TOO_LONG(HttpStatus.BAD_REQUEST, "검색어 최대 길이를 초과했습니다."),
+    SEARCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "검색에 서비스 이용 중 서버 에러가 발생했습니다.");
 
     private final HttpStatus status;
     private final String message;
