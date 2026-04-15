@@ -59,7 +59,7 @@ public class SecurityConfig {
                     .requestMatchers("/v1/developers/profile").authenticated()
                     .requestMatchers("/v1/developers/my-projects").authenticated()
                     .requestMatchers("/v1/developers/**").permitAll()
-                    .requestMatchers("/ws/**").authenticated()
+                    .requestMatchers("/ws/**").permitAll()
                     .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
