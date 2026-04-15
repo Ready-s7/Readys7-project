@@ -55,12 +55,12 @@ public class Admin extends BaseEntity {
 
 
     // 관리자 승인
-    public void AdminStatusApprove() {
+    public void adminStatusApprove() {
         this.status = AdminStatus.APPROVED;
     }
 
     // 관리자 거절
-    public void AdminStatusReject() {
+    public void adminStatusReject() {
         this.status = AdminStatus.REJECTED;
     }
 

@@ -1,10 +1,12 @@
 /**
- * DeveloperProfile.tsx 개선 사항
+ * DeveloperProfile.tsx 수정 사항
+ *
+ * [기능 추가]
+ * 1. 포트폴리오 탭 추가 → portfolioApi.getByDeveloper() 연동
+ * 2. 리뷰 작성 모달 추가 (CLIENT가 완료된 프로젝트에서만 작성 가능)
  *
  * [버그 수정]
- * - 기존: mockData에서 개발자 찾음 → id 타입 불일치로 항상 undefined
- * - 수정: 실제 API(/v1/developers/{id})에서 데이터 가져오도록 변경
- * - 리뷰도 실제 API(/v1/reviews?developerId=)에서 가져오도록 변경
+ * 1. 기존 mockData 의존 제거 완료
  */
 import { useParams, Link } from "react-router";
 import { useState, useEffect } from "react";
@@ -19,16 +21,18 @@ import {
   Clock,
   Briefcase,
   Calendar,
-  Award,
   Loader2,
+  ExternalLink,
+  Image as ImageIcon,
 } from "lucide-react";
-import { developerApi, reviewApi } from "../../../api/apiService";
-import type { DeveloperDto, ReviewDto } from "../../../api/types";
+import { developerApi, reviewApi, portfolioApi } from "../../../api/apiService";
+import type { DeveloperDto, ReviewDto, PortfolioDto } from "../../../api/types";
 
 export function DeveloperProfile() {
   const { id } = useParams<{ id: string }>();
   const [developer, setDeveloper] = useState<DeveloperDto | null>(null);
   const [reviews, setReviews] = useState<ReviewDto[]>([]);
+  const [portfolios, setPortfolios] = useState<PortfolioDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -38,14 +42,20 @@ export function DeveloperProfile() {
     Promise.allSettled([
       developerApi.getById(Number(id)),
       reviewApi.getByDeveloper(Number(id), { page: 0, size: 10 }),
-    ]).then(([devRes, reviewRes]) => {
-      if (devRes.status === "fulfilled") {
-        setDeveloper(devRes.value.data.data);
-      }
-      if (reviewRes.status === "fulfilled") {
-        setReviews(reviewRes.value.data.data.content);
-      }
-    }).finally(() => setIsLoading(false));
+      portfolioApi.getByDeveloper(Number(id), undefined, 1, 10),
+    ])
+      .then(([devRes, reviewRes, portfolioRes]) => {
+        if (devRes.status === "fulfilled") {
+          setDeveloper(devRes.value.data.data);
+        }
+        if (reviewRes.status === "fulfilled") {
+          setReviews(reviewRes.value.data.data.content);
+        }
+        if (portfolioRes.status === "fulfilled") {
+          setPortfolios(portfolioRes.value.data.data.content);
+        }
+      })
+      .finally(() => setIsLoading(false));
   }, [id]);
 
   if (isLoading) {
@@ -78,7 +88,7 @@ export function DeveloperProfile() {
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Sidebar */}
+          {/* 사이드바 */}
           <div className="space-y-6">
             <Card>
               <CardContent className="p-6 text-center">
@@ -95,9 +105,7 @@ export function DeveloperProfile() {
                       {developer.rating?.toFixed(1) ?? "0.0"}
                     </span>
                   </div>
-                  <span className="text-gray-500">
-                    ({developer.reviewCount}개 리뷰)
-                  </span>
+                  <span className="text-gray-500">({developer.reviewCount}개 리뷰)</span>
                 </div>
 
                 <div className="space-y-2 mb-6 text-sm">
@@ -153,7 +161,7 @@ export function DeveloperProfile() {
             </Card>
           </div>
 
-          {/* Main Content */}
+          {/* 메인 콘텐츠 */}
           <div className="lg:col-span-2 space-y-6">
             <Card>
               <CardHeader>
@@ -168,7 +176,9 @@ export function DeveloperProfile() {
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl mb-1">{developer.completedProjects}</div>
+                    <div className="text-2xl mb-1">
+                      {developer.completedProjects}
+                    </div>
                     <div className="text-sm text-gray-600">완료 프로젝트</div>
                   </div>
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
@@ -192,10 +202,16 @@ export function DeveloperProfile() {
             </Card>
 
             <Tabs defaultValue="reviews" className="w-full">
-              <TabsList className="grid w-full grid-cols-1">
-                <TabsTrigger value="reviews">리뷰 ({reviews.length})</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="reviews">
+                  리뷰 ({reviews.length})
+                </TabsTrigger>
+                <TabsTrigger value="portfolio">
+                  포트폴리오 ({portfolios.length})
+                </TabsTrigger>
               </TabsList>
 
+              {/* 리뷰 탭 */}
               <TabsContent value="reviews">
                 <Card>
                   <CardHeader>
@@ -242,6 +258,88 @@ export function DeveloperProfile() {
                       <div className="text-center py-12 text-gray-500">
                         <Star className="w-12 h-12 mx-auto mb-3 opacity-50" />
                         <p>아직 리뷰가 없습니다</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* 포트폴리오 탭 */}
+              <TabsContent value="portfolio">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>포트폴리오</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {portfolios.length > 0 ? (
+                      <div className="space-y-6">
+                        {portfolios.map((portfolio) => (
+                          <div
+                            key={portfolio.id}
+                            className="border rounded-lg p-4"
+                          >
+                            {/* 이미지 */}
+                            {portfolio.imageUrl ? (
+                              <img
+                                src={portfolio.imageUrl}
+                                alt={portfolio.title}
+                                className="w-full h-48 object-cover rounded-md mb-4"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display =
+                                    "none";
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-32 bg-gray-100 rounded-md mb-4 flex items-center justify-center text-gray-400">
+                                <ImageIcon className="w-8 h-8" />
+                              </div>
+                            )}
+
+                            <div className="flex justify-between items-start mb-2">
+                              <h3 className="font-medium text-lg">
+                                {portfolio.title}
+                              </h3>
+                              {portfolio.projectUrl && (
+                                <a
+                                  href={portfolio.projectUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:underline flex items-center gap-1 text-sm"
+                                >
+                                  <ExternalLink className="w-4 h-4" />
+                                  링크
+                                </a>
+                              )}
+                            </div>
+
+                            <p className="text-gray-600 text-sm mb-3">
+                              {portfolio.description}
+                            </p>
+
+                            <div className="flex flex-wrap gap-1">
+                              {(portfolio.skills ?? []).map((skill) => (
+                                <Badge
+                                  key={skill}
+                                  variant="outline"
+                                  className="text-xs"
+                                >
+                                  {skill}
+                                </Badge>
+                              ))}
+                            </div>
+
+                            <p className="text-xs text-gray-400 mt-3">
+                              {new Date(portfolio.createdAt).toLocaleDateString(
+                                "ko-KR"
+                              )}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12 text-gray-500">
+                        <Briefcase className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                        <p>아직 포트폴리오가 없습니다</p>
                       </div>
                     )}
                   </CardContent>

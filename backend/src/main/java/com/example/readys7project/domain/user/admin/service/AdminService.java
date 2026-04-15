@@ -103,9 +103,9 @@ public class AdminService {
 
         // 승인 메서드 호출
         if (updateAdminStatusRequestDto.adminStatus() == AdminStatus.APPROVED) {
-            targetAdmin.AdminStatusApprove();
+            targetAdmin.adminStatusApprove();
         } else if (updateAdminStatusRequestDto.adminStatus() == AdminStatus.REJECTED) {
-            targetAdmin.AdminStatusReject();
+            targetAdmin.adminStatusReject();
         } else {
             throw new AdminException(ErrorCode.INVALID_ADMIN_STATUS);
         }

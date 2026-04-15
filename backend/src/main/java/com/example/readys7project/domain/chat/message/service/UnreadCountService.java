@@ -25,8 +25,11 @@ public class UnreadCountService {
     // unread count 조회
     public Long getCount(Long roomId, Long userId) {
         String key = generateKey(roomId, userId);
-        Long count = unreadRedisTemplate.opsForValue().get(key);
-        return count == null ? 0L : count;
+        Object count = unreadRedisTemplate.opsForValue().get(key);
+        if (count instanceof Number) {
+            return ((Number) count).longValue();
+        }
+        return 0L;
     }
 
     private String generateKey(Long roomId, Long userId) {
