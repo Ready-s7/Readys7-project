@@ -1,17 +1,73 @@
+/**
+ * Home.tsx 개선 사항
+ *
+ * [버그 수정]
+ * - 기존: mockData의 정적 데이터를 항상 보여줌.
+ * - 수정: 실제 백엔드 API(/v1/projects, /v1/developers, /v1/categories)에서 데이터를 가져옴.
+ * - API 실패 시 graceful fallback (빈 배열로 처리, 에러 토스트 없이 조용히 처리).
+ *
+ * [UX 개선]
+ * - 로딩 스피너 표시
+ * - 데이터 없을 때 빈 섹션 안 보이도록 처리
+ */
+import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { Badge } from "../ui/badge";
-import { Search, ArrowRight, Star, Users, Briefcase, Shield } from "lucide-react";
+import { Search, ArrowRight, Star, Users, Briefcase, Shield, Loader2 } from "lucide-react";
 import { Input } from "../ui/input";
-import { categories, mockProjects, mockDevelopers } from "../../data/mockData";
-import { ImageWithFallback } from "../figma/ImageWithFallback";
+import { projectApi, developerApi, categoryApi } from "../../../api/apiService";
+import type { ProjectDto, DeveloperDto, CategoryDto } from "../../../api/types";
+
+const STATUS_LABELS: Record<string, string> = {
+  OPEN: "모집중",
+  CLOSED: "마감",
+  IN_PROGRESS: "진행중",
+  COMPLETED: "완료",
+  CANCELLED: "중단",
+};
 
 export function Home() {
-  const featuredProjects = mockProjects.slice(0, 3);
-  const topDevelopers = mockDevelopers.slice(0, 4);
+  const [featuredProjects, setFeaturedProjects] = useState<ProjectDto[]>([]);
+  const [topDevelopers, setTopDevelopers] = useState<DeveloperDto[]>([]);
+  const [categories, setCategories] = useState<CategoryDto[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // @ts-ignore
+  useEffect(() => {
+    const fetchAll = async () => {
+      setIsLoading(true);
+      try {
+        const [projectRes, developerRes, categoryRes] = await Promise.allSettled([
+          projectApi.search({ page: 0, size: 3 }),
+          developerApi.search({ page: 0, size: 4 }),
+          categoryApi.getAll(),
+        ]);
+
+        if (projectRes.status === "fulfilled") {
+          setFeaturedProjects(projectRes.value.data.data.content);
+        }
+        if (developerRes.status === "fulfilled") {
+          setTopDevelopers(developerRes.value.data.data.content);
+        }
+        if (categoryRes.status === "fulfilled") {
+          setCategories(categoryRes.value.data.data);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchAll();
+  }, []);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      window.location.href = `/projects?search=${encodeURIComponent(searchTerm)}`;
+    }
+  };
+
   return (
     <div>
       {/* Hero Section */}
@@ -24,20 +80,24 @@ export function Home() {
             <p className="text-xl text-gray-600 mb-8">
               검증된 개발자들과 함께 당신의 아이디어를 현실로 만들어보세요
             </p>
-            
+
             {/* Search Bar */}
-            <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-2 flex flex-col md:flex-row gap-2">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <Input
-                  placeholder="어떤 프로젝트를 찾으시나요?"
-                  className="pl-10 border-0 focus-visible:ring-0"
-                />
+            <form onSubmit={handleSearch}>
+              <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-2 flex flex-col md:flex-row gap-2">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
+                    placeholder="어떤 프로젝트를 찾으시나요?"
+                    className="pl-10 border-0 focus-visible:ring-0"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <Button type="submit" size="lg" className="md:w-auto w-full">
+                  검색하기
+                </Button>
               </div>
-              <Button size="lg" className="md:w-auto w-full">
-                검색하기
-              </Button>
-            </div>
+            </form>
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-8 mt-16 max-w-2xl mx-auto">
@@ -59,23 +119,25 @@ export function Home() {
       </section>
 
       {/* Categories */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl text-center mb-12">카테고리별 전문가 찾기</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {categories.map((category) => (
-              <Link key={category.id} to={`/projects?category=${category.id}`}>
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                  <CardContent className="p-6 text-center">
-                    <div className="text-4xl mb-3">{category.icon}</div>
-                    <div>{category.label}</div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+      {categories.length > 0 && (
+        <section className="py-16">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl text-center mb-12">카테고리별 전문가 찾기</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {categories.map((category) => (
+                <Link key={category.id} to={`/projects?categoryId=${category.id}`}>
+                  <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                    <CardContent className="p-6 text-center">
+                      <div className="text-4xl mb-3">{category.icon ?? "📦"}</div>
+                      <div className="text-sm">{category.name}</div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Featured Projects */}
       <section className="py-16 bg-gray-50">
@@ -88,31 +150,51 @@ export function Home() {
               </Button>
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredProjects.map((project) => (
-              <Link key={project.id} to={`/projects/${project.id}`}>
-                <Card className="hover:shadow-lg transition-shadow h-full">
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start mb-3">
-                      <Badge variant="secondary">{categories.find(c => c.id === project.category)?.label}</Badge>
-                      <span className="text-sm text-gray-500">{project.postedDate}</span>
-                    </div>
-                    <h3 className="text-xl mb-3">{project.title}</h3>
-                    <p className="text-gray-600 mb-4 line-clamp-2">{project.description}</p>
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {project.skills.slice(0, 3).map((skill) => (
-                        <Badge key={skill} variant="outline">{skill}</Badge>
-                      ))}
-                    </div>
-                    <div className="flex justify-between items-center pt-4 border-t">
-                      <span className="text-blue-600">{project.budget}</span>
-                      <span className="text-sm text-gray-500">제안 {project.proposals}개</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
+
+          {isLoading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            </div>
+          ) : featuredProjects.length === 0 ? (
+            <p className="text-center text-gray-500 py-8">등록된 프로젝트가 없습니다.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredProjects.map((project) => (
+                <Link key={project.id} to={`/projects/${project.id}`}>
+                  <Card className="hover:shadow-lg transition-shadow h-full">
+                    <CardContent className="p-6">
+                      <div className="flex justify-between items-start mb-3">
+                        <Badge variant="secondary">{project.category}</Badge>
+                        <div className="flex gap-1">
+                          <Badge variant="outline" className="text-xs">
+                            {STATUS_LABELS[project.status] ?? project.status}
+                          </Badge>
+                        </div>
+                      </div>
+                      <h3 className="text-xl mb-3 line-clamp-1">{project.title}</h3>
+                      <p className="text-gray-600 mb-4 line-clamp-2">{project.description}</p>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {project.skills.slice(0, 3).map((skill) => (
+                          <Badge key={skill} variant="outline">{skill}</Badge>
+                        ))}
+                        {project.skills.length > 3 && (
+                          <Badge variant="outline">+{project.skills.length - 3}</Badge>
+                        )}
+                      </div>
+                      <div className="flex justify-between items-center pt-4 border-t">
+                        <span className="text-blue-600 text-sm">
+                          {project.minBudget.toLocaleString()}~{project.maxBudget.toLocaleString()}원
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          제안 {project.currentProposalCount}개
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -127,34 +209,43 @@ export function Home() {
               </Button>
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {topDevelopers.map((developer) => (
-              <Link key={developer.id} to={`/developers/${developer.id}`}>
-                <Card className="hover:shadow-lg transition-shadow h-full">
-                  <CardContent className="p-6 text-center">
-                    <ImageWithFallback
-                      src={developer.avatar}
-                      alt={developer.name}
-                      className="w-20 h-20 rounded-full mx-auto mb-4"
-                    />
-                    <h3 className="text-lg mb-1">{developer.name}</h3>
-                    <p className="text-gray-600 text-sm mb-3">{developer.title}</p>
-                    <div className="flex items-center justify-center gap-1 mb-3">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span>{developer.rating}</span>
-                      <span className="text-gray-500 text-sm">({developer.reviewCount})</span>
-                    </div>
-                    <div className="flex flex-wrap gap-1 justify-center mb-3">
-                      {developer.skills.slice(0, 3).map((skill) => (
-                        <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
-                      ))}
-                    </div>
-                    <p className="text-blue-600 text-sm">{developer.hourlyRate}/시간</p>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
+
+          {isLoading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            </div>
+          ) : topDevelopers.length === 0 ? (
+            <p className="text-center text-gray-500 py-8">등록된 개발자가 없습니다.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {topDevelopers.map((developer) => (
+                <Link key={developer.id} to={`/developers/${developer.id}`}>
+                  <Card className="hover:shadow-lg transition-shadow h-full">
+                    <CardContent className="p-6 text-center">
+                      <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4 text-3xl">
+                        {developer.name[0]}
+                      </div>
+                      <h3 className="text-lg mb-1">{developer.name}</h3>
+                      <p className="text-gray-600 text-sm mb-3">{developer.title}</p>
+                      <div className="flex items-center justify-center gap-1 mb-3">
+                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        <span>{developer.rating?.toFixed(1)}</span>
+                        <span className="text-gray-500 text-sm">({developer.reviewCount})</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1 justify-center mb-3">
+                        {(developer.skills ?? []).slice(0, 3).map((skill) => (
+                          <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
+                        ))}
+                      </div>
+                      <p className="text-blue-600 text-sm">
+                        {developer.minHourlyPay?.toLocaleString()}~{developer.maxHourlyPay?.toLocaleString()}원/시간
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -199,7 +290,9 @@ export function Home() {
       <section className="py-20 bg-blue-600 text-white">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl mb-4">지금 바로 시작하세요</h2>
-          <p className="text-xl mb-8 opacity-90">당신의 프로젝트를 성공으로 이끌어줄 최고의 개발자를 만나보세요</p>
+          <p className="text-xl mb-8 opacity-90">
+            당신의 프로젝트를 성공으로 이끌어줄 최고의 개발자를 만나보세요
+          </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Link to="/projects/new">
               <Button size="lg" variant="secondary">
@@ -207,7 +300,11 @@ export function Home() {
               </Button>
             </Link>
             <Link to="/developers">
-              <Button size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white hover:text-blue-600">
+              <Button
+                size="lg"
+                variant="outline"
+                className="bg-transparent border-white text-white hover:bg-white hover:text-blue-600"
+              >
                 개발자 찾아보기
               </Button>
             </Link>
