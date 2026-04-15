@@ -2,6 +2,8 @@ package com.example.readys7project.domain.review.repository;
 
 import com.example.readys7project.domain.review.entity.QReview;
 import com.example.readys7project.domain.review.entity.Review;
+import com.example.readys7project.domain.review.enums.ReviewRole;
+import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +47,7 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
             Pageable pageable
     ) {
         BooleanBuilder builder = new BooleanBuilder();
+        builder.and(review.writerRole.eq(ReviewRole.DEVELOPER));
 
         builder.and(review.client.id.eq(clientId));
 
@@ -104,6 +107,7 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
         BooleanBuilder builder = new BooleanBuilder();
 
         builder.and(review.developer.id.eq(developerId));
+        builder.and(review.writerRole.eq(ReviewRole.CLIENT));
 
         if (rating != null) {
             builder.and(review.rating.eq(rating));
@@ -121,7 +125,7 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
                 .selectFrom(review)
                 .where(builder)
                 .orderBy(review.createdAt.desc(), review.id.desc())
-                .offset(pageable.getOffset()) // 스탠다드 반..
+                .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 

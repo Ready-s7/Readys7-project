@@ -8,6 +8,7 @@ import com.example.readys7project.domain.project.repository.ProjectRepository;
 import com.example.readys7project.domain.proposal.entity.Proposal;
 import com.example.readys7project.domain.proposal.enums.ProposalStatus;
 import com.example.readys7project.domain.proposal.repository.ProposalRepository;
+import com.example.readys7project.domain.review.enums.ReviewRole;
 import com.example.readys7project.domain.skill.entity.Skill;
 import com.example.readys7project.domain.skill.enums.SkillCategory;
 import com.example.readys7project.domain.skill.repository.SkillRepository;
@@ -753,6 +754,7 @@ public class InitData implements ApplicationRunner {
                 .client(client1)
                 .developer(dev1)
                 .project(project4)
+                .writerRole(ReviewRole.CLIENT)
                 .rating(5)
                 .comment("클라이언트 : 클라이언트가 남긴 초기 리뷰입니다.")
                 .build());
@@ -761,6 +763,7 @@ public class InitData implements ApplicationRunner {
                 .client(client1)
                 .developer(dev1)
                 .project(project4)
+                .writerRole(ReviewRole.DEVELOPER)
                 .rating(4)
                 .comment("개발자 : 일정 조율과 소통이 좋았습니다.")
                 .build());
@@ -769,6 +772,7 @@ public class InitData implements ApplicationRunner {
                 .client(client1)
                 .developer(dev2)
                 .project(project5)
+                .writerRole(ReviewRole.CLIENT)
                 .rating(5)
                 .comment("클라이언트 : 대시보드 구현 완성도가 높았습니다.")
                 .build());
@@ -777,6 +781,7 @@ public class InitData implements ApplicationRunner {
                 .client(client2)
                 .developer(dev2)
                 .project(project8)
+                .writerRole(ReviewRole.DEVELOPER)
                 .rating(4)
                 .comment("개발자 : 응답이 빠르고 협업이 원활했습니다.")
                 .build());
@@ -785,6 +790,7 @@ public class InitData implements ApplicationRunner {
                 .client(client2)
                 .developer(dev3)
                 .project(project9)
+                .writerRole(ReviewRole.CLIENT)
                 .rating(5)
                 .comment("클라이언트 : AI 모델 성능이 기대 이상이었습니다.")
                 .build());
@@ -793,6 +799,7 @@ public class InitData implements ApplicationRunner {
                 .client(client2)
                 .developer(dev3)
                 .project(project9)
+                .writerRole(ReviewRole.DEVELOPER)
                 .rating(4)
                 .comment("개발자 : 설명이 명확했고 결과물도 만족스러웠습니다.")
                 .build());

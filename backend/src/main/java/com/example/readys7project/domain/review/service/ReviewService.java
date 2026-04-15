@@ -11,6 +11,7 @@ import com.example.readys7project.domain.review.dto.ReviewDto;
 import com.example.readys7project.domain.review.dto.request.ReviewRequestDto;
 import com.example.readys7project.domain.review.dto.request.ReviewUpdateRequestDto;
 import com.example.readys7project.domain.review.entity.Review;
+import com.example.readys7project.domain.review.enums.ReviewRole;
 import com.example.readys7project.domain.review.repository.ReviewRepository;
 import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.domain.user.auth.enums.UserRole;
@@ -47,19 +48,13 @@ public class ReviewService {
     private final ProposalRepository proposalRepository;
     private final ClientService clientService;
 
-    // 리뷰 생성 로직
-    // 1. 리뷰 생성 가능
-    // 프로젝트 상태가 완료/중단
-    // 2. 리뷰 생성 불가능
-    // 프로젝트 상태가 작업중/오픈
 
-    // 프로젝트 검증 필용
     // 리뷰 생성 비즈니스 로직
     @Transactional
-    public ReviewDto createReview(ReviewRequestDto request, Long targetUserId , String email) {
+    public ReviewDto createReview(ReviewRequestDto request, Long targetUserId, String email) {
 
         // 작성자 존재 검증
-        User user =findUserByEmail(email);
+        User user = findUserByEmail(email);
         validateReviewWriterRole(user);
 
         // 리뷰를 받는 대상 사용자가 실제 DB에 존재하는가
@@ -67,103 +62,115 @@ public class ReviewService {
         // 프로젝트 조회
         Project project = findProject(request.projectId());
 
+        // 클라인트, 개발자 객체 생성.
+        Client client;
+        Developer developer;
 
-        // 프로젝트 상태 검증
-        // 프로젝트 상태가 작업 완료, 작업 취소일때 만 가능. 나중에 작업 취소는 작업 중단 상태로 수정 예정.
+        // 리뷰는 완료 또는 취소된 프로젝트에서만 작성 가능하다.
         if (project.getStatus() != ProjectStatus.COMPLETED
                 && project.getStatus() != ProjectStatus.CANCELLED) {
             throw new ReviewException(ErrorCode.USER_FORBIDDEN);
         }
 
-        // 리뷰를 작성하는 사람이 클라이언트인데
-        // 프로젝트를 발안한 당사자가 아니라면 에러 처리
-        if (user.getUserRole().equals(UserRole.CLIENT) && !project.getClient().getUser().equals(user)) {
-            throw new ReviewException(ErrorCode.USER_FORBIDDEN);
-        }
 
-        // 리뷰를 작성하는 사람이 개발자인데
-        // 해당 프로젝트에 제안서를 제출한 바 있으며
-        // 해당 제안서가 허가를 받았는지 검증
-        if (user.getUserRole().equals(UserRole.DEVELOPER)) {
-            Developer loginDeveloper = developerRepository.findByUser(user)
-                    .orElseThrow(() -> new ReviewException(ErrorCode.DEVELOPER_NOT_FOUND));
-
-            Proposal proposal = proposalRepository.findByProjectAndDeveloper(project, loginDeveloper).orElseThrow(
-                    () -> new ReviewException(ErrorCode.PROPOSAL_NOT_FOUND)
-            );
-
-            if (!proposal.getStatus().equals(ProposalStatus.ACCEPTED)) {
-                throw new ReviewException(ErrorCode.USER_FORBIDDEN);
-            }
-        }
-
-        // 리뷰 작성자와 리뷰 대상자의 역할 조합이 올바른지 검증하는 로직
-        // 작성자가 CLIENT 인 경우. CLIENT -> DEVELOPER 조합만 허용.
+        // 만약 클라이언트라가 리뷰를 작성하는 경우
         if (user.getUserRole() == UserRole.CLIENT) {
+
+            // 리뷰 대상자는 개발자여야 한다.
             if (targetUser.getUserRole() != UserRole.DEVELOPER) {
                 throw new ReviewException(ErrorCode.USER_FORBIDDEN);
             }
-            //  작성자가 DEVELOPER 인 경우
-            //  DEVELOPER -> CLIENT 조합만 허용.
-        } else if (user.getUserRole() == UserRole.DEVELOPER) {
-            if (targetUser.getUserRole() != UserRole.CLIENT) {
+
+            // 로그인한 클라이언트가 이 프로젝트의 실제 당사인지 검증한다.
+            if (!project.getClient().getUser().equals(user)) {
                 throw new ReviewException(ErrorCode.USER_FORBIDDEN);
             }
-        } else {
-            throw new ReviewException(ErrorCode.USER_FORBIDDEN);
-        }
 
-        Client client;
-        Developer developer;
-        Review savedReview;
-
-        if (user.getUserRole() == UserRole.CLIENT) {
+            // 이제 로그인한 사용자와 리뷰 대상 사용자를 각각 엔티티로 조횐한다.
             client = clientRepository.findByUser(user)
                     .orElseThrow(() -> new ReviewException(ErrorCode.CLIENT_NOT_FOUND));
 
             developer = developerRepository.findByUser(targetUser)
                     .orElseThrow(() -> new ReviewException(ErrorCode.DEVELOPER_NOT_FOUND));
 
+
+            // 리뷰 대상 개발자가 이 프로젝트에 실제 참여한 개발자인지 검증한다.
+            // 즉, 해당 프로젝트에 대한 제안서가 존재해야 한다.
+            Proposal proposal = proposalRepository.findByProjectAndDeveloper(project, developer)
+                    .orElseThrow(() -> new ReviewException(ErrorCode.PROPOSAL_NOT_FOUND));
+
+            // 제안서가 승인(ACCEPTED)된 상태여야만 리뷰 작성이 가능하다.
+            if (proposal.getStatus() != ProposalStatus.ACCEPTED) {
+                throw new ReviewException(ErrorCode.USER_FORBIDDEN);
+            }
+
+
+
             Review review = Review.builder()
                     .developer(developer)
                     .client(client)
                     .project(project)
+                    .writerRole(ReviewRole.CLIENT)
                     .rating(request.rating())
                     .comment(request.comment())
                     .build();
 
-            savedReview = reviewRepository.save(review);
+            Review savedReview = reviewRepository.save(review);
 
-        } else if (user.getUserRole() == UserRole.DEVELOPER) {
-            client = clientRepository.findByUser(targetUser)
-                    .orElseThrow(() -> new ReviewException(ErrorCode.CLIENT_NOT_FOUND));
+            // 클라이언트가 개발자에게 남긴 리뷰이므로 개발자의 평점을 갱신한다.
+            updateDeveloperRating(developer.getId());
+            return convertToDto(savedReview);
+        }
 
+
+        // 만약 개발자가 리뷰를 작성하는 경우
+        if (user.getUserRole() == UserRole.DEVELOPER) {
+
+            // 이때 리뷰를 받은 대상이 클라이언트이어야 한다.
+            if (targetUser.getUserRole() != UserRole.CLIENT) {
+                throw new ReviewException(ErrorCode.USER_FORBIDDEN);
+            }
+
+
+            //  로그인한 사용자와 리뷰 대상 사용자를 각각 엔티티로 조회한다.
             developer = developerRepository.findByUser(user)
                     .orElseThrow(() -> new ReviewException(ErrorCode.DEVELOPER_NOT_FOUND));
 
+            client = clientRepository.findByUser(targetUser)
+                    .orElseThrow(() -> new ReviewException(ErrorCode.CLIENT_NOT_FOUND));
+
+
+            // 로그인한 개발자가 이 프로젝트에 실제 참여한 개발자인지 검증한다.
+            // 즉, 해당 프로젝트에 대한 제안서가 존재해야 한다.
+            Proposal proposal = proposalRepository.findByProjectAndDeveloper(project, developer)
+                    .orElseThrow(() -> new ReviewException(ErrorCode.PROPOSAL_NOT_FOUND));
+
+
+            // 이때 제안서의 상태가 승인 상태여야 한다.
+            if (proposal.getStatus() != ProposalStatus.ACCEPTED) {
+                throw new ReviewException(ErrorCode.USER_FORBIDDEN);
+            }
+
+
+
+            // 작성자 역할을 DEVELOPER로 저장하고 리뷰를 생성한다.
             Review review = Review.builder()
                     .developer(developer)
                     .client(client)
                     .project(project)
+                    .writerRole(ReviewRole.DEVELOPER)
                     .rating(request.rating())
                     .comment(request.comment())
                     .build();
 
-            savedReview = reviewRepository.save(review);
+            Review savedReview = reviewRepository.save(review);
 
-        } else {
-            throw new ReviewException(ErrorCode.USER_FORBIDDEN);
-        }
-
-        // 작성자가 클라이언트 였다면 대상은 개발자 이므로 개발자 평점 갱신
-        // 작성자가 개발자 였다면 대상은 클라이언트 이므로 클라이언트 평점 갱신
-        if(user.getUserRole()==UserRole.CLIENT){
-            updateDeveloperRating(developer.getId());
-        }else if(user.getUserRole()==UserRole.DEVELOPER){
+            // 개발자가 클라이언트에게 남긴 리뷰이므로 클라이언트 평점을 갱신한다.
             updateClientRating(client.getId());
+            return convertToDto(savedReview);
         }
 
-        return convertToDto(savedReview);
+        throw new ReviewException(ErrorCode.USER_FORBIDDEN);
     }
 
     // 특정 개발자가 받은 리뷰 목록 조회
@@ -249,7 +256,7 @@ public class ReviewService {
     // comment만 보내도 됨
     // 둘다 안보내면 안됨.
     private void validateUpdateRequest(ReviewUpdateRequestDto request){
-        if (request.rating() == null && (request.comment() == null&& request.comment().isBlank())) {
+        if (request.rating() == null && (request.comment() == null || request.comment().isBlank())) {
             throw new ReviewException(ErrorCode.REVIEW_UPDATE_DATA_NULL);
         }
 
@@ -289,13 +296,27 @@ public class ReviewService {
     // 클라 -> 클라
     // 개발자 -> 개발자
     private void validateReviewOwner(User user, Review review) {
+        // 클라이언트가 수정/삭제하려면
+        // 해당 리뷰가 CLIENT가 작성한 리뷰여야 하고,
+        // 로그인한 사용자가 그 리뷰의 client.user 와 일치해야 한다.
         if (user.getUserRole() == UserRole.CLIENT) {
+            if (review.getWriterRole() != ReviewRole.CLIENT) {
+                throw new ReviewException(ErrorCode.USER_FORBIDDEN);
+            }
+
             if (!review.getClient().getUser().equals(user)) {
                 throw new ReviewException(ErrorCode.USER_FORBIDDEN);
             }
         }
 
+        // 개발자가 수정/삭제하려면
+        // 해당 리뷰가 DEVELOPER가 작성한 리뷰여야 하고,
+        // 로그인한 사용자가 그 리뷰의 developer.user 와 일치해야 한다.
         if (user.getUserRole() == UserRole.DEVELOPER) {
+            if (review.getWriterRole() != ReviewRole.DEVELOPER) {
+                throw new ReviewException(ErrorCode.USER_FORBIDDEN);
+            }
+
             if (!review.getDeveloper().getUser().equals(user)) {
                 throw new ReviewException(ErrorCode.USER_FORBIDDEN);
             }
@@ -351,6 +372,7 @@ public class ReviewService {
                 .clientName(review.getClient().getUser().getName())
                 .projectId(review.getProject().getId())
                 .projectTitle(review.getProject().getTitle())
+                .writerRole(review.getWriterRole())
                 .rating(review.getRating())
                 .comment(review.getComment())
                 .createdAt(review.getCreatedAt())

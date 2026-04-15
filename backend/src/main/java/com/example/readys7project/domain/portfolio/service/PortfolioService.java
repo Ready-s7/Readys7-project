@@ -106,12 +106,12 @@ public class PortfolioService {
      6. 삭제
      */
     @Transactional
-    public void deletePortfolio(Long developerId, String email){
+    public void deletePortfolio(Long portfolioId, String email){
 
         // 로그인 사용자 조회
         User user = findUserByEmail(email);
 
-        Portfolio portfolio = findPortfolio(developerId);
+        Portfolio portfolio = findPortfolio(portfolioId);
         // 관리자는 삭제 가능.
         if(user.getUserRole()!=UserRole.ADMIN){
             validatePortfolioWriterRole(user);
@@ -123,8 +123,8 @@ public class PortfolioService {
         portfolioRepository.delete(portfolio);
     }
 
-    // 개발자 포트폴리오 조회
-    // 일단 비회원도 조회 가능.
+    // 특정 개발자 포트폴리오 조회
+    // 비회원도 조회 가능.
     @Transactional(readOnly = true)
     public Page<PortfolioDto>getPortfolio(Long developerId, String skill, int page, int size){
 
@@ -138,6 +138,17 @@ public class PortfolioService {
     }
 
 
+    // 특정 개발자가 조회가 아닌.
+    // 전체 포트폴리오 검색 가능.
+    @Transactional(readOnly = true)
+    public Page<PortfolioDto> searchPortfolios(String skill, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page - 1, size);
+
+
+        return portfolioRepository.searchAllPortfolios(skill, pageable)
+                .map(this::convertToDto);
+    }
 
 // 반환 메서드
     private PortfolioDto convertToDto(Portfolio portfolio) {
@@ -196,9 +207,5 @@ public class PortfolioService {
             throw new PortfolioException(ErrorCode.PORTFOLIO_NOT_FOUND);
         }
 
-
-
     }
-
-
 }

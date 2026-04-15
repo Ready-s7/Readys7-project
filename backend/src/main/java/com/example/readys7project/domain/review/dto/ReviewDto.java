@@ -1,9 +1,8 @@
 package com.example.readys7project.domain.review.dto;
 
-import lombok.AllArgsConstructor;
+import com.example.readys7project.domain.review.enums.ReviewRole;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+
 
 import java.time.LocalDateTime;
 
@@ -17,6 +16,7 @@ public record ReviewDto (
         String clientName,
         Long projectId,
         String projectTitle,
+        ReviewRole writerRole,
         Integer rating,
         String comment,
         LocalDateTime createdAt
