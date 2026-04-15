@@ -1,21 +1,14 @@
 /**
- * Login.tsx 개선 사항
+ * Login.tsx 수정 사항
  *
  * [버그 수정]
- * 1. 회원가입 후 DB 저장은 됐지만 "실패" 토스트가 뜨는 문제
- *    → 원인: axios가 201 Created를 정상 응답으로 처리하지만, 내부에서 발생하는
- *      후속 getMe() 호출 실패나 응답 파싱 오류가 catch로 흘러들어 실패 처리됨.
- *    → 해결: registerClient/registerDeveloper 성공 여부를 명확히 구분,
- *      에러 메시지를 정확하게 추출하여 표시.
- *
- * 2. 로그인 후 홈으로 이동 안 되는 문제
- *    → 원인: accessToken 파싱 실패 시 setState가 호출되지 않아 isLoggedIn이 false 유지.
- *    → 해결: authApi.ts에서 헤더 파싱 로직 강화 + 여기서는 login() 성공 시 무조건 navigate("/").
+ * 1. 어드민 회원가입 항목 추가 (ADMIN 역할 선택 + adminRole 선택)
+ * 2. 비밀번호 유효성 검사 개선
  *
  * [UX 개선]
- * - 폼 제출 중 버튼 비활성화 + 로딩 스피너
- * - 에러 메시지 toast + 폼 하단 인라인 표시
- * - 회원가입 성공 후 자동으로 "로그인" 탭으로 전환 (자동 로그인)
+ * 1. 토스트 알림이 버튼을 가리는 문제 → App.tsx에서 position="bottom-right"로 수정
+ * 2. 가입 유형 3개(CLIENT/DEVELOPER/ADMIN)로 확장
+ * 3. ADMIN 전용 필드(adminRole) 추가
  */
 import { useState } from "react";
 import { useNavigate, Link } from "react-router";
@@ -24,9 +17,21 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { Code2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
+import { apiClient } from "../../../api/client";
+import type { SuccessResponse, UserDto } from "../../../api/types";
+
+type UserType = "client" | "developer" | "admin";
+type AdminRole = "SUPER_ADMIN" | "CS_ADMIN" | "OPER_ADMIN";
 
 export function Login() {
   const navigate = useNavigate();
@@ -39,12 +44,13 @@ export function Login() {
     password: "",
     phoneNumber: "",
     title: "",
-    userType: "client" as "client" | "developer",
+    userType: "client" as UserType,
     participateType: "INDIVIDUAL" as "INDIVIDUAL" | "COMPANY",
     minHourlyPay: "",
     maxHourlyPay: "",
     skills: "",
     responseTime: "1시간",
+    adminRole: "CS_ADMIN" as AdminRole,
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -76,12 +82,26 @@ export function Login() {
     }
   };
 
+  // ── 어드민 회원가입 핸들러 ──────────────────────────────────
+  const handleAdminRegister = async () => {
+    const res = await apiClient.post<SuccessResponse<UserDto>>(
+      "/v1/auth/register/admins",
+      {
+        email: signupData.email,
+        password: signupData.password,
+        name: signupData.name,
+        phoneNumber: signupData.phoneNumber,
+        adminRole: signupData.adminRole,
+      }
+    );
+    return res;
+  };
+
   // ── 회원가입 핸들러 ──────────────────────────────────────────
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setSignupError("");
 
-    // 클라이언트 사이드 유효성 검사
     if (signupData.password.length < 8) {
       setSignupError("비밀번호는 8자 이상이어야 합니다.");
       return;
@@ -114,7 +134,9 @@ export function Login() {
           title: signupData.title || "클라이언트",
           participateType: signupData.participateType,
         });
-      } else {
+        toast.success("회원가입이 완료되었습니다! 자동으로 로그인됩니다.");
+        navigate("/");
+      } else if (signupData.userType === "developer") {
         const skillList = signupData.skills
           .split(",")
           .map((s) => s.trim())
@@ -132,20 +154,27 @@ export function Login() {
           availableForWork: true,
           participateType: signupData.participateType,
         });
+        toast.success("회원가입이 완료되었습니다! 자동으로 로그인됩니다.");
+        navigate("/");
+      } else {
+        // ADMIN 회원가입 → 자동 로그인 없음 (PENDING 상태이므로)
+        await handleAdminRegister();
+        toast.success(
+          "관리자 계정이 생성되었습니다. SUPER_ADMIN 승인 후 로그인 가능합니다."
+        );
+        // 로그인 탭으로 이동
+        setSignupData((prev) => ({ ...prev, userType: "client" }));
       }
-      toast.success("회원가입이 완료되었습니다! 자동으로 로그인됩니다.");
-      navigate("/");
     } catch (err: any) {
       const detail = err?.response?.data;
       let msg = "회원가입에 실패했습니다.";
       if (detail?.data && typeof detail.data === "object") {
-        // 필드 유효성 검사 오류 (Map<String, String>)
         msg = Object.values(detail.data).join("\n");
       } else if (detail?.message) {
         msg = detail.message;
       }
       setSignupError(msg);
-      toast.error(msg.split("\n")[0]); // 첫 번째 메시지만 toast로
+      toast.error(msg.split("\n")[0]);
     } finally {
       setIsLoading(false);
     }
@@ -227,52 +256,53 @@ export function Login() {
                   </Button>
                 </form>
 
-                {/* 테스트 계정 안내 */}
                 <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-800">
                   <p className="font-medium mb-1">🧪 테스트 계정</p>
                   <p>클라이언트: client1@test.com / 12345678</p>
                   <p>개발자: dev1@test.com / 12345678</p>
+                  <p>슈퍼관리자: superAdmin@system.com / 12345678</p>
                 </div>
               </TabsContent>
 
               {/* ── 회원가입 탭 ── */}
               <TabsContent value="signup">
                 <form onSubmit={handleSignup} className="space-y-4 mt-4">
-                  {/* 가입 유형 선택 */}
+                  {/* 가입 유형 선택 - 3개 */}
                   <div className="space-y-2">
                     <Label>가입 유형 *</Label>
-                    <div className="grid grid-cols-2 gap-3">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSignupData({ ...signupData, userType: "client" })
-                        }
-                        className={`p-3 border rounded-lg text-center hover:border-blue-600 transition-colors ${
-                          signupData.userType === "client"
-                            ? "border-blue-600 bg-blue-50"
-                            : "border-gray-200"
-                        }`}
-                      >
-                        <div className="text-xl mb-1">👤</div>
-                        <div className="text-sm">클라이언트</div>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSignupData({ ...signupData, userType: "developer" })
-                        }
-                        className={`p-3 border rounded-lg text-center hover:border-blue-600 transition-colors ${
-                          signupData.userType === "developer"
-                            ? "border-blue-600 bg-blue-50"
-                            : "border-gray-200"
-                        }`}
-                      >
-                        <div className="text-xl mb-1">💻</div>
-                        <div className="text-sm">개발자</div>
-                      </button>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(
+                        [
+                          { key: "client", icon: "👤", label: "클라이언트" },
+                          { key: "developer", icon: "💻", label: "개발자" },
+                          { key: "admin", icon: "🛡️", label: "관리자" },
+                        ] as const
+                      ).map(({ key, icon, label }) => (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() =>
+                            setSignupData({ ...signupData, userType: key })
+                          }
+                          className={`p-2 border rounded-lg text-center hover:border-blue-600 transition-colors text-sm ${
+                            signupData.userType === key
+                              ? "border-blue-600 bg-blue-50"
+                              : "border-gray-200"
+                          }`}
+                        >
+                          <div className="text-lg mb-0.5">{icon}</div>
+                          <div>{label}</div>
+                        </button>
+                      ))}
                     </div>
+                    {signupData.userType === "admin" && (
+                      <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                        ⚠️ 관리자 계정은 SUPER_ADMIN 승인 후 로그인 가능합니다.
+                      </p>
+                    )}
                   </div>
 
+                  {/* 공통 필드 */}
                   <div className="space-y-2">
                     <Label>이름 * (2~20자)</Label>
                     <Input
@@ -326,46 +356,51 @@ export function Login() {
                       disabled={isLoading}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>직군 * (예: 풀스택 개발자)</Label>
-                    <Input
-                      placeholder="직군을 입력하세요"
-                      value={signupData.title}
-                      onChange={(e) =>
-                        setSignupData({ ...signupData, title: e.target.value })
-                      }
-                      required
-                      disabled={isLoading}
-                    />
-                  </div>
 
-                  {/* 참여 유형 */}
-                  <div className="space-y-2">
-                    <Label>사업자 유형 *</Label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {(["INDIVIDUAL", "COMPANY"] as const).map((type) => (
-                        <button
-                          key={type}
-                          type="button"
-                          onClick={() =>
-                            setSignupData({
-                              ...signupData,
-                              participateType: type,
-                            })
+                  {/* CLIENT / DEVELOPER 전용 필드 */}
+                  {signupData.userType !== "admin" && (
+                    <>
+                      <div className="space-y-2">
+                        <Label>직군 * (예: 풀스택 개발자)</Label>
+                        <Input
+                          placeholder="직군을 입력하세요"
+                          value={signupData.title}
+                          onChange={(e) =>
+                            setSignupData({ ...signupData, title: e.target.value })
                           }
-                          className={`p-2 border rounded-lg text-sm hover:border-blue-600 transition-colors ${
-                            signupData.participateType === type
-                              ? "border-blue-600 bg-blue-50"
-                              : "border-gray-200"
-                          }`}
-                        >
-                          {type === "INDIVIDUAL" ? "🧑 개인" : "🏢 회사"}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                          required
+                          disabled={isLoading}
+                        />
+                      </div>
 
-                  {/* 개발자 전용 필드 */}
+                      <div className="space-y-2">
+                        <Label>사업자 유형 *</Label>
+                        <div className="grid grid-cols-2 gap-3">
+                          {(["INDIVIDUAL", "COMPANY"] as const).map((type) => (
+                            <button
+                              key={type}
+                              type="button"
+                              onClick={() =>
+                                setSignupData({
+                                  ...signupData,
+                                  participateType: type,
+                                })
+                              }
+                              className={`p-2 border rounded-lg text-sm hover:border-blue-600 transition-colors ${
+                                signupData.participateType === type
+                                  ? "border-blue-600 bg-blue-50"
+                                  : "border-gray-200"
+                              }`}
+                            >
+                              {type === "INDIVIDUAL" ? "🧑 개인" : "🏢 회사"}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* DEVELOPER 전용 필드 */}
                   {signupData.userType === "developer" && (
                     <>
                       <div className="grid grid-cols-2 gap-3">
@@ -437,7 +472,37 @@ export function Login() {
                     </>
                   )}
 
-                  {/* 인라인 에러 표시 */}
+                  {/* ADMIN 전용 필드 */}
+                  {signupData.userType === "admin" && (
+                    <div className="space-y-2">
+                      <Label>관리자 역할 *</Label>
+                      <Select
+                        value={signupData.adminRole}
+                        onValueChange={(v) =>
+                          setSignupData({
+                            ...signupData,
+                            adminRole: v as AdminRole,
+                          })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="역할 선택" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="SUPER_ADMIN">
+                            SUPER_ADMIN (최고 관리자)
+                          </SelectItem>
+                          <SelectItem value="CS_ADMIN">
+                            CS_ADMIN (고객 지원)
+                          </SelectItem>
+                          <SelectItem value="OPER_ADMIN">
+                            OPER_ADMIN (운영 관리)
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
                   {signupError && (
                     <div className="text-sm text-red-600 bg-red-50 p-3 rounded whitespace-pre-line">
                       {signupError}

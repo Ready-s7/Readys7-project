@@ -44,6 +44,7 @@ public class MessageService {
                 .chatRoom(chatRoom)
                 .user(user)
                 .content(request.content())
+                .eventType(MessageEventType.SEND)
                 .build();
 
         Message savedMessage = messageRepository.save(message);
@@ -83,6 +84,7 @@ public class MessageService {
                 .user(user)
                 .content(content)
                 .isSystem(true)
+                .eventType(isEntering ? MessageEventType.ENTER : MessageEventType.LEAVE)
                 .build();
 
         Message savedMessage = messageRepository.save(message);

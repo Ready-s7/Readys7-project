@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -25,8 +25,9 @@ public class StompMessageController {
     public void sendMessage(
             @DestinationVariable Long roomId,
             @Payload SendMessageRequestDto request,
-            @AuthenticationPrincipal CustomUserDetails userDetails
+            Authentication authentication
     ) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         String email = userDetails.getEmail();
 
         // DB 저장
@@ -40,8 +41,9 @@ public class StompMessageController {
     @MessageMapping("/chat/rooms/{roomId}/enter")
     public void enterRoom(
             @DestinationVariable Long roomId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
+            Authentication authentication
     ) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         String email = userDetails.getEmail();
         MessageResponseDto response = messageService.saveSystemMessage(roomId, email, true);
         redisMessagePublisher.publish(roomId, response);
@@ -51,8 +53,9 @@ public class StompMessageController {
     @MessageMapping("/chat/rooms/{roomId}/leave")
     public void leaveRoom(
             @DestinationVariable Long roomId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
+            Authentication authentication
     ) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         String email = userDetails.getEmail();
         MessageResponseDto response = messageService.saveSystemMessage(roomId, email, false);
         redisMessagePublisher.publish(roomId, response);

@@ -119,6 +119,20 @@ export interface DeveloperDto {
 }
 
 // ─────────────────────────────────────────────────────────────
+// 클라이언트 관련 타입 (기존 누락 → 추가)
+// ─────────────────────────────────────────────────────────────
+export interface ClientDto {
+  id: number;
+  name: string;
+  title: string;
+  completedProject: number;
+  rating: number;
+  reviewCount?: number;
+  participateType: "INDIVIDUAL" | "COMPANY";
+  description?: string | null;
+}
+
+// ─────────────────────────────────────────────────────────────
 // 제안서 관련 타입
 // ─────────────────────────────────────────────────────────────
 export interface ProposalDto {
@@ -201,6 +215,41 @@ export interface SkillDto {
   name: string;
   category: string;
   createdAt: string;
+}
+
+// ─────────────────────────────────────────────────────────────
+// 포트폴리오 타입 (기존 누락 → 추가)
+// ─────────────────────────────────────────────────────────────
+export interface PortfolioDto {
+  id: number;
+  developerId: number;
+  title: string;
+  description: string;
+  imageUrl: string | null;
+  projectUrl: string | null;
+  skills: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ─────────────────────────────────────────────────────────────
+// 관리자 타입 (기존 누락 → 추가)
+// ─────────────────────────────────────────────────────────────
+export interface AdminDto {
+  id: number;
+  email: string;
+  name: string;
+  adminRole: "SUPER_ADMIN" | "CS_ADMIN" | "OPER_ADMIN";
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  createdAt: string;
+}
+
+export interface AdminListResponse {
+  admins: AdminDto[];
+  currentPage: number;
+  size: number;
+  totalCount: number;
+  totalPage: number;
 }
 
 // ─────────────────────────────────────────────────────────────

@@ -36,6 +36,7 @@ public class Message extends BaseEntity {
     @Column(name = "content", nullable = false)
     private String content;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "event_type", nullable = false)
     private MessageEventType eventType;
 
