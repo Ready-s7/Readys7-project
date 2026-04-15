@@ -254,7 +254,63 @@ public class InitData implements ApplicationRunner {
                     .displayOrder(3)
                     .build());
 
-            log.info("[InitData] Category 3개 생성 완료");
+            categoryRepository.save(Category.builder()
+                    .admin(superAdmin)
+                    .name("모바일")
+                    .icon("📱")
+                    .description("iOS, Android, Flutter 등 모바일 앱 개발")
+                    .displayOrder(4)
+                    .build());
+
+            categoryRepository.save(Category.builder()
+                    .admin(superAdmin)
+                    .name("DevOps")
+                    .icon("⚙️")
+                    .description("CI/CD, Docker, Kubernetes, 클라우드 인프라")
+                    .displayOrder(5)
+                    .build());
+
+            categoryRepository.save(Category.builder()
+                    .admin(superAdmin)
+                    .name("데이터베이스")
+                    .icon("🗄️")
+                    .description("MySQL, PostgreSQL, MongoDB 등 DB 설계 및 최적화")
+                    .displayOrder(6)
+                    .build());
+
+            categoryRepository.save(Category.builder()
+                    .admin(superAdmin)
+                    .name("보안")
+                    .icon("🔒")
+                    .description("보안 취약점 분석, 침투 테스트, 보안 솔루션 개발")
+                    .displayOrder(7)
+                    .build());
+
+            categoryRepository.save(Category.builder()
+                    .admin(superAdmin)
+                    .name("UI/UX")
+                    .icon("✏️")
+                    .description("사용자 인터페이스 및 경험 설계")
+                    .displayOrder(8)
+                    .build());
+
+            categoryRepository.save(Category.builder()
+                    .admin(superAdmin)
+                    .name("블록체인")
+                    .icon("🔗")
+                    .description("스마트 컨트랙트, NFT, DeFi 개발")
+                    .displayOrder(9)
+                    .build());
+
+            categoryRepository.save(Category.builder()
+                    .admin(superAdmin)
+                    .name("게임")
+                    .icon("🎮")
+                    .description("Unity, Unreal 등 게임 클라이언트/서버 개발")
+                    .displayOrder(10)
+                    .build());
+
+            log.info("[InitData] Category 10개 생성 완료");
         }
     }
 
@@ -361,6 +417,9 @@ public class InitData implements ApplicationRunner {
         projectRepository.save(reviewProject2);
 
         Project reviewProject3 = Project.builder()
+        // maxProposalCount를 1로 설정하면
+        // increaseProposalCount() 1번 호출만으로 CLOSED 됨
+        Project closedProject = projectRepository.save(Project.builder()
                 .client(client1)
                 .category(aiCategory)
                 .title("추천 모델 성능 개선")

@@ -212,7 +212,7 @@ public class ProposalService {
                 .coverLetter(proposal.getCoverLetter())
                 .proposedBudget(proposal.getProposedBudget())
                 .proposedDuration(proposal.getProposedDuration())
-                .status(proposal.getStatus().name().toLowerCase())
+                .status(proposal.getStatus().name().toUpperCase())
                 .build();
     }
 }
