@@ -40,10 +40,12 @@ public enum ErrorCode {
 
     // Admin
     INVALID_ADMIN_ROLE(HttpStatus.UNAUTHORIZED, "잘못된 역할입니다."),
+    INVALID_ADMIN_STATUS(HttpStatus.BAD_REQUEST, "잘못된 상태 요청입니다."),
     ADMIN_STATUS_NOT_MATCH(HttpStatus.BAD_REQUEST, "승인 대기중 상태가 아닙니다."),
     ADMIN_NOT_FOUND(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다"),
     ADMIN_ALREADY_APPROVE(HttpStatus.BAD_REQUEST, "이미 승인된 관리자 입니다."),
     ADMIN_NOT_APPROVED(HttpStatus.FORBIDDEN, "승인되지 않은 관리자입니다."),
+    ADMIN_CANNOT_APPROVE_SELF(HttpStatus.BAD_REQUEST, "자기 자신을 승인할 수 없습니다."),
 
     // Review
     REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "리뷰를 찾을 수 없습니다."),

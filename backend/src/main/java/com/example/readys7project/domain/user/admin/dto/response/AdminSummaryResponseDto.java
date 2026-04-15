@@ -10,6 +10,8 @@ public record AdminSummaryResponseDto(
 
         Long id,
 
+        Long adminId,
+
         String email,
 
         String name,
@@ -23,6 +25,7 @@ public record AdminSummaryResponseDto(
     public AdminSummaryResponseDto(Admin admin) {
         this(
                 admin.getUser().getId(),
+                admin.getId(),
                 admin.getUser().getEmail(),
                 admin.getUser().getName(),
                 admin.getAdminRole(),

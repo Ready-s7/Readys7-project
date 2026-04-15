@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @RequiredArgsConstructor
@@ -84,10 +85,10 @@ public class AdminService {
 
         // adminRepository에 User 정보로 관리자 조회하기
         Admin admin = adminRepository.findByUser(user)
-                .orElseThrow(() -> new AdminException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new AdminException(ErrorCode.ADMIN_NOT_FOUND));
 
         // SuperAdmin인지 체크
-        if (!admin.getAdminRole().equals(AdminRole.SUPER_ADMIN)) {
+        if (admin.getAdminRole() != AdminRole.SUPER_ADMIN || admin.getStatus() != AdminStatus.APPROVED) {
             throw new AdminException(ErrorCode.USER_FORBIDDEN);
         }
 
@@ -95,8 +96,19 @@ public class AdminService {
         Admin targetAdmin = adminRepository.findById(adminId)
                 .orElseThrow(() -> new AdminException(ErrorCode.ADMIN_NOT_FOUND));
 
+        // Pending 상태가 맞는지 검증
+        if(!(targetAdmin.getStatus().equals(AdminStatus.PENDING))) {
+            throw new AdminException(ErrorCode.ADMIN_STATUS_NOT_MATCH);
+        }
+
         // 승인 메서드 호출
-        targetAdmin.updateAdminStatus(updateAdminStatusRequestDto.adminStatus());
+        if (updateAdminStatusRequestDto.adminStatus() == AdminStatus.APPROVED) {
+            targetAdmin.AdminStatusApprove();
+        } else if (updateAdminStatusRequestDto.adminStatus() == AdminStatus.REJECTED) {
+            targetAdmin.AdminStatusReject();
+        } else {
+            throw new AdminException(ErrorCode.INVALID_ADMIN_STATUS);
+        }
 
         /* saveAndFlush -> Spring Data JPA가 제공하는 메서드,
          그냥 save만 하게되면, 변경 사항을 1차 캐시에만 저장해놓고, 실제 DB에는 반영이 안됨,

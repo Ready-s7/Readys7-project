@@ -68,7 +68,7 @@ public class Client extends BaseEntity {
     // 클라이언트 프로필 수정
     public void updateProfile(String title, ParticipateType participateType) {
         // null이 아니라면 값 변경,
-        if(title != null && title.isBlank()) this.title = title;
+        if(title != null && !title.isBlank()) this.title = title;
 
         if(participateType != null) this.participateType = participateType;
     }
