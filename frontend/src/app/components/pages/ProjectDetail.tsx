@@ -71,10 +71,10 @@ const PROPOSAL_STATUS_LABELS: Record<
   string,
   { label: string; color: string }
 > = {
-  pending: { label: "검토 중", color: "bg-yellow-100 text-yellow-700" },
-  accepted: { label: "수락됨", color: "bg-green-100 text-green-700" },
-  rejected: { label: "거절됨", color: "bg-red-100 text-red-700" },
-  withdrawn: { label: "철회됨", color: "bg-gray-100 text-gray-600" },
+  PENDING: { label: "검토 중", color: "bg-yellow-100 text-yellow-700" },
+  ACCEPTED: { label: "수락됨", color: "bg-green-100 text-green-700" },
+  REJECTED: { label: "거절됨", color: "bg-red-100 text-red-700" },
+  WITHDRAWN: { label: "철회됨", color: "bg-gray-100 text-gray-600" },
 };
 
 // 현재 상태에서 전환 가능한 상태
@@ -330,7 +330,7 @@ export function ProjectDetail() {
                   <div>
                     <h3 className="text-lg mb-3">필요 기술</h3>
                     <div className="flex flex-wrap gap-2">
-                      {project.skills.map((skill) => (
+                      {(project.skills || []).map((skill) => (
                         <Badge
                           key={skill}
                           variant="outline"
@@ -377,7 +377,7 @@ export function ProjectDetail() {
                     <div className="flex justify-center py-6">
                       <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
                     </div>
-                  ) : proposals.length === 0 ? (
+                  ) : !proposals || proposals.length === 0 ? (
                     <p className="text-gray-500 text-sm text-center py-4">
                       아직 제안서가 없습니다.
                     </p>
@@ -424,7 +424,7 @@ export function ProjectDetail() {
 
                             <div className="flex gap-2 flex-wrap">
                               {/* 수락/거절 버튼 (PENDING 상태일 때만) */}
-                              {proposal.status === "pending" && (
+                              {proposal.status === "PENDING" && (
                                 <>
                                   <Button
                                     size="sm"
@@ -455,7 +455,7 @@ export function ProjectDetail() {
                               )}
 
                               {/* ★ 채팅방 생성/이동 버튼 (ACCEPTED 상태일 때만) */}
-                              {proposal.status === "accepted" && (
+                              {proposal.status === "ACCEPTED" && (
                                 <>
                                   {existingRoomId ? (
                                     <Link to="/chat">

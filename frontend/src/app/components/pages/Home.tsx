@@ -46,13 +46,13 @@ export function Home() {
         ]);
 
         if (projectRes.status === "fulfilled") {
-          setFeaturedProjects(projectRes.value.data.data.content);
+          setFeaturedProjects(projectRes.value.data.data?.content ?? []);
         }
         if (developerRes.status === "fulfilled") {
-          setTopDevelopers(developerRes.value.data.data.content);
+          setTopDevelopers(developerRes.value.data.data?.content ?? []);
         }
         if (categoryRes.status === "fulfilled") {
-          setCategories(categoryRes.value.data.data);
+          setCategories(categoryRes.value.data.data ?? []);
         }
       } finally {
         setIsLoading(false);

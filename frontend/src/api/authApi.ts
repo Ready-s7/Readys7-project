@@ -1,3 +1,10 @@
+/**
+ * authApi.ts (수정판)
+ *
+ * 주요 수정 사항:
+ * 1. login() 후 getMe()에서 name도 저장 (헤더에서 이름 표시 가능)
+ * 2. GetUserInfoResponse 타입 업데이트 반영
+ */
 import { apiClient } from "./client";
 import type {
   SuccessResponse,
@@ -12,33 +19,22 @@ import type {
 export const authApi = {
   /** 클라이언트 회원가입 */
   registerClient: (data: ClientRegisterRequest) =>
-    apiClient.post<SuccessResponse<UserDto>>("/v1/auth/register/clients", data),
+      apiClient.post<SuccessResponse<UserDto>>("/v1/auth/register/clients", data),
 
   /** 개발자 회원가입 */
   registerDeveloper: (data: DeveloperRegisterRequest) =>
-    apiClient.post<SuccessResponse<UserDto>>("/v1/auth/register/developers", data),
+      apiClient.post<SuccessResponse<UserDto>>("/v1/auth/register/developers", data),
 
-  /**
-   * 로그인
-   * - 응답 헤더 Authorization에서 accessToken 추출
-   * - 응답 바디의 refreshToken은 localStorage에 저장
-   *
-   * [수정 이유]
-   * 기존 코드: response.headers["authorization"]로만 시도 → 백엔드가 소문자로 보내면 undefined
-   * 수정: 대소문자 무관하게 탐색 + body fallback 로직 추가
-   */
+  /** 로그인 */
   login: async (data: LoginRequest) => {
     const response = await apiClient.post<SuccessResponse<LoginResponse>>(
-      "/v1/auth/login",
-      data
+        "/v1/auth/login",
+        data
     );
 
-    console.log("headers:", response.headers);
-
-    // 헤더에서 accessToken 추출 (대소문자 무관)
     const authHeader =
-      (response.headers["authorization"] as string | undefined) ||
-      (response.headers["Authorization"] as string | undefined);
+        (response.headers["authorization"] as string | undefined) ||
+        (response.headers["Authorization"] as string | undefined);
     const accessToken = authHeader?.replace("Bearer ", "").trim() ?? null;
 
     if (accessToken) {
@@ -65,10 +61,12 @@ export const authApi = {
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("userEmail");
       localStorage.removeItem("userRole");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("userName");
     }
   },
 
-  /** 내 정보 조회 */
+  /** 내 정보 조회 - name, phoneNumber 포함 */
   getMe: () =>
-    apiClient.get<SuccessResponse<GetUserInfoResponse>>("/v1/users/me"),
+      apiClient.get<SuccessResponse<GetUserInfoResponse>>("/v1/users/me"),
 };

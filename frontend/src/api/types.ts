@@ -1,6 +1,10 @@
 /**
- * 백엔드 공통 응답 타입
- * 백엔드 ApiResponseDto<T> 구조와 1:1 매핑
+ * types.ts (수정판)
+ *
+ * 주요 수정 사항:
+ * 1. GetUserInfoResponse에 name, phoneNumber 필드 추가 (백엔드 GetUserInformationResponseDto 반영)
+ * 2. ProposalDto.status 타입을 소문자/대문자 모두 허용 (백엔드가 toUpperCase()로 반환하지만 안전하게)
+ * 3. AdminDashboard용 타입 추가
  */
 
 // ─────────────────────────────────────────────────────────────
@@ -56,9 +60,12 @@ export interface UserDto {
   createdAt: string;
 }
 
+// ★ 수정: 백엔드 GetUserInformationResponseDto 필드 완전 반영
 export interface GetUserInfoResponse {
   id: number;
   email: string;
+  name: string;           // ★ 추가
+  phoneNumber: string;    // ★ 추가
   userRole: "CLIENT" | "DEVELOPER" | "ADMIN";
   description: string | null;
   createdAt: string;
@@ -102,6 +109,7 @@ export interface CategoryDto {
 // ─────────────────────────────────────────────────────────────
 export interface DeveloperDto {
   id: number;
+  userId: number;       // ★ 중요: 클라이언트 프로필 매칭에 사용
   name: string;
   title: string;
   rating: number;
@@ -119,10 +127,11 @@ export interface DeveloperDto {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 클라이언트 관련 타입 (기존 누락 → 추가)
+// 클라이언트 관련 타입
 // ─────────────────────────────────────────────────────────────
 export interface ClientDto {
   id: number;
+  userId: number;       // ★ 중요: 본인 프로필 매칭에 사용
   name: string;
   title: string;
   completedProject: number;
@@ -134,6 +143,7 @@ export interface ClientDto {
 
 // ─────────────────────────────────────────────────────────────
 // 제안서 관련 타입
+// ★ 수정: status를 소문자 형태로 (백엔드가 toUpperCase()로 반환하지만 실제론 소문자로 오는 경우 있음)
 // ─────────────────────────────────────────────────────────────
 export interface ProposalDto {
   id: number;
@@ -144,7 +154,8 @@ export interface ProposalDto {
   coverLetter: string;
   proposedBudget: string;
   proposedDuration: string;
-  status: "pending" | "accepted" | "rejected" | "withdrawn";
+  // 백엔드가 toUpperCase()로 반환하지만 안전하게 대소문자 모두 허용
+  status: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -170,6 +181,7 @@ export interface ReviewDto {
   rating: number;
   comment: string;
   createdAt: string;
+  writerRole?: string;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -218,7 +230,7 @@ export interface SkillDto {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 포트폴리오 타입 (기존 누락 → 추가)
+// 포트폴리오 타입
 // ─────────────────────────────────────────────────────────────
 export interface PortfolioDto {
   id: number;
@@ -233,10 +245,11 @@ export interface PortfolioDto {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 관리자 타입 (기존 누락 → 추가)
+// 관리자 타입
 // ─────────────────────────────────────────────────────────────
 export interface AdminDto {
   id: number;
+  adminId?: number;
   email: string;
   name: string;
   adminRole: "SUPER_ADMIN" | "CS_ADMIN" | "OPER_ADMIN";
@@ -253,7 +266,7 @@ export interface AdminListResponse {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 로그인 요청 타입
+// 인증 요청 타입
 // ─────────────────────────────────────────────────────────────
 export interface LoginRequest {
   email: string;

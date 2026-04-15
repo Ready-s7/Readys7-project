@@ -1,15 +1,18 @@
-import { Outlet } from "react-router";
+import { Outlet, useLocation } from "react-router";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
 
 export function Root() {
+  const location = useLocation();
+  const isChatPage = location.pathname === "/chat";
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
         <Outlet />
       </main>
-      <Footer />
+      {!isChatPage && <Footer />}
     </div>
   );
 }

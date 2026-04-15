@@ -2,6 +2,7 @@ package com.example.readys7project.config;
 
 import com.example.readys7project.domain.chat.message.dto.response.MessageResponseDto;
 import com.example.readys7project.domain.chat.message.subscriber.RedisMessageSubscriber;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
@@ -33,20 +34,24 @@ public class RedisConfig {
         return new LettuceConnectionFactory(redisHost, redisPort);
     }
 
-    @Bean
-    public ObjectMapper redisObjectMapper() {
+    public ObjectMapper createRedisObjectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         // 타입 정보를 포함하여 역직렬화 시 정확한 타입으로 변환되도록 설정
-        objectMapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance, ObjectMapper.DefaultTyping.NON_FINAL);
+        objectMapper.activateDefaultTyping(
+                LaissezFaireSubTypeValidator.instance,
+                ObjectMapper.DefaultTyping.NON_FINAL,
+                JsonTypeInfo.As.PROPERTY);
+
+//        objectMapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance, ObjectMapper.DefaultTyping.NON_FINAL);
         return objectMapper;
     }
 
     // LocalDateTime 처리가 가능한 공통 직렬화 도구
     @Bean
-    public GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer(ObjectMapper redisObjectMapper) {
-        return new GenericJackson2JsonRedisSerializer(redisObjectMapper);
+    public GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer(ObjectMapper createRedisObjectMapper) {
+        return new GenericJackson2JsonRedisSerializer(createRedisObjectMapper);
     }
 
     @Bean
