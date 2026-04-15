@@ -20,10 +20,10 @@ public record ProjectRequestDto(
     Long categoryId,
 
     @NotNull(message = "최저 예산은 필수입니다.")
-    Integer minBudget,
+    Long minBudget,
 
     @NotNull(message = "최대 예산은 필수입니다.")
-    Integer maxBudget,
+    Long maxBudget,
 
     @NotNull(message = "기간은 필수입니다.")
     Integer duration,

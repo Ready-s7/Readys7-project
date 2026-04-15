@@ -150,9 +150,16 @@ public class ClientService {
                 .map(project -> ClientProjectsListResponseDto.builder()
                         .id(project.getId())
                         .title(project.getTitle())
-                        .projectStatus(project.getStatus())
+                        .description(project.getDescription())
+                        .category(project.getCategory().getName())
+                        .minBudget(project.getMinBudget())
+                        .maxBudget(project.getMaxBudget())
+                        .duration(project.getDuration())
+                        .status(project.getStatus())
                         .currentProposalCount(project.getCurrentProposalCount())
-                        .postedDate(project.getCreatedAt())
+                        .maxProposalCount(project.getMaxProposalCount())
+                        .skills(project.getSkills())
+                        .createdAt(project.getCreatedAt())
                         .build())
                 .toList();
 
@@ -215,6 +222,7 @@ public class ClientService {
     private ClientsResponseDto convertToDto(Client client) {
         return ClientsResponseDto.builder()
                 .id(client.getId())
+                .userId(client.getUser().getId()) // 추가
                 .name(client.getUser().getName())
                 .title(client.getTitle())
                 .completedProject(client.getCompletedProject())

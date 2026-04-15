@@ -166,6 +166,7 @@ public class MessageService {
     private MessageResponseDto convertToDto(Message message, MessageEventType eventType) {
         return MessageResponseDto.builder()
                 .id(message.getId())
+                .chatRoomId(message.getChatRoom().getId())
                 .senderId(message.getUser().getId())
                 .senderName(message.getUser().getName())
                 .content(message.getContent())

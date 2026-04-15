@@ -16,9 +16,9 @@ public record ProjectUpdateRequestDto(
 
         Long categoryId,
 
-        Integer minBudget,
+        Long minBudget,
 
-        Integer maxBudget,
+        Long maxBudget,
 
         Integer duration,
 

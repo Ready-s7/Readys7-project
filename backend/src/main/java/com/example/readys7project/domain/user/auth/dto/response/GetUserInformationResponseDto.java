@@ -12,6 +12,10 @@ public record GetUserInformationResponseDto (
 
         String email,
 
+        String name,
+
+        String phoneNumber,
+
         UserRole userRole,
 
         String description,

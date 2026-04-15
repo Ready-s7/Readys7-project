@@ -4,18 +4,20 @@ import com.example.readys7project.domain.project.enums.ProjectStatus;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Builder
 public record ClientProjectsListResponseDto(
-
         Long id,
-
         String title,
-
-        ProjectStatus projectStatus,
-
+        String description,
+        String category,
+        Long minBudget,
+        Long maxBudget,
+        Integer duration,
+        ProjectStatus status,
         Integer currentProposalCount,
-
-        LocalDateTime postedDate
-
+        Integer maxProposalCount,
+        List<String> skills,
+        LocalDateTime createdAt
 ) {}

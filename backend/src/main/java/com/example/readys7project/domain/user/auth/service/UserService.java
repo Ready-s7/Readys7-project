@@ -53,13 +53,15 @@ public class UserService {
                 .orElseThrow( () -> new UserException(ErrorCode.USER_NOT_FOUND));
 
         // Dto 반환
-        return new GetUserInformationResponseDto(
-                targetUser.getId(),
-                targetUser.getEmail(),
-                targetUser.getUserRole(),
-                targetUser.getDescription(),
-                targetUser.getCreatedAt()
-        );
+        return GetUserInformationResponseDto.builder()
+                .id(targetUser.getId())
+                .email(targetUser.getEmail())
+                .name(targetUser.getName())
+                .phoneNumber(targetUser.getPhoneNumber())
+                .userRole(targetUser.getUserRole())
+                .description(targetUser.getDescription())
+                .createdAt(targetUser.getCreatedAt())
+                .build();
     }
 
     // 유저 정보 수정 (내 정보 수정)

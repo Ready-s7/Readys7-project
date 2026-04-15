@@ -25,6 +25,7 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
 
     @Override
     public Page<Project> searchProjects(
+            String keyword,
             Category category,
             ProjectStatus status,
             List<String> skills,
@@ -34,6 +35,12 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
 
         // 동적 조건 빌더 - 각 조건이 null이면 자동으로 무시됨
         BooleanBuilder builder = new BooleanBuilder();
+
+        // 키워드 조건 (제목 or 설명)
+        if (keyword != null && !keyword.isBlank()) {
+            builder.and(qProject.title.containsIgnoreCase(keyword)
+                    .or(qProject.description.containsIgnoreCase(keyword)));
+        }
 
         // 카테고리 조건 (null이면 전체 조회)
         if (category != null) {
@@ -72,9 +79,12 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
             builder.and(skillBuilder);
         }
 
-        // 실제 데이터 조회 쿼리
+        // 실제 데이터 조회 쿼리 (fetchJoin 추가하여 N+1 방지)
         List<Project> content = jpaQueryFactory
                 .selectFrom(qProject)
+                .leftJoin(qProject.category).fetchJoin()
+                .leftJoin(qProject.client).fetchJoin()
+                .leftJoin(qProject.client.user).fetchJoin()
                 .where(builder)
                 .offset(pageable.getOffset())       // 페이지 시작점
                 .limit(pageable.getPageSize())      // 페이지 크기
