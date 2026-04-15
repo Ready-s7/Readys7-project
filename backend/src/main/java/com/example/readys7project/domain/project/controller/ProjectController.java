@@ -2,6 +2,7 @@ package com.example.readys7project.domain.project.controller;
 
 import com.example.readys7project.domain.project.dto.ProjectDto;
 import com.example.readys7project.domain.project.dto.request.ProjectRequestDto;
+import com.example.readys7project.domain.project.dto.request.ProjectStatusUpdateRequestDto;
 import com.example.readys7project.domain.project.dto.request.ProjectUpdateRequestDto;
 import com.example.readys7project.domain.project.service.ProjectService;
 import com.example.readys7project.global.dto.ApiResponseDto;
@@ -75,12 +76,12 @@ public class ProjectController {
     @PatchMapping("/v1/projects/{projectId}/status")
     public ResponseEntity<ApiResponseDto<ProjectDto>> changeProjectStatus(
             @PathVariable Long projectId,
-            @RequestParam String status,
+            @RequestBody ProjectStatusUpdateRequestDto request,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
         String email = customUserDetails.getEmail();
         return ResponseEntity.ok(ApiResponseDto
-                .success(HttpStatus.OK, projectService.changeProjectStatus(projectId, status, email)));
+                .success(HttpStatus.OK, projectService.changeProjectStatus(projectId, request.status(), email)));
     }
 
     // 프로젝트 삭제 (본인 Client만 가능)

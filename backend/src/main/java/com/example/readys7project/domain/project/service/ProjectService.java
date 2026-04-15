@@ -146,7 +146,10 @@ public class ProjectService {
         validateClientProject(project, client);
 
         // 5. 변경할 카테고리 존재 여부 검증
-        Category category = findCategory(request.categoryId());
+        // null 일 경우는 기존 카테고리 유지
+        Category category = request.categoryId() != null
+                ? findCategory(request.categoryId())
+                : project.getCategory();
 
         // 6. 프로젝트 정보 업데이트
         // Dirty Checking에 의해 트랜잭션 종료 시 자동으로 UPDATE 쿼리가 실행됨

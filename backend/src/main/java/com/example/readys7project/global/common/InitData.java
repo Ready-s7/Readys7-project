@@ -249,7 +249,63 @@ public class InitData implements ApplicationRunner {
                     .displayOrder(3)
                     .build());
 
-            log.info("[InitData] Category 3개 생성 완료");
+            categoryRepository.save(Category.builder()
+                    .admin(superAdmin)
+                    .name("모바일")
+                    .icon("📱")
+                    .description("iOS, Android, Flutter 등 모바일 앱 개발")
+                    .displayOrder(4)
+                    .build());
+
+            categoryRepository.save(Category.builder()
+                    .admin(superAdmin)
+                    .name("DevOps")
+                    .icon("⚙️")
+                    .description("CI/CD, Docker, Kubernetes, 클라우드 인프라")
+                    .displayOrder(5)
+                    .build());
+
+            categoryRepository.save(Category.builder()
+                    .admin(superAdmin)
+                    .name("데이터베이스")
+                    .icon("🗄️")
+                    .description("MySQL, PostgreSQL, MongoDB 등 DB 설계 및 최적화")
+                    .displayOrder(6)
+                    .build());
+
+            categoryRepository.save(Category.builder()
+                    .admin(superAdmin)
+                    .name("보안")
+                    .icon("🔒")
+                    .description("보안 취약점 분석, 침투 테스트, 보안 솔루션 개발")
+                    .displayOrder(7)
+                    .build());
+
+            categoryRepository.save(Category.builder()
+                    .admin(superAdmin)
+                    .name("UI/UX")
+                    .icon("✏️")
+                    .description("사용자 인터페이스 및 경험 설계")
+                    .displayOrder(8)
+                    .build());
+
+            categoryRepository.save(Category.builder()
+                    .admin(superAdmin)
+                    .name("블록체인")
+                    .icon("🔗")
+                    .description("스마트 컨트랙트, NFT, DeFi 개발")
+                    .displayOrder(9)
+                    .build());
+
+            categoryRepository.save(Category.builder()
+                    .admin(superAdmin)
+                    .name("게임")
+                    .icon("🎮")
+                    .description("Unity, Unreal 등 게임 클라이언트/서버 개발")
+                    .displayOrder(10)
+                    .build());
+
+            log.info("[InitData] Category 10개 생성 완료");
         }
     }
 
@@ -324,7 +380,7 @@ public class InitData implements ApplicationRunner {
                 .build());
         // maxProposalCount를 1로 설정하면
         // increaseProposalCount() 1번 호출만으로 CLOSED 됨
-        Project closedProject = Project.builder()
+        Project closedProject = projectRepository.save(Project.builder()
                 .client(client1)
                 .category(backendCategory)
                 .title("마감된 Java 백엔드 프로젝트")
@@ -334,11 +390,11 @@ public class InitData implements ApplicationRunner {
                 .maxBudget(1000)
                 .duration(30)
                 .maxProposalCount(1)   // ← 최대 1개
-                .build();
+                .build());
 
         closedProject.increaseProposalCount(); // ← 1번 호출 → 자동으로 CLOSED
 
-        log.info("[InitData] Project 3개 생성 완료");
+        log.info("[InitData] Project 4개 생성 완료");
     }
 
     // ─────────────────────────────────────────────
@@ -366,10 +422,12 @@ public class InitData implements ApplicationRunner {
                         .orElseThrow(() -> new IllegalStateException("[InitData] dev3이 존재하지 않습니다."))
         ).orElseThrow(() -> new IllegalStateException("[InitData] dev3 엔티티가 존재하지 않습니다."));
 
-        List<Project> projects = projectRepository.findAll();
-        Project project1 = projects.get(0); // 쇼핑몰 백엔드 API
-        Project project2 = projects.get(1); // 관리자 대시보드
-        Project project3 = projects.get(2); // AI 추천 시스템
+        Project project1 = projectRepository.findByTitle("쇼핑몰 백엔드 API 개발")
+                .orElseThrow();
+        Project project2 = projectRepository.findByTitle("관리자 대시보드 UI 개발")
+                .orElseThrow();
+        Project project3 = projectRepository.findByTitle("상품 추천 AI 모델 개발")
+                .orElseThrow();
 
         // Proposal 1 - PENDING (project1에 dev1이 지원, 검토 중)
         proposalRepository.save(Proposal.builder()
