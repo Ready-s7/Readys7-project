@@ -60,6 +60,7 @@ public class SecurityConfig {
                     .requestMatchers("/v1/developers/my-projects").authenticated()
                     .requestMatchers("/v1/developers/**").permitAll()
                     .requestMatchers("/ws/**").permitAll()
+                    .requestMatchers("/api/ws/**").permitAll()
                     .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
