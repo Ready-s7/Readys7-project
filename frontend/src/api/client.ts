@@ -1,12 +1,20 @@
 /**
  * API 클라이언트 설정
- * - axios 인스턴스 생성
- * - 요청 인터셉터: Authorization 헤더 자동 주입
- * - 응답 인터셉터: 401 발생 시 토큰 재발급 처리
+ *
+ * [수정 이유]
+ * 1. 백엔드 application.yml에 `cors.exposed-headers: Authorization` 이 설정돼 있으나,
+ *    브라우저는 기본적으로 커스텀 헤더를 JS에서 읽지 못함.
+ *    → axios 인스턴스에 `withCredentials: false`는 맞지만,
+ *      response headers 접근 시 대소문자 문제가 발생할 수 있음.
+ *    → 헤더 읽기 시 소문자 우선 + fallback 처리로 해결.
+ *
+ * 2. 401 인터셉터에서 재발급 실패 후 location.href 이동 전 localStorage clear()가
+ *    너무 광범위하게 동작할 수 있음 → 필요한 항목만 제거하도록 변경.
  */
 import axios, { AxiosError } from "axios";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
+const BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -43,26 +51,35 @@ apiClient.interceptors.response.use(
 
       const refreshToken = localStorage.getItem("refreshToken");
       if (!refreshToken) {
-        // 리프레시 토큰도 없으면 로그인 페이지로
-        localStorage.clear();
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("userEmail");
+        localStorage.removeItem("userRole");
         window.location.href = "/login";
         return Promise.reject(error);
       }
 
       try {
-        // 백엔드 reissue API 호출 (POST /api/v1/auth/reissue)
         const res = await axios.post(`${BASE_URL}/v1/auth/reissue`, {
           refreshToken,
         });
 
-        const newAccessToken = res.headers["authorization"]?.replace("Bearer ", "");
+        // 대소문자 무관하게 Authorization 헤더 읽기
+        const authHeader =
+          (res.headers["authorization"] as string | undefined) ||
+          (res.headers["Authorization"] as string | undefined);
+        const newAccessToken = authHeader?.replace("Bearer ", "").trim();
+
         if (newAccessToken) {
           localStorage.setItem("accessToken", newAccessToken);
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         }
         return apiClient(originalRequest);
       } catch {
-        localStorage.clear();
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("userEmail");
+        localStorage.removeItem("userRole");
         window.location.href = "/login";
         return Promise.reject(error);
       }

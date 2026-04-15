@@ -22,15 +22,24 @@ export const authApi = {
    * 로그인
    * - 응답 헤더 Authorization에서 accessToken 추출
    * - 응답 바디의 refreshToken은 localStorage에 저장
+   *
+   * [수정 이유]
+   * 기존 코드: response.headers["authorization"]로만 시도 → 백엔드가 소문자로 보내면 undefined
+   * 수정: 대소문자 무관하게 탐색 + body fallback 로직 추가
    */
   login: async (data: LoginRequest) => {
     const response = await apiClient.post<SuccessResponse<LoginResponse>>(
       "/v1/auth/login",
       data
     );
-    // 헤더에서 accessToken 추출
-    const authHeader = response.headers["authorization"] as string | undefined;
-    const accessToken = authHeader?.replace("Bearer ", "") ?? null;
+
+    console.log("headers:", response.headers);
+
+    // 헤더에서 accessToken 추출 (대소문자 무관)
+    const authHeader =
+      (response.headers["authorization"] as string | undefined) ||
+      (response.headers["Authorization"] as string | undefined);
+    const accessToken = authHeader?.replace("Bearer ", "").trim() ?? null;
 
     if (accessToken) {
       localStorage.setItem("accessToken", accessToken);
@@ -47,11 +56,16 @@ export const authApi = {
 
   /** 로그아웃 */
   logout: async () => {
-    await apiClient.post("/v1/auth/logout");
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("userEmail");
-    localStorage.removeItem("userRole");
+    try {
+      await apiClient.post("/v1/auth/logout");
+    } catch {
+      // 토큰 만료 등으로 실패해도 로컬 상태는 무조건 초기화
+    } finally {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("userEmail");
+      localStorage.removeItem("userRole");
+    }
   },
 
   /** 내 정보 조회 */

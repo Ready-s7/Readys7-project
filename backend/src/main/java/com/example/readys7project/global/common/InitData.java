@@ -3,6 +3,7 @@ package com.example.readys7project.global.common;
 import com.example.readys7project.domain.category.entity.Category;
 import com.example.readys7project.domain.category.repository.CategoryRepository;
 import com.example.readys7project.domain.project.entity.Project;
+import com.example.readys7project.domain.project.enums.ProjectStatus;
 import com.example.readys7project.domain.project.repository.ProjectRepository;
 import com.example.readys7project.domain.proposal.entity.Proposal;
 import com.example.readys7project.domain.proposal.enums.ProposalStatus;
@@ -398,6 +399,7 @@ public class InitData implements ApplicationRunner {
 
         // ACCEPTED 상태이므로 프로젝트의 제안서 수 증가 처리
         project2.increaseProposalCount();
+        project2.changeStatus(ProjectStatus.IN_PROGRESS);
         projectRepository.save(project2);
 
         // Proposal 3 - WITHDRAWN (project3에 dev3이 지원했다가 철회)
