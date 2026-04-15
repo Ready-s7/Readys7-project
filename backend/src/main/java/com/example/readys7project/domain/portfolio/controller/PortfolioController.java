@@ -34,9 +34,9 @@ public class PortfolioController {
     }
 
     // 개발자 포트폴리오 수정
-    @PatchMapping("/v1/portfolios")
+    @PatchMapping("/v1/portfolios/{portfolioId}")
     public ResponseEntity<ApiResponseDto<PortfolioDto>> updatePortfolio(
-            @RequestParam Long portfolioId,
+            @PathVariable Long portfolioId,
             @Valid @RequestBody PortfolioUpdateRequestDto request,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
@@ -47,19 +47,19 @@ public class PortfolioController {
     }
 
     // 개발자 포트폴리오 삭제
-    @DeleteMapping("/v1/portfolios")
+    @DeleteMapping("/v1/portfolios/{portfolioId}")
     public ResponseEntity<ApiResponseDto<Void>> deletePortfolio(
-            @RequestParam Long developerId,
+            @PathVariable Long portfolioId,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
         String email = customUserDetails.getEmail();
-        portfolioService.deletePortfolio(developerId, email);
+        portfolioService.deletePortfolio(portfolioId, email);
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .body(ApiResponseDto.successWithNoContent());
     }
 
 
-    // 개발자 포트폴리오 조회
+    // 특정 개발자 포트폴리오 조회.
     @GetMapping("/v1/portfolios")
     public ResponseEntity<ApiResponseDto<Page<PortfolioDto>>> getPortfolio(
             @RequestParam Long developerId,
@@ -69,6 +69,18 @@ public class PortfolioController {
     ) {
         return ResponseEntity.ok(
                 ApiResponseDto.success(HttpStatus.OK, portfolioService.getPortfolio(developerId,skill, page, size))
+        );
+    }
+
+    // 로그인한 사용자는 포트폴리오 조회 가능.
+    @GetMapping("/v1/portfolios/search")
+    public ResponseEntity<ApiResponseDto<Page<PortfolioDto>>> searchPortfolios(
+            @RequestParam(required = false) String skill,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
+        return ResponseEntity.ok(
+                ApiResponseDto.success(HttpStatus.OK, portfolioService.searchPortfolios(skill, page, size))
         );
     }
 

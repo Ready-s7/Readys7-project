@@ -52,12 +52,13 @@ public class ProjectController {
     // 프로젝트 검색
     @GetMapping("/v1/projects/search")
     public ResponseEntity<ApiResponseDto<Page<ProjectDto>>> searchProjects(
+            @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) List<String> skill,
             Pageable pageable) {
         return ResponseEntity.ok(ApiResponseDto
-                .success(HttpStatus.OK, projectService.searchProjects(categoryId, status, skill, pageable)));
+                .success(HttpStatus.OK, projectService.searchProjects(keyword, categoryId, status, skill, pageable)));
     }
 
     // 프로젝트 수정 (본인 Client만 가능)

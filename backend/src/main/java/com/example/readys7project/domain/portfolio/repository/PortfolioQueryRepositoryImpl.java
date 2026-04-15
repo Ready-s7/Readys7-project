@@ -100,5 +100,38 @@ public class PortfolioQueryRepositoryImpl implements PortfolioQueryRepository  {
     }
 
 
+    // 특정 개발자가 아닌. 전체 포트폴리오 조회가 가능하다.
+    @Override
+    public Page<Portfolio> searchAllPortfolios(String skill, Pageable pageable) {
+
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (skill != null && !skill.isBlank()) {
+            builder.and(
+                    Expressions.booleanTemplate(
+                            "function('json_contains', {0}, function('json_quote', {1})) = 1",
+                            portfolio.skills,
+                            skill
+                    )
+            );
+        }
+
+        List<Portfolio> content = queryFactory
+                .selectFrom(portfolio)
+                .where(builder)
+                .orderBy(portfolio.createdAt.desc(), portfolio.id.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long total = queryFactory
+                .select(portfolio.count())
+                .from(portfolio)
+                .where(builder)
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total == null ? 0 : total);
+    }
+
 
 }

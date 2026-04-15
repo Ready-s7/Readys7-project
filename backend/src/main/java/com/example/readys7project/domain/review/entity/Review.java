@@ -1,6 +1,8 @@
 package com.example.readys7project.domain.review.entity;
 
 import com.example.readys7project.domain.review.dto.request.ReviewUpdateRequestDto;
+import com.example.readys7project.domain.review.enums.ReviewRole;
+import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.domain.user.client.entity.Client;
 import com.example.readys7project.domain.user.developer.entity.Developer;
 import com.example.readys7project.domain.project.entity.Project;
@@ -38,6 +40,11 @@ public class Review extends BaseEntity {
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "writer_role", nullable = false)
+    private ReviewRole writerRole;
+
+
     // 리뷰 평점
     @Column(name = "rating", nullable = false)
     private Integer rating; // 1-5
@@ -50,10 +57,11 @@ public class Review extends BaseEntity {
     private boolean isDeleted = false;
 
     @Builder
-    public Review(Developer developer,Client client ,Project project, Integer rating, String comment) {
+    public Review(Developer developer, Client client, Project project, ReviewRole writerRole, Integer rating, String comment) {
         this.developer = developer;
-        this.client=client;
+        this.client = client;
         this.project = project;
+        this.writerRole = writerRole;
         this.rating = rating;
         this.comment = comment;
     }
