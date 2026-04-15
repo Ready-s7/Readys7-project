@@ -324,7 +324,7 @@ public class InitData implements ApplicationRunner {
                 .build());
         // maxProposalCount를 1로 설정하면
         // increaseProposalCount() 1번 호출만으로 CLOSED 됨
-        Project closedProject = Project.builder()
+        Project closedProject = projectRepository.save(Project.builder()
                 .client(client1)
                 .category(backendCategory)
                 .title("마감된 Java 백엔드 프로젝트")
@@ -334,11 +334,11 @@ public class InitData implements ApplicationRunner {
                 .maxBudget(1000)
                 .duration(30)
                 .maxProposalCount(1)   // ← 최대 1개
-                .build();
+                .build());
 
         closedProject.increaseProposalCount(); // ← 1번 호출 → 자동으로 CLOSED
 
-        log.info("[InitData] Project 3개 생성 완료");
+        log.info("[InitData] Project 4개 생성 완료");
     }
 
     // ─────────────────────────────────────────────
@@ -366,10 +366,12 @@ public class InitData implements ApplicationRunner {
                         .orElseThrow(() -> new IllegalStateException("[InitData] dev3이 존재하지 않습니다."))
         ).orElseThrow(() -> new IllegalStateException("[InitData] dev3 엔티티가 존재하지 않습니다."));
 
-        List<Project> projects = projectRepository.findAll();
-        Project project1 = projects.get(0); // 쇼핑몰 백엔드 API
-        Project project2 = projects.get(1); // 관리자 대시보드
-        Project project3 = projects.get(2); // AI 추천 시스템
+        Project project1 = projectRepository.findByTitle("쇼핑몰 백엔드 API 개발")
+                .orElseThrow();
+        Project project2 = projectRepository.findByTitle("관리자 대시보드 UI 개발")
+                .orElseThrow();
+        Project project3 = projectRepository.findByTitle("상품 추천 AI 모델 개발")
+                .orElseThrow();
 
         // Proposal 1 - PENDING (project1에 dev1이 지원, 검토 중)
         proposalRepository.save(Proposal.builder()
