@@ -8,6 +8,8 @@ import com.example.readys7project.domain.project.repository.ProjectRepository;
 import com.example.readys7project.domain.proposal.entity.Proposal;
 import com.example.readys7project.domain.proposal.enums.ProposalStatus;
 import com.example.readys7project.domain.proposal.repository.ProposalRepository;
+import com.example.readys7project.domain.review.entity.Review;
+import com.example.readys7project.domain.review.repository.ReviewRepository;
 import com.example.readys7project.domain.user.admin.entity.Admin;
 import com.example.readys7project.domain.user.admin.repository.AdminRepository;
 import com.example.readys7project.domain.user.auth.entity.User;
@@ -27,6 +29,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -40,6 +43,7 @@ public class InitData implements ApplicationRunner {
     private final CategoryRepository categoryRepository;
     private final ProjectRepository projectRepository;
     private final ProposalRepository proposalRepository;
+    private final ReviewRepository reviewRepository;
     private final PasswordEncoder passwordEncoder;
 
     private static final String DEFAULT_PASSWORD = "12345678";
@@ -53,6 +57,7 @@ public class InitData implements ApplicationRunner {
         initCategories();
         initProjects();
         initProposals();
+        initReviews();
     }
 
     // ─────────────────────────────────────────────
@@ -94,7 +99,7 @@ public class InitData implements ApplicationRunner {
             clientRepository.save(Client.builder()
                     .user(user)
                     .title("스타트업 CTO")
-                    .rating(4.5)
+                    .rating(4.7)
                     .reviewCount(3)
                     .completedProject(3)
                     .participateType(ParticipateType.COMPANY)
@@ -117,8 +122,8 @@ public class InitData implements ApplicationRunner {
             clientRepository.save(Client.builder()
                     .user(user)
                     .title("개인 사업자")
-                    .rating(4.0)
-                    .reviewCount(1)
+                    .rating(4.3)
+                    .reviewCount(3)
                     .completedProject(1)
                     .participateType(ParticipateType.INDIVIDUAL)
                     .build());
@@ -145,8 +150,8 @@ public class InitData implements ApplicationRunner {
             developerRepository.save(Developer.builder()
                     .user(user)
                     .title("시니어 백엔드 개발자")
-                    .rating(4.8)
-                    .reviewCount(10)
+                    .rating(4.5)
+                    .reviewCount(2)
                     .completedProjects(8)
                     .minHourlyPay(50000)
                     .maxHourlyPay(80000)
@@ -173,8 +178,8 @@ public class InitData implements ApplicationRunner {
             developerRepository.save(Developer.builder()
                     .user(user)
                     .title("풀스택 개발자")
-                    .rating(4.3)
-                    .reviewCount(5)
+                    .rating(4.5)
+                    .reviewCount(2)
                     .completedProjects(4)
                     .minHourlyPay(35000)
                     .maxHourlyPay(60000)
@@ -201,8 +206,8 @@ public class InitData implements ApplicationRunner {
             developerRepository.save(Developer.builder()
                     .user(user)
                     .title("AI/ML 개발자")
-                    .rating(4.6)
-                    .reviewCount(7)
+                    .rating(4.5)
+                    .reviewCount(2)
                     .completedProjects(6)
                     .minHourlyPay(60000)
                     .maxHourlyPay(100000)
@@ -378,23 +383,99 @@ public class InitData implements ApplicationRunner {
                 .duration(90)
                 .maxProposalCount(3)
                 .build());
+
+        /**
+         *  리뷰용 완료프로젝트 목록
+         */
+        Project reviewProject1 = Project.builder()
+                .client(client1)
+                .category(backendCategory)
+                .title("백엔드 API 유지보수 및 개선")
+                .description("기존 Spring Boot 기반 API 서버의 성능 개선과 유지보수를 진행하는 프로젝트입니다. "
+                        + "인증, 주문, 결제 모듈 안정화 작업이 포함됩니다.")
+                .skills(List.of("Java", "Spring Boot", "JPA"))
+                .minBudget(500000)
+                .maxBudget(1000000)
+                .duration(30)
+                .maxProposalCount(1)
+                .build();
+        reviewProject1.changeStatus(ProjectStatus.COMPLETED);
+        projectRepository.save(reviewProject1);
+
+        Project reviewProject2 = Project.builder()
+                .client(client1)
+                .category(frontendCategory)
+                .title("관리자 페이지 UI 개선")
+                .description("React + TypeScript 기반 관리자 페이지의 화면 구조 개선과 공통 컴포넌트 정리를 진행하는 프로젝트입니다.")
+                .skills(List.of("React", "TypeScript", "Tailwind CSS"))
+                .minBudget(500000)
+                .maxBudget(1000000)
+                .duration(30)
+                .maxProposalCount(1)
+                .build();
+        reviewProject2.changeStatus(ProjectStatus.COMPLETED);
+        projectRepository.save(reviewProject2);
+
+        Project reviewProject3 = Project.builder()
         // maxProposalCount를 1로 설정하면
         // increaseProposalCount() 1번 호출만으로 CLOSED 됨
         Project closedProject = projectRepository.save(Project.builder()
                 .client(client1)
-                .category(backendCategory)
-                .title("마감된 Java 백엔드 프로젝트")
-                .description("Spring Boot 기반 API 서버 개발")
-                .skills(List.of("Java", "Spring"))
-                .minBudget(500)
-                .maxBudget(1000)
+                .category(aiCategory)
+                .title("추천 모델 성능 개선")
+                .description("기존 추천 시스템의 정확도 개선을 위해 모델 튜닝과 간단한 API 연동을 진행하는 프로젝트입니다.")
+                .skills(List.of("Python", "TensorFlow", "FastAPI"))
+                .minBudget(500000)
+                .maxBudget(1000000)
                 .duration(30)
-                .maxProposalCount(1)   // ← 최대 1개
-                .build());
+                .maxProposalCount(1)
+                .build();
+        reviewProject3.changeStatus(ProjectStatus.COMPLETED);
+        projectRepository.save(reviewProject3);
 
-        closedProject.increaseProposalCount(); // ← 1번 호출 → 자동으로 CLOSED
+        Project reviewProject4 = Project.builder()
+                .client(client2)
+                .category(backendCategory)
+                .title("주문 관리 서버 기능 추가")
+                .description("주문 상태 변경, 결제 이력 조회 등 백엔드 기능을 추가하는 프로젝트입니다.")
+                .skills(List.of("Java", "Spring Boot", "MySQL"))
+                .minBudget(500000)
+                .maxBudget(1000000)
+                .duration(30)
+                .maxProposalCount(1)
+                .build();
+        reviewProject4.changeStatus(ProjectStatus.COMPLETED);
+        projectRepository.save(reviewProject4);
 
-        log.info("[InitData] Project 4개 생성 완료");
+        Project reviewProject5 = Project.builder()
+                .client(client2)
+                .category(frontendCategory)
+                .title("대시보드 프론트엔드 고도화")
+                .description("기존 대시보드의 차트와 테이블 UI를 개선하고 반응형 화면을 보강하는 프로젝트입니다.")
+                .skills(List.of("React", "TypeScript", "Chart.js"))
+                .minBudget(500000)
+                .maxBudget(1000000)
+                .duration(30)
+                .maxProposalCount(1)
+                .build();
+        reviewProject5.changeStatus(ProjectStatus.COMPLETED);
+        projectRepository.save(reviewProject5);
+
+        Project reviewProject6 = Project.builder()
+                .client(client2)
+                .category(aiCategory)
+                .title("AI 분석 기능 시범 적용")
+                .description("사용자 행동 데이터를 기반으로 간단한 분석 기능과 예측 모델을 시범 적용하는 프로젝트입니다.")
+                .skills(List.of("Python", "TensorFlow", "Docker"))
+                .minBudget(500000)
+                .maxBudget(1000000)
+                .duration(30)
+                .maxProposalCount(1)
+                .build();
+        reviewProject6.changeStatus(ProjectStatus.COMPLETED);
+        projectRepository.save(reviewProject6);
+
+        log.info("[InitData] Project 9개 생성 완료");
     }
 
     // ─────────────────────────────────────────────
@@ -422,12 +503,18 @@ public class InitData implements ApplicationRunner {
                         .orElseThrow(() -> new IllegalStateException("[InitData] dev3이 존재하지 않습니다."))
         ).orElseThrow(() -> new IllegalStateException("[InitData] dev3 엔티티가 존재하지 않습니다."));
 
-        Project project1 = projectRepository.findByTitle("쇼핑몰 백엔드 API 개발")
-                .orElseThrow();
-        Project project2 = projectRepository.findByTitle("관리자 대시보드 UI 개발")
-                .orElseThrow();
-        Project project3 = projectRepository.findByTitle("상품 추천 AI 모델 개발")
-                .orElseThrow();
+
+        List<Project> projects = projectRepository.findAll();
+        Project project1 = projects.get(0); // 쇼핑몰 백엔드 API
+        Project project2 = projects.get(1); // 관리자 대시보드
+        Project project3 = projects.get(2); // AI 추천 시스템
+        Project project4 = projects.get(3);// 완료된 제안서
+        Project project5 = projects.get(4);
+        Project project6 = projects.get(5);
+        Project project7 = projects.get(6);
+        Project project8 = projects.get(7);
+        Project project9 = projects.get(8);
+
 
         // Proposal 1 - PENDING (project1에 dev1이 지원, 검토 중)
         proposalRepository.save(Proposal.builder()
@@ -472,8 +559,193 @@ public class InitData implements ApplicationRunner {
                 .status(ProposalStatus.WITHDRAWN)
                 .build());
 
+
+        /**
+         *  완료 리뷰용 제안서.
+         */
+        proposalRepository.save(Proposal.builder()
+                .project(project4)
+                .developer(dev1)
+                .coverLetter("안녕하세요. 5년차 백엔드 개발자 박백엔드입니다. "
+                        + "Spring Boot와 JPA 기반 API 서버 개발 경험이 풍부하며, "
+                        + "client1과의 리뷰 테스트 프로젝트를 안정적으로 완료할 수 있습니다.")
+                .proposedBudget("900000")
+                .proposedDuration("25")
+                .status(ProposalStatus.ACCEPTED)
+                .build());
+        project4.increaseProposalCount();
+        project4.changeStatus(ProjectStatus.COMPLETED);
+        projectRepository.save(project4);
+
+        proposalRepository.save(Proposal.builder()
+                .project(project5)
+                .developer(dev2)
+                .coverLetter("안녕하세요. 풀스택 개발자 최풀스택입니다. "
+                        + "React와 TypeScript 기반 화면 개발 경험이 풍부하며, "
+                        + "client1과의 리뷰 테스트 프로젝트를 원활하게 수행할 수 있습니다.")
+                .proposedBudget("900000")
+                .proposedDuration("25")
+                .status(ProposalStatus.ACCEPTED)
+                .build());
+        project5.increaseProposalCount();
+        project5.changeStatus(ProjectStatus.COMPLETED);
+        projectRepository.save(project5);
+
+        proposalRepository.save(Proposal.builder()
+                .project(project6)
+                .developer(dev3)
+                .coverLetter("안녕하세요. AI/ML 개발자 정에이아이입니다. "
+                        + "Python과 TensorFlow 기반 모델 개발 경험이 있으며, "
+                        + "client1과의 리뷰 테스트 프로젝트도 책임감 있게 완료하겠습니다.")
+                .proposedBudget("900000")
+                .proposedDuration("25")
+                .status(ProposalStatus.ACCEPTED)
+                .build());
+        project6.increaseProposalCount();
+        project6.changeStatus(ProjectStatus.COMPLETED);
+        projectRepository.save(project6);
+
+        proposalRepository.save(Proposal.builder()
+                .project(project7)
+                .developer(dev1)
+                .coverLetter("안녕하세요. 백엔드 개발자 박백엔드입니다. "
+                        + "REST API 설계와 서버 개발 경험을 바탕으로 "
+                        + "client2와의 리뷰 테스트 프로젝트를 안정적으로 진행하겠습니다.")
+                .proposedBudget("900000")
+                .proposedDuration("25")
+                .status(ProposalStatus.ACCEPTED)
+                .build());
+        project7.increaseProposalCount();
+        project7.changeStatus(ProjectStatus.COMPLETED);
+        projectRepository.save(project7);
+
+        proposalRepository.save(Proposal.builder()
+                .project(project8)
+                .developer(dev2)
+                .coverLetter("안녕하세요. 풀스택 개발자 최풀스택입니다. "
+                        + "프론트엔드와 백엔드를 모두 아우르는 경험을 바탕으로 "
+                        + "client2와의 리뷰 테스트 프로젝트를 성실히 수행하겠습니다.")
+                .proposedBudget("900000")
+                .proposedDuration("25")
+                .status(ProposalStatus.ACCEPTED)
+                .build());
+        project8.increaseProposalCount();
+        project8.changeStatus(ProjectStatus.COMPLETED);
+        projectRepository.save(project8);
+
+        proposalRepository.save(Proposal.builder()
+                .project(project9)
+                .developer(dev3)
+                .coverLetter("안녕하세요. AI/ML 개발자 정에이아이입니다. "
+                        + "데이터 기반 문제 해결 경험을 바탕으로 "
+                        + "client2와의 리뷰 테스트 프로젝트를 만족스럽게 마무리하겠습니다.")
+                .proposedBudget("900000")
+                .proposedDuration("25")
+                .status(ProposalStatus.ACCEPTED)
+                .build());
+        project9.increaseProposalCount();
+        project9.changeStatus(ProjectStatus.COMPLETED);
+        projectRepository.save(project9);
+
+
+
+
+
         log.info("[InitData] Proposal 3개 생성 완료 (PENDING / ACCEPTED / WITHDRAWN)");
+        log.info("[InitData] Proposal 완료 상태 6개 생성 완료");
         log.info("[InitData] ===== 전체 이닛데이터 생성 완료 =====");
         log.info("[InitData] 채팅방 생성 테스트: client1@test.com 로그인 → project2(관리자 대시보드)에서 dev2와 채팅방 생성 가능");
+    }
+
+    /**
+     * 리뷰 더미 데이터
+     * 리뷰 갯수는 6개가 자동으로 생성 되도록 설정.
+     */
+    private void initReviews() {
+        if (reviewRepository.count() > 0) {
+            return;
+        }
+
+        Client client1 = clientRepository.findByUser(
+                userRepository.findByEmail("client1@test.com")
+                        .orElseThrow(() -> new IllegalStateException("[InitData] client1이 존재하지 않습니다."))
+        ).orElseThrow(() -> new IllegalStateException("[InitData] client1 엔티티가 존재하지 않습니다."));
+
+        Client client2 = clientRepository.findByUser(
+                userRepository.findByEmail("client2@test.com")
+                        .orElseThrow(() -> new IllegalStateException("[InitData] client2가 존재하지 않습니다."))
+        ).orElseThrow(() -> new IllegalStateException("[InitData] client2 엔티티가 존재하지 않습니다."));
+
+        Developer dev1 = developerRepository.findByUser(
+                userRepository.findByEmail("dev1@test.com")
+                        .orElseThrow(() -> new IllegalStateException("[InitData] dev1이 존재하지 않습니다."))
+        ).orElseThrow(() -> new IllegalStateException("[InitData] dev1 엔티티가 존재하지 않습니다."));
+
+        Developer dev2 = developerRepository.findByUser(
+                userRepository.findByEmail("dev2@test.com")
+                        .orElseThrow(() -> new IllegalStateException("[InitData] dev2가 존재하지 않습니다."))
+        ).orElseThrow(() -> new IllegalStateException("[InitData] dev2 엔티티가 존재하지 않습니다."));
+
+        Developer dev3 = developerRepository.findByUser(
+                userRepository.findByEmail("dev3@test.com")
+                        .orElseThrow(() -> new IllegalStateException("[InitData] dev3이 존재하지 않습니다."))
+        ).orElseThrow(() -> new IllegalStateException("[InitData] dev3 엔티티가 존재하지 않습니다."));
+
+        List<Project> projects = projectRepository.findAll();
+        Project project4 = projects.get(3);
+        Project project5 = projects.get(4);
+        Project project6 = projects.get(5);
+        Project project7 = projects.get(6);
+        Project project8 = projects.get(7);
+        Project project9 = projects.get(8);
+
+        reviewRepository.save(Review.builder()
+                .client(client1)
+                .developer(dev1)
+                .project(project4)
+                .rating(5)
+                .comment("클라이언트 : 클라이언트가 남긴 초기 리뷰입니다.")
+                .build());
+
+        reviewRepository.save(Review.builder()
+                .client(client1)
+                .developer(dev1)
+                .project(project4)
+                .rating(4)
+                .comment("개발자 : 일정 조율과 소통이 좋았습니다.")
+                .build());
+
+        reviewRepository.save(Review.builder()
+                .client(client1)
+                .developer(dev2)
+                .project(project5)
+                .rating(5)
+                .comment("클라이언트 : 대시보드 구현 완성도가 높았습니다.")
+                .build());
+
+        reviewRepository.save(Review.builder()
+                .client(client2)
+                .developer(dev2)
+                .project(project8)
+                .rating(4)
+                .comment("개발자 : 응답이 빠르고 협업이 원활했습니다.")
+                .build());
+
+        reviewRepository.save(Review.builder()
+                .client(client2)
+                .developer(dev3)
+                .project(project9)
+                .rating(5)
+                .comment("클라이언트 : AI 모델 성능이 기대 이상이었습니다.")
+                .build());
+
+        reviewRepository.save(Review.builder()
+                .client(client2)
+                .developer(dev3)
+                .project(project9)
+                .rating(4)
+                .comment("개발자 : 설명이 명확했고 결과물도 만족스러웠습니다.")
+                .build());
+        log.info("[InitData] Review 6개 생성 완료");
     }
 }
