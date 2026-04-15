@@ -1,5 +1,6 @@
 package com.example.readys7project.domain.user.auth.service;
 
+import com.example.readys7project.domain.user.admin.enums.AdminStatus;
 import com.example.readys7project.domain.user.auth.dto.response.AdminRegisterResponseDto;
 import com.example.readys7project.domain.user.auth.dto.response.ClientRegisterResponseDto;
 import com.example.readys7project.domain.user.auth.dto.response.DeveloperRegisterResponseDto;
@@ -18,6 +19,7 @@ import com.example.readys7project.domain.user.client.entity.Client;
 import com.example.readys7project.domain.user.client.repository.ClientRepository;
 import com.example.readys7project.global.dto.LoginRequestDto;
 import com.example.readys7project.global.exception.common.ErrorCode;
+import com.example.readys7project.global.exception.domain.AdminException;
 import com.example.readys7project.global.exception.domain.UserException;
 import com.example.readys7project.global.security.JwtTokenProvider;
 import com.example.readys7project.global.security.refreshtoken.entity.RefreshToken;
@@ -170,6 +172,15 @@ public class AuthService {
         // email로 User 조회
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
+
+        if(user.getUserRole() == UserRole.ADMIN) {
+            Admin admin = adminRepository.findByUser(user)
+                    .orElseThrow( () -> new AdminException(ErrorCode.ADMIN_NOT_FOUND));
+
+            if(admin.getStatus() != AdminStatus.APPROVED) {
+                throw new AdminException(ErrorCode.ADMIN_NOT_APPROVED);
+            }
+        }
 
         // 비밀번호 검증
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
