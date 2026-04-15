@@ -54,14 +54,16 @@ public class Admin extends BaseEntity {
     }
 
 
-    // 슈퍼관리자가 승인해주는 메서드
-
-    public void updateAdminStatus(AdminStatus status) {
-        if (this.status != AdminStatus.PENDING) {
-            throw new AdminException(ErrorCode.ADMIN_STATUS_NOT_MATCH);
-        }
-        this.status = status;
+    // 관리자 승인
+    public void AdminStatusApprove() {
+        this.status = AdminStatus.APPROVED;
     }
+
+    // 관리자 거절
+    public void AdminStatusReject() {
+        this.status = AdminStatus.REJECTED;
+    }
+
 
     // builderMethodName -> 각 빌더에 고유한 이름을 지정해줄 수 있는 메서드
     // @Builder 어노테이션을 여러 생성자에 붙이면 빌더 메서드 이름이 충돌할 수 있는데,
