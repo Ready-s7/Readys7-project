@@ -1,7 +1,7 @@
 package com.example.readys7project.global.security;
 
 import com.example.readys7project.domain.user.auth.entity.User;
-import lombok.Builder;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,13 +9,15 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-@Builder
-public record CustomUserDetails(
-        User user
-) implements UserDetails {
+@Getter
+public class CustomUserDetails implements UserDetails {
 
-    public User getUser() {
-        return user;
+    private final User user;
+    private final String email;
+
+    public CustomUserDetails(User user) {
+        this.user = user;
+        this.email = user.getEmail();
     }
 
     public Long getId() {
@@ -37,31 +39,23 @@ public record CustomUserDetails(
         return user.getName();
     }
 
-    public String getEmail() {
-        return user.getEmail();
-    }
-
-    public String getPhoneNumber() {
-        return user.getPhoneNumber();
-    }
-
     @Override
     public boolean isAccountNonExpired() {
-        return UserDetails.super.isAccountNonExpired();
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return UserDetails.super.isAccountNonLocked();
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return UserDetails.super.isCredentialsNonExpired();
+        return true;
     }
 
     @Override
     public boolean isEnabled() {
-        return UserDetails.super.isEnabled();
+        return true;
     }
 }

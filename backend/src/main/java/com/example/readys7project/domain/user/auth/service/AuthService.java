@@ -1,5 +1,9 @@
 package com.example.readys7project.domain.user.auth.service;
 
+import com.example.readys7project.domain.user.admin.enums.AdminStatus;
+import com.example.readys7project.domain.user.auth.dto.response.AdminRegisterResponseDto;
+import com.example.readys7project.domain.user.auth.dto.response.ClientRegisterResponseDto;
+import com.example.readys7project.domain.user.auth.dto.response.DeveloperRegisterResponseDto;
 import com.example.readys7project.domain.user.developer.entity.Developer;
 import com.example.readys7project.domain.user.developer.repository.DeveloperRepository;
 import com.example.readys7project.domain.user.admin.entity.Admin;
@@ -15,6 +19,7 @@ import com.example.readys7project.domain.user.client.entity.Client;
 import com.example.readys7project.domain.user.client.repository.ClientRepository;
 import com.example.readys7project.global.dto.LoginRequestDto;
 import com.example.readys7project.global.exception.common.ErrorCode;
+import com.example.readys7project.global.exception.domain.AdminException;
 import com.example.readys7project.global.exception.domain.UserException;
 import com.example.readys7project.global.security.JwtTokenProvider;
 import com.example.readys7project.global.security.refreshtoken.entity.RefreshToken;
@@ -38,13 +43,11 @@ public class AuthService {
 
     // Client 회원가입 로직
     @Transactional
-    public UserDto registerClient(
+    public ClientRegisterResponseDto registerClient(
             ClientRegisterRequestDto clientRegisterRequestDto
     ) {
         // 해당 이메일이 이미 존재하는지 확인
-        if (userRepository.existsByEmail(clientRegisterRequestDto.email())) {
-            throw new UserException(ErrorCode.EMAIL_ALREADY_EXISTS);
-        }
+        validateDuplicateEmail(clientRegisterRequestDto.email());
 
         // 유저 객체 생성
         User user = User.builder()
@@ -60,7 +63,7 @@ public class AuthService {
         User savedUser = userRepository.save(user);
 
         // 클라이언트 레포에 저장
-        clientRepository.save(Client.builder()
+        Client savedClient = clientRepository.save(Client.builder()
                 .user(savedUser)
                 .title(clientRegisterRequestDto.title())
                 .participateType(clientRegisterRequestDto.participateType())
@@ -70,16 +73,22 @@ public class AuthService {
                 .build());
 
         // Dto 반환
-        return convertToUserDto(savedUser);
+        return ClientRegisterResponseDto.builder()
+                .id(savedUser.getId())
+                .email(savedUser.getEmail())
+                .name(savedUser.getName())
+                .clientId(savedClient.getId())
+                .title(savedClient.getTitle())
+                .build();
+
     }
 
+    // 개발자 회원 가입
     @Transactional
-    public UserDto registerDeveloper(DeveloperRegisterRequestDto developerRegisterRequestDto) {
+    public DeveloperRegisterResponseDto registerDeveloper(DeveloperRegisterRequestDto developerRegisterRequestDto) {
 
         // 해당 이메일이 이미 존재하는지 확인
-        if (userRepository.existsByEmail(developerRegisterRequestDto.email())) {
-            throw new UserException(ErrorCode.EMAIL_ALREADY_EXISTS);
-        }
+        validateDuplicateEmail(developerRegisterRequestDto.email());
 
         // 유저 생성
         User user = User.builder()
@@ -94,7 +103,7 @@ public class AuthService {
         User savedUser = userRepository.save(user);
 
         // 개발자 레포에 저장
-        developerRepository.save(Developer.builder()
+       Developer savedDeveloper = developerRepository.save(Developer.builder()
                 .user(savedUser)
                 .title(developerRegisterRequestDto.title())
                 .minHourlyPay(developerRegisterRequestDto.minHourlyPay())
@@ -108,16 +117,22 @@ public class AuthService {
                 .build());
 
         // Dto 반환
-        return convertToUserDto(savedUser);
+        return DeveloperRegisterResponseDto.builder()
+                .id(savedUser.getId())
+                .email(savedUser.getEmail())
+                .name(savedUser.getName())
+                .developerId(savedDeveloper.getId())
+                .title(savedDeveloper.getTitle())
+                .build();
     }
 
+
+    // 관리자 회원 가입
     @Transactional
-    public UserDto registerAdmin(AdminRegisterRequestDto adminRegisterRequestDto) {
+    public AdminRegisterResponseDto registerAdmin(AdminRegisterRequestDto adminRegisterRequestDto) {
 
         // 해당 이메일이 이미 존재하는지 확인
-        if (userRepository.existsByEmail(adminRegisterRequestDto.email())) {
-            throw new UserException(ErrorCode.EMAIL_ALREADY_EXISTS);
-        }
+        validateDuplicateEmail(adminRegisterRequestDto.email());
 
         // 유저 생성
         User user = User.builder()
@@ -132,13 +147,19 @@ public class AuthService {
         User savedUser = userRepository.save(user);
 
         // 어드민 레포에 저장
-        adminRepository.save(Admin.builder()
+        Admin savedAdmin = adminRepository.save(Admin.builder()
                 .user(savedUser)
                 .adminRole(adminRegisterRequestDto.adminRole())
                 .build());
 
         // Dto 반환
-        return convertToUserDto(savedUser);
+        return AdminRegisterResponseDto.builder()
+                .id(savedUser.getId())
+                .email(savedUser.getEmail())
+                .name(savedUser.getName())
+                .adminId(savedAdmin.getId())
+                .adminRole(savedAdmin.getAdminRole())
+                .build();
     }
 
 
@@ -151,6 +172,15 @@ public class AuthService {
         // email로 User 조회
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
+
+        if(user.getUserRole() == UserRole.ADMIN) {
+            Admin admin = adminRepository.findByUser(user)
+                    .orElseThrow( () -> new AdminException(ErrorCode.ADMIN_NOT_FOUND));
+
+            if(admin.getStatus() != AdminStatus.APPROVED) {
+                throw new AdminException(ErrorCode.ADMIN_NOT_APPROVED);
+            }
+        }
 
         // 비밀번호 검증
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
@@ -225,5 +255,12 @@ public class AuthService {
                 .role(user.getUserRole().name())
                 .createdAt(user.getCreatedAt())
                 .build();
+    }
+
+    // 이메일이 이미 존재하는지 검증
+    private void validateDuplicateEmail(String email) {
+        if (userRepository.existsByEmail(email)) {
+            throw new UserException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        }
     }
 }

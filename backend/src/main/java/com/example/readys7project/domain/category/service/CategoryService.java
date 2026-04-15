@@ -59,6 +59,7 @@ public class CategoryService {
                 .icon(request.icon())
                 .description(request.description())
                 .displayOrder(request.displayOrder())
+                .admin(admin)
                 .build();
 
         // 7. 저장 후 DTO로 변환하여 반환

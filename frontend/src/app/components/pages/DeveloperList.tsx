@@ -1,12 +1,29 @@
-import { useState, useEffect, useCallback } from "react";
+/**
+ * DeveloperList.tsx 수정 사항
+ *
+ * [버그 수정]
+ * 1. 스킬 필터 선택 후 목록에서 조회된 개발자의 스킬만 뜨는 버그 수정
+ *    → 원인: allSkills를 매 렌더링 시 `developers` 상태에서 추출하여
+ *            필터 후 developers가 바뀌면 allSkills도 바뀜
+ *    → 해결: allSkills를 초기 로드 시 skillApi로 한 번만 가져와서 고정
+ *
+ * 2. 스킬 API가 없거나 빈 경우 개발자 목록의 스킬로 fallback 처리
+ */
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router";
 import { Card, CardContent } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { Search, Star, MapPin, Clock, Loader2 } from "lucide-react";
-import { developerApi } from "../../../api/apiService";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { Search, Star, Clock, Loader2 } from "lucide-react";
+import { developerApi, skillApi } from "../../../api/apiService";
 import type { DeveloperDto } from "../../../api/types";
 
 export function DeveloperList() {
@@ -19,6 +36,32 @@ export function DeveloperList() {
 
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+
+  // ★ 핵심 수정: allSkills는 초기 1회만 로드하여 고정
+  const [allSkills, setAllSkills] = useState<string[]>([]);
+  const skillsInitialized = useRef(false);
+
+  // 스킬 목록 최초 1회 로드 (필터 변경에 영향 받지 않음)
+  useEffect(() => {
+    if (skillsInitialized.current) return;
+    skillsInitialized.current = true;
+
+    skillApi
+      .getAll(0, 200)
+      .then((res) => {
+        const names = res.data.data.content.map((s) => s.name);
+        setAllSkills(names);
+      })
+      .catch(() => {
+        // skillApi 실패 시 첫 번째 개발자 조회 후 스킬 추출로 fallback
+        developerApi.getAll(0, 100).then((res) => {
+          const skills = Array.from(
+            new Set(res.data.data.content.flatMap((d) => d.skills ?? []))
+          ).sort();
+          setAllSkills(skills);
+        });
+      });
+  }, []);
 
   const fetchDevelopers = useCallback(async () => {
     setIsLoading(true);
@@ -48,9 +91,6 @@ export function DeveloperList() {
       d.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // 전체 개발자에서 스킬 목록 추출
-  const allSkills = Array.from(new Set(developers.flatMap((d) => d.skills ?? []))).sort();
-
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
@@ -74,21 +114,30 @@ export function DeveloperList() {
               </div>
               <Select
                 value={selectedSkill}
-                onValueChange={(v) => { setSelectedSkill(v); setCurrentPage(0); }}
+                onValueChange={(v) => {
+                  setSelectedSkill(v);
+                  setCurrentPage(0);
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="기술" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">전체 기술</SelectItem>
+                  {/* ★ allSkills는 고정 목록 사용 (developers 상태와 무관) */}
                   {allSkills.map((skill) => (
-                    <SelectItem key={skill} value={skill}>{skill}</SelectItem>
+                    <SelectItem key={skill} value={skill}>
+                      {skill}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               <Select
                 value={minRating}
-                onValueChange={(v) => { setMinRating(v); setCurrentPage(0); }}
+                onValueChange={(v) => {
+                  setMinRating(v);
+                  setCurrentPage(0);
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="최소 평점" />
@@ -126,7 +175,9 @@ export function DeveloperList() {
                         <div className="flex items-center justify-center gap-1">
                           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                           <span>{dev.rating?.toFixed(1)}</span>
-                          <span className="text-gray-500 text-sm">({dev.reviewCount}개 리뷰)</span>
+                          <span className="text-gray-500 text-sm">
+                            ({dev.reviewCount}개 리뷰)
+                          </span>
                         </div>
                       </div>
 
@@ -144,7 +195,13 @@ export function DeveloperList() {
 
                       <div className="flex flex-wrap gap-1 mb-4">
                         {(dev.skills ?? []).slice(0, 4).map((skill) => (
-                          <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
+                          <Badge
+                            key={skill}
+                            variant="outline"
+                            className="text-xs"
+                          >
+                            {skill}
+                          </Badge>
                         ))}
                         {(dev.skills?.length ?? 0) > 4 && (
                           <Badge variant="outline" className="text-xs">
@@ -157,11 +214,14 @@ export function DeveloperList() {
                         <div>
                           <span className="text-gray-500">시급</span>
                           <p className="text-blue-600">
-                            {dev.minHourlyPay?.toLocaleString()}~{dev.maxHourlyPay?.toLocaleString()}원
+                            {dev.minHourlyPay?.toLocaleString()}~
+                            {dev.maxHourlyPay?.toLocaleString()}원
                           </p>
                         </div>
                         <Badge
-                          variant={dev.availableForWork ? "default" : "secondary"}
+                          variant={
+                            dev.availableForWork ? "default" : "secondary"
+                          }
                           className="text-xs"
                         >
                           {dev.availableForWork ? "작업 가능" : "작업 중"}
@@ -185,13 +245,25 @@ export function DeveloperList() {
 
             {totalPages > 1 && (
               <div className="flex justify-center gap-2 mt-8">
-                <Button variant="outline" size="sm" disabled={currentPage === 0}
-                  onClick={() => setCurrentPage((p) => p - 1)}>이전</Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage === 0}
+                  onClick={() => setCurrentPage((p) => p - 1)}
+                >
+                  이전
+                </Button>
                 <span className="flex items-center px-4 text-sm text-gray-600">
                   {currentPage + 1} / {totalPages}
                 </span>
-                <Button variant="outline" size="sm" disabled={currentPage >= totalPages - 1}
-                  onClick={() => setCurrentPage((p) => p + 1)}>다음</Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage >= totalPages - 1}
+                  onClick={() => setCurrentPage((p) => p + 1)}
+                >
+                  다음
+                </Button>
               </div>
             )}
           </>
