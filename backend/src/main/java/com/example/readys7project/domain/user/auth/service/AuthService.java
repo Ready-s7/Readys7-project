@@ -72,7 +72,9 @@ public class AuthService {
 
         // Dto 반환
         return ClientRegisterResponseDto.builder()
-                .user(convertToUserDto(savedUser))
+                .id(savedUser.getId())
+                .email(savedUser.getEmail())
+                .name(savedUser.getName())
                 .clientId(savedClient.getId())
                 .title(savedClient.getTitle())
                 .build();
@@ -114,7 +116,9 @@ public class AuthService {
 
         // Dto 반환
         return DeveloperRegisterResponseDto.builder()
-                .user(convertToUserDto(savedUser))
+                .id(savedUser.getId())
+                .email(savedUser.getEmail())
+                .name(savedUser.getName())
                 .developerId(savedDeveloper.getId())
                 .title(savedDeveloper.getTitle())
                 .build();
@@ -148,7 +152,9 @@ public class AuthService {
 
         // Dto 반환
         return AdminRegisterResponseDto.builder()
-                .user(convertToUserDto(savedUser))
+                .id(savedUser.getId())
+                .email(savedUser.getEmail())
+                .name(savedUser.getName())
                 .adminId(savedAdmin.getId())
                 .adminRole(savedAdmin.getAdminRole())
                 .build();
