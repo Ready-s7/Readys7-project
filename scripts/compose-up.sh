@@ -1,23 +1,29 @@
 #!/bin/bash
 # ================================================================
-# Day 17 - 풀스택 기동 스크립트
-#
-# 실행 순서:
-#   1) ./gradlew bootJar   — 실행 가능한 jar 빌드
-#   2) docker compose up -d --build  — 이미지 빌드 + 컨테이너 기동
-#
-# IntelliJ Run Configuration > Shell Script 에서 이 파일을 지정합니다.
-# Working directory 를 반드시 프로젝트 루트($ProjectFileDir$)로 설정해야
-# Gradle wrapper와 docker-compose.yml 경로가 올바르게 잡힙니다.
+# Day 17 - 풀스택 기동 스크립트 (프론트엔드 포함)
 # ================================================================
-set -e   # 중간 명령 실패 시 즉시 종료 (bootJar 실패 → compose up 건너뜀)
+set -e
 
-echo "=== [1/2] Gradle bootJar 빌드 시작 ==="
-cd backend && ./gradlew bootJar --no-daemon
-cd ..
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-echo "=== [2/2] Docker Compose 풀스택 기동 ==="
+echo "=== [1/3] Gradle bootJar 빌드 시작 ==="
+cd "$PROJECT_ROOT/backend" && ./gradlew bootJar --no-daemon
+
+echo "=== [2/3] Docker Compose 풀스택 기동 ==="
+cd "$PROJECT_ROOT"
 docker compose up -d --build
 
+echo "=== [3/3] 프론트엔드 개발 서버 기동 ==="
+cd "$PROJECT_ROOT/frontend"
+npm run dev &
+FRONTEND_PID=$!
+echo "프론트엔드 PID: $FRONTEND_PID"
+echo $FRONTEND_PID > "$PROJECT_ROOT/.frontend.pid"
+
+cd "$PROJECT_ROOT"
+
 echo "=== 기동 완료 — 백엔드 로그 출력 시작 (중지: Ctrl+C) ==="
+
+trap "echo '=== 종료 중 ===' ; kill $FRONTEND_PID 2>/dev/null; docker compose down; exit" INT TERM
+
 docker compose logs -f backend

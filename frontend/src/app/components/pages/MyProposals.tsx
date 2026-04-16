@@ -15,10 +15,10 @@ import type { ProposalDto } from "../../../api/types";
 import { useAuth } from "../../../context/AuthContext";
 
 const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
-  pending:   { label: "검토 중",  variant: "default" },
-  accepted:  { label: "수락됨",   variant: "default" },
-  rejected:  { label: "거절됨",   variant: "destructive" },
-  withdrawn: { label: "철회됨",   variant: "secondary" },
+  PENDING:   { label: "검토 중",  variant: "default" },
+  ACCEPTED:  { label: "수락됨",   variant: "default" },
+  REJECTED:  { label: "거절됨",   variant: "destructive" },
+  WITHDRAWN: { label: "철회됨",   variant: "secondary" },
 };
 
 export function MyProposals() {
@@ -84,7 +84,7 @@ export function MyProposals() {
           <div className="flex justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
           </div>
-        ) : proposals.length === 0 ? (
+        ) : !proposals || proposals.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center text-gray-500">
               <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -120,7 +120,7 @@ export function MyProposals() {
                       <span>제안 기간: {p.proposedDuration}</span>
                     </div>
 
-                    {p.status === "pending" && (
+                    {p.status === "PENDING" && (
                       <Button
                         variant="outline"
                         size="sm"
