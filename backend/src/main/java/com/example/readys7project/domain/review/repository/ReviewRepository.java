@@ -19,7 +19,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long>, ReviewQue
     List<Review> findByDeveloperId(Long developerId);
     List<Review> findByClientId(Long clientId);
 
-    // 리뷰 중북 체크.
+    // 리뷰 중복 체크.
     boolean existsByProjectAndClientAndDeveloperAndWriterRole(
             Project project,
             Client client,
