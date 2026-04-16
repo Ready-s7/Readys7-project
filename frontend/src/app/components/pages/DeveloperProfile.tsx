@@ -148,7 +148,12 @@ export function DeveloperProfile() {
       // DeveloperDto에 userId 필드가 없으므로, reviewApi.create에서 developer.id를 전달하면
       // 백엔드가 userId와 다를 수 있음. 이 부분은 백엔드 API 개선이 필요하지만
       // 우선 DeveloperDto의 id를 전달하되, 백엔드에서 처리하는 방식에 따라 조정 필요.
-      await reviewApi.create(Number(id), {
+      if (!developer?.userId) {
+        toast.error("개발자 사용자 정보를 찾을 수 없습니다.");
+        return;
+      }
+
+      await reviewApi.create(developer.userId, {
         projectId: Number(reviewForm.projectId),
         rating: Number(reviewForm.rating),
         comment: reviewForm.comment,
@@ -156,7 +161,7 @@ export function DeveloperProfile() {
       toast.success("리뷰가 작성되었습니다.");
       setShowReviewModal(false);
       // 리뷰 목록 새로고침
-      const res = await reviewApi.getByDeveloper(Number(id), { page: 0, size: 20 });
+      const res = await reviewApi.getByDeveloper(Number(id), { page: 1, size: 20 });
       setReviews(res.data.data.content);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "리뷰 작성에 실패했습니다.");
@@ -180,7 +185,7 @@ export function DeveloperProfile() {
       });
       toast.success("리뷰가 수정되었습니다.");
       setEditReview(null);
-      const res = await reviewApi.getByDeveloper(Number(id), { page: 0, size: 20 });
+      const res = await reviewApi.getByDeveloper(Number(id), { page: 1, size: 20 });
       setReviews(res.data.data.content);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "리뷰 수정에 실패했습니다.");
@@ -193,7 +198,7 @@ export function DeveloperProfile() {
       await reviewApi.delete(deleteReview.id);
       toast.success("리뷰가 삭제되었습니다.");
       setDeleteReview(null);
-      const res = await reviewApi.getByDeveloper(Number(id), { page: 0, size: 20 });
+      const res = await reviewApi.getByDeveloper(Number(id), { page: 1, size: 20 });
       setReviews(res.data.data.content);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "리뷰 삭제에 실패했습니다.");

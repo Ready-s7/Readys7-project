@@ -66,6 +66,7 @@ public class ReviewService {
         Client client;
         Developer developer;
 
+        // 전제 조건.
         // 리뷰는 완료 또는 취소된 프로젝트에서만 작성 가능하다.
         if (project.getStatus() != ProjectStatus.COMPLETED
                 && project.getStatus() != ProjectStatus.CANCELLED) {
@@ -104,6 +105,19 @@ public class ReviewService {
                 throw new ReviewException(ErrorCode.USER_FORBIDDEN);
             }
 
+            // 같은 프로젝트에서 클라이언트가 이미 리뷰를 작성했는지 확인.
+            // 이때 위에서 자기가 완료한 프로젝트, 제안서 검증을 하기 때문에. 클라이언트 작성 리뷰가 이미 존재하는지만 확인하면 된다.
+            // 존재 하면 true발생 따라서 예외가 발생한다.
+            boolean alreadyExists = reviewRepository.existsByProjectAndClientAndDeveloperAndWriterRole(
+                    project,
+                    client,
+                    developer,
+                    ReviewRole.CLIENT
+            );
+
+            if (alreadyExists) {
+                throw new ReviewException(ErrorCode.REVIEW_ALREADY_EXISTS);
+            }
 
 
             Review review = Review.builder()
@@ -151,6 +165,19 @@ public class ReviewService {
                 throw new ReviewException(ErrorCode.USER_FORBIDDEN);
             }
 
+            // 같은 프로젝트에서 개발자가 이미 리뷰를 작성했는지 확인.
+            // 이때 위에서 자기가 완료한 프로젝트, 제안서 검증을 하기 때문에. 개발자 작성 리뷰가 이미 존재하는지만 확인하면 된다.
+            // 존재 하면 true발생 따라서 예외가 발생한다.
+            boolean alreadyExists = reviewRepository.existsByProjectAndClientAndDeveloperAndWriterRole(
+                    project,
+                    client,
+                    developer,
+                    ReviewRole.DEVELOPER
+            );
+
+            if (alreadyExists) {
+                throw new ReviewException(ErrorCode.REVIEW_ALREADY_EXISTS);
+            }
 
 
             // 작성자 역할을 DEVELOPER로 저장하고 리뷰를 생성한다.

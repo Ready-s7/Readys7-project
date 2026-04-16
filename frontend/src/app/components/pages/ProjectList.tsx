@@ -150,7 +150,11 @@ export function ProjectList() {
         </Card>
 
         <div className="mb-4 text-gray-600 flex items-center gap-2">
-          <span>총 {projects?.length || 0}개의 프로젝트</span>
+          <span>총 {
+            selectedStatus === "all"
+                ? projects.filter(p => p.status === "OPEN").length
+                : projects.length
+          }개의 프로젝트</span>
         </div>
 
         {isLoading ? (
@@ -158,7 +162,9 @@ export function ProjectList() {
         ) : (
           <>
             <div className="grid grid-cols-1 gap-4">
-              {(projects || []).map((project) => {
+              {(projects || [])
+                  .filter(p => selectedStatus !== "all" || p.status === "OPEN")
+                  .map((project) => {
                 if (!project || typeof project !== 'object') return null;
                 const cat = (categories || []).find(
                   (c) => c.name && project.category && c.name.toLowerCase() === project.category.toLowerCase()
@@ -194,7 +200,7 @@ export function ProjectList() {
                               {(project.minBudget || 0).toLocaleString()} ~ {(project.maxBudget || 0).toLocaleString()}원
                             </div>
                             <div className="text-gray-600 text-sm mb-4">예상 기간: {project.duration || 0}일</div>
-                            <Button className="w-full md:w-auto">제안하기</Button>
+                            {project.status === "OPEN" && <Button className="w-full md:w-auto">제안하기</Button>}
                           </div>
                         </div>
                       </CardContent>
