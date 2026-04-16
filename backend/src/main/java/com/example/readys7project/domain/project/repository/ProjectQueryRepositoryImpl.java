@@ -150,9 +150,19 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
                 .select(Projections.constructor(ProjectsTotalSearchResponseDto.class,
                         project.id,
                         project.title,
+                        project.description,
+                        project.category,
                         project.minBudget,
                         project.maxBudget,
-                        project.status
+                        project.duration,
+                        project.skills,
+                        project.status,
+                        project.currentProposalCount,
+                        project.maxProposalCount,
+                        project.client.user.name,
+                        project.client.rating,
+                        project.createdAt,
+                        project.updatedAt
                 ))
                 .from(project)
                 .where(searchAllCondition(keyword))

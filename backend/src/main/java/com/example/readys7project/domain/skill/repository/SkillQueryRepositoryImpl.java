@@ -96,8 +96,11 @@ public class SkillQueryRepositoryImpl implements SkillQueryRepository{
         List<SkillsTotalSearchResponseDto> content = jpaQueryFactory
                 .select(Projections.constructor(SkillsTotalSearchResponseDto.class,
                         skill.id,
+                        skill.admin.id,
+                        skill.admin.user.name,
                         skill.name,
-                        skill.skillCategory
+                        skill.skillCategory,
+                        skill.createdAt
                 ))
                 .from(skill)
                 .where(searchCondition(keyword))
