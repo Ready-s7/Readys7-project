@@ -8,6 +8,7 @@ import java.util.List;
 @Builder
 public record ProjectDto(
     Long id,
+    Long clientId,
     String title,
     String description,
     String category,

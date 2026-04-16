@@ -23,6 +23,9 @@ import { ProfileView } from "./components/pages/ProfileView";
 import { MyProjects } from "./components/pages/MyProjects";
 import { MyPortfolio } from "./components/pages/MyPortfolio";
 import { AdminDashboard } from "./components/pages/AdminDashboard";
+import { CsPage } from "./components/pages/CsPage";
+import { SearchPage } from "./components/pages/SearchPage";
+import { ClientDetail } from "./components/pages/ClientDetail";
 
 export const router = createBrowserRouter([
   {
@@ -35,8 +38,11 @@ export const router = createBrowserRouter([
       { path: "projects/:id", Component: ProjectDetail },
       { path: "developers", Component: DeveloperList },
       { path: "developers/:id", Component: DeveloperProfile },
+      { path: "clients/:id", Component: ClientDetail },
       { path: "login", Component: Login },
       { path: "chat", Component: ChatPage },
+      { path: "cs", Component: CsPage },
+      { path: "search", Component: SearchPage },
       { path: "my-proposals", Component: MyProposals },
       // ── 신규 라우트 ──
       { path: "profile", Component: ProfileView },

@@ -75,8 +75,9 @@ public class RedisConfig {
     ) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-        // 채팅방 채널 패턴 구독 (chat-room:* 모든 채널)
+        // 채팅방 채널 패턴 구독
         container.addMessageListener(subscriber, new PatternTopic("chat-room:*"));
+        container.addMessageListener(subscriber, new PatternTopic("cs-room:*"));
         return container;
     }
 

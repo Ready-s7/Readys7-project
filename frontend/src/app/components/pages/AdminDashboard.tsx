@@ -47,10 +47,11 @@ import {
   Pencil,
   Trash2,
   Users,
+  MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
-import { adminApi, categoryApi, skillApi } from "../../../api/apiService";
-import type { AdminDto, CategoryDto, SkillDto } from "../../../api/types";
+import { adminApi, categoryApi, skillApi, csApi } from "../../../api/apiService";
+import type { AdminDto, CategoryDto, SkillDto, CsChatRoomDto } from "../../../api/types";
 import { useAuth } from "../../../context/AuthContext";
 import { apiClient } from "../../../api/client";
 
@@ -62,10 +63,13 @@ export function AdminDashboard() {
   const [pendingAdmins, setPendingAdmins] = useState<AdminDto[]>([]);
   const [categories, setCategories] = useState<CategoryDto[]>([]);
   const [skills, setSkills] = useState<SkillDto[]>([]);
+  const [csRooms, setCsRooms] = useState<CsChatRoomDto[]>([]);
+  const [selectedCsStatus, setSelectedCsStatus] = useState<string>("all");
   const [isLoading, setIsLoading] = useState(true);
 
   // 처리 중인 adminId
   const [processingId, setProcessingId] = useState<number | null>(null);
+  const [processingCsId, setProcessingCsId] = useState<number | null>(null);
 
   // 카테고리 모달
   const [showCatModal, setShowCatModal] = useState(false);
@@ -82,7 +86,7 @@ export function AdminDashboard() {
   // 스킬 모달
   const [showSkillModal, setShowSkillModal] = useState(false);
   const [editSkill, setEditSkill] = useState<SkillDto | null>(null);
-  const [skillForm, setSkillForm] = useState({ name: "", category: "" });
+  const [skillForm, setSkillForm] = useState({ name: "", category: "BACKEND" });
   const [isSkillSubmitting, setIsSkillSubmitting] = useState(false);
   const [deleteSkill, setDeleteSkill] = useState<SkillDto | null>(null);
 
@@ -101,7 +105,6 @@ export function AdminDashboard() {
     try {
       // 내 관리자 정보 확인 (슈퍼어드민 여부)
       const meRes = await apiClient.get("/v1/users/me");
-      const myName = meRes.data.data.name;
 
       // 대기 중 관리자 목록 (SUPER_ADMIN만 가능)
       try {
@@ -112,14 +115,43 @@ export function AdminDashboard() {
         setIsSuperAdmin(false);
       }
 
-      const [catRes, skillRes] = await Promise.allSettled([
+      const [catRes, skillRes, csRes] = await Promise.allSettled([
         categoryApi.getAll(),
         skillApi.getAll(0, 200),
+        csApi.getAllRooms({ page: 1, size: 50 }),
       ]);
       if (catRes.status === "fulfilled") setCategories(catRes.value.data.data);
       if (skillRes.status === "fulfilled") setSkills(skillRes.value.data.data.content);
+      if (csRes.status === "fulfilled") setCsRooms(csRes.value.data.data.content);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // CS 문의 목록 필터링 조회
+  const loadCsRooms = async (status?: string) => {
+    try {
+      const res = await csApi.getAllRooms({ 
+        status: status === "all" ? undefined : status, 
+        page: 1, 
+        size: 50 
+      });
+      setCsRooms(res.data.data.content);
+    } catch {
+      toast.error("CS 목록을 불러오는데 실패했습니다.");
+    }
+  };
+
+  const handleCsStatusChange = async (roomId: number, status: string) => {
+    setProcessingCsId(roomId);
+    try {
+      await csApi.updateStatus(roomId, status);
+      toast.success("상태가 변경되었습니다.");
+      loadCsRooms(selectedCsStatus);
+    } catch {
+      toast.error("상태 변경에 실패했습니다.");
+    } finally {
+      setProcessingCsId(null);
     }
   };
 
@@ -273,7 +305,7 @@ export function AdminDashboard() {
         </div>
 
         {/* 통계 카드 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardContent className="p-5 flex items-center gap-4">
               <Users className="w-8 h-8 text-amber-500" />
@@ -301,13 +333,28 @@ export function AdminDashboard() {
               </div>
             </CardContent>
           </Card>
+          <Card>
+            <CardContent className="p-5 flex items-center gap-4">
+              <MessageSquare className="w-8 h-8 text-indigo-500" />
+              <div>
+                <p className="text-sm text-gray-500">CS 문의 수</p>
+                <p className="text-2xl font-bold">{csRooms.length}</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        <Tabs defaultValue={isSuperAdmin ? "admins" : "categories"}>
+        <Tabs 
+          defaultValue={isSuperAdmin ? "admins" : "categories"}
+          onValueChange={(val) => {
+            if (val === "cs") loadCsRooms(selectedCsStatus);
+          }}
+        >
           <TabsList className="mb-6 flex flex-wrap gap-1">
             {isSuperAdmin && <TabsTrigger value="admins">관리자 승인</TabsTrigger>}
             <TabsTrigger value="categories">카테고리 관리</TabsTrigger>
             <TabsTrigger value="skills">스킬 관리</TabsTrigger>
+            <TabsTrigger value="cs">CS 문의 관리</TabsTrigger>
           </TabsList>
 
           {/* ── 관리자 승인 탭 (SUPER_ADMIN 전용) ── */}
@@ -464,6 +511,72 @@ export function AdminDashboard() {
                     </div>
                   );
                 })}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ── CS 문의 관리 탭 ── */}
+          <TabsContent value="cs">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>CS 문의 관리</CardTitle>
+                <div className="flex gap-2">
+                  <Select value={selectedCsStatus} onValueChange={(v) => { setSelectedCsStatus(v); loadCsRooms(v); }}>
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue placeholder="상태 필터" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">전체</SelectItem>
+                      <SelectItem value="WAITING">대기중</SelectItem>
+                      <SelectItem value="IN_PROGRESS">처리중</SelectItem>
+                      <SelectItem value="COMPLETED">완료</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {csRooms.length === 0 ? (
+                  <p className="text-center text-gray-500 py-10">
+                    문의 내역이 없습니다.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {csRooms.map((room) => (
+                      <div key={room.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-bold">{room.title}</h4>
+                            <Badge variant={
+                              room.status === "WAITING" ? "destructive" :
+                              room.status === "IN_PROGRESS" ? "default" : "secondary"
+                            }>
+                              {room.status === "WAITING" ? "대기중" :
+                               room.status === "IN_PROGRESS" ? "처리중" : "완료"}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-500">
+                            문의자: {room.inquirerName} ({new Date(room.createdAt).toLocaleString()})
+                          </p>
+                        </div>
+                        <div className="flex gap-2 shrink-0">
+                          {room.status === "WAITING" && (
+                            <Button size="sm" variant="outline" onClick={() => handleCsStatusChange(room.id, "IN_PROGRESS")} disabled={processingCsId === room.id}>
+                              시작
+                            </Button>
+                          )}
+                          {room.status === "IN_PROGRESS" && (
+                            <Button size="sm" variant="outline" className="text-blue-600 border-blue-600" onClick={() => handleCsStatusChange(room.id, "COMPLETED")} disabled={processingCsId === room.id}>
+                              완료
+                            </Button>
+                          )}
+                          <Button size="sm" onClick={() => navigate(`/chat?csRoomId=${room.id}`)}>
+                            상담 채팅
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

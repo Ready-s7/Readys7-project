@@ -6,11 +6,12 @@ import { Badge } from "../ui/badge";
 import { 
   Loader2, User, Mail, Phone, FileText, 
   Briefcase, Clock, Shield, Pencil, 
-  CheckCircle2, AlertCircle, Info 
+  CheckCircle2, AlertCircle, Info, Trash2 
 } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
 import { apiClient } from "../../../api/client";
 import { developerApi } from "../../../api/apiService";
+import { authApi } from "../../../api/authApi";
 import { toast } from "sonner";
 
 export function ProfileView() {
@@ -20,6 +21,7 @@ export function ProfileView() {
   const [profileData, setProfileData] = useState<any>(null);
   const [roleData, setRoleData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -61,6 +63,21 @@ export function ProfileView() {
       toast.error("일부 정보를 불러오지 못했습니다.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleWithdraw = async () => {
+    if (!confirm("정말로 탈퇴하시겠습니까? 모든 정보가 삭제되며 되돌릴 수 없습니다.")) return;
+    setIsWithdrawing(true);
+    try {
+      await authApi.withdraw();
+      toast.success("탈퇴 처리되었습니다. 이용해 주셔서 감사합니다.");
+      localStorage.clear();
+      window.location.href = "/";
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "탈퇴 처리 중 오류가 발생했습니다.");
+    } finally {
+      setIsWithdrawing(false);
     }
   };
 
@@ -264,6 +281,18 @@ export function ProfileView() {
           <div className="flex items-center gap-2 justify-center text-gray-400">
             <Info className="w-4 h-4" />
             <p className="text-xs">마지막 업데이트: {new Date().toLocaleDateString()}</p>
+          </div>
+
+          <div className="mt-8 pt-8 border-t flex justify-center">
+            <Button 
+              variant="ghost" 
+              onClick={handleWithdraw} 
+              disabled={isWithdrawing}
+              className="text-gray-400 hover:text-red-600 hover:bg-red-50 gap-2"
+            >
+              {isWithdrawing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+              회원 탈퇴하기
+            </Button>
           </div>
         </div>
       </div>

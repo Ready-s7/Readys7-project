@@ -76,6 +76,7 @@ export interface GetUserInfoResponse {
 // ─────────────────────────────────────────────────────────────
 export interface ProjectDto {
   id: number;
+  clientId: number;
   title: string;
   description: string;
   category: string;
@@ -266,6 +267,29 @@ export interface AdminListResponse {
 }
 
 // ─────────────────────────────────────────────────────────────
+// CS 채팅 관련 타입
+// ─────────────────────────────────────────────────────────────
+export interface CsChatRoomDto {
+  id: number;
+  title: string;
+  inquirerId: number;
+  inquirerName: string;
+  status: "WAITING" | "IN_PROGRESS" | "COMPLETED";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CsMessageDto {
+  id: number;
+  senderId: number;
+  senderName: string;
+  content: string;
+  eventType: "SEND" | "EDIT" | "DELETE" | "ENTER" | "LEAVE";
+  isRead: boolean;
+  createdAt: string;
+}
+
+// ─────────────────────────────────────────────────────────────
 // 인증 요청 타입
 // ─────────────────────────────────────────────────────────────
 export interface LoginRequest {
@@ -281,6 +305,40 @@ export interface ClientRegisterRequest {
   description?: string;
   title: string;
   participateType: "INDIVIDUAL" | "COMPANY";
+}
+
+// ─────────────────────────────────────────────────────────────
+// 검색 관련 타입
+// ─────────────────────────────────────────────────────────────
+export interface PopularRankingResponseDto {
+  keyword: string;
+  score: number;
+}
+
+export interface SearchProjectDto {
+  id: number;
+  title: string;
+  minBudget: number;
+  maxBudget: number;
+  status: string;
+}
+
+export interface SearchCategoryDto {
+  Id: number; // 백엔드 DTO 대문자 반영
+  name: string;
+  icon: string | null;
+}
+
+export interface SearchSkillDto {
+  id: number;
+  name: string;
+  skillCategory: string;
+}
+
+export interface TotalSearchResponseDto {
+  projects: PageResponse<SearchProjectDto>;
+  categories: PageResponse<SearchCategoryDto>;
+  skills: PageResponse<SearchSkillDto>;
 }
 
 export interface DeveloperRegisterRequest {

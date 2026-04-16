@@ -103,6 +103,24 @@ public class ChatRoomService {
                 .map(chatRoom -> convertToDto(chatRoom, user.getId()));
     }
 
+    @Transactional
+    public void deleteChatRoom(Long roomId, String email) {
+        User user = findUser(email);
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(
+                () -> new ChatRoomException(ErrorCode.CHATROOM_NOT_FOUND)
+        );
+
+        // 본인의 채팅방인지 검증 (Client 또는 Developer)
+        boolean isClient = chatRoom.getClient().getUser().getId().equals(user.getId());
+        boolean isDeveloper = chatRoom.getDeveloper().getUser().getId().equals(user.getId());
+
+        if (!isClient && !isDeveloper) {
+            throw new ChatRoomException(ErrorCode.USER_FORBIDDEN);
+        }
+
+        chatRoomRepository.delete(chatRoom);
+    }
+
     public ChatRoomDto convertToDto(ChatRoom chatRoom, Long userId) {
         Long unreadCount = unreadCountService.getCount(chatRoom.getId(), userId);
 

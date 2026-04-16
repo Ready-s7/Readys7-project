@@ -195,6 +195,17 @@ public class ProposalService {
                 project.changeStatus(ProjectStatus.IN_PROGRESS);
             }
 
+            // 제안서가 철회됐을 때 해당 프로젝트에 승인된 제안서가 없지만
+            // 최대 제안서 개수가 가득 차서 자동으로 모집 종료된 상태였다면
+            // 모집 중으로 다시 되돌려주고 && 현재 제안서 수를 -1 해줘야 함.
+            if (request.status().equals(ProposalStatus.WITHDRAWN)) {
+                project.decreaseProposalCount();
+                boolean existence = proposalRepository.existsByProjectIdAndStatus(project.getId(), ProposalStatus.ACCEPTED);
+                if (!existence) {
+                    project.changeStatus(ProjectStatus.OPEN);
+                }
+            }
+
         } catch (ProposalException e) {
             throw new ProposalException(ErrorCode.PROPOSAL_ACCEPTED_FAILED);
         }

@@ -56,6 +56,28 @@ export function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [signupError, setSignupError] = useState("");
+  const [skillOptions, setSkillOptions] = useState<string[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+
+  // 기술 목록 로드
+  const fetchSkills = async () => {
+    try {
+      const res = await apiClient.get("/v1/skills", { params: { page: 0, size: 200 } });
+      setSkillOptions((res.data?.data?.content ?? []).map((s: any) => s.name));
+    } catch (err) {
+      console.error("기술 로드 실패:", err);
+    }
+  };
+
+  const addSkill = (skill: string) => {
+    if (skill && !selectedSkills.includes(skill)) {
+      setSelectedSkills(prev => [...prev, skill]);
+    }
+  };
+
+  const removeSkill = (skill: string) => {
+    setSelectedSkills(prev => prev.filter(s => s !== skill));
+  };
 
   // ── 로그인 핸들러 ──────────────────────────────────────────
   const handleLogin = async (e: React.FormEvent) => {
@@ -137,10 +159,6 @@ export function Login() {
         toast.success("회원가입이 완료되었습니다! 자동으로 로그인됩니다.");
         navigate("/");
       } else if (signupData.userType === "developer") {
-        const skillList = signupData.skills
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean);
         await registerDeveloper({
           email: signupData.email,
           password: signupData.password,
@@ -149,7 +167,7 @@ export function Login() {
           title: signupData.title || "개발자",
           minHourlyPay: Number(signupData.minHourlyPay) || 30000,
           maxHourlyPay: Number(signupData.maxHourlyPay) || 80000,
-          skills: skillList.length ? skillList : ["기타"],
+          skills: selectedSkills.length ? selectedSkills : ["기타"],
           responseTime: signupData.responseTime,
           availableForWork: true,
           participateType: signupData.participateType,
@@ -440,19 +458,27 @@ export function Login() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label>기술 스택 * (쉼표 구분)</Label>
-                        <Input
-                          placeholder="React, TypeScript, Node.js"
-                          value={signupData.skills}
-                          onChange={(e) =>
-                            setSignupData({
-                              ...signupData,
-                              skills: e.target.value,
-                            })
-                          }
-                          required
-                          disabled={isLoading}
-                        />
+                        <Label>기술 스택 *</Label>
+                        <Select onValueChange={(val) => addSkill(val)} onOpenChange={(open) => open && skillOptions.length === 0 && fetchSkills()}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="기술 스택 선택" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {skillOptions.map(skill => (
+                              <SelectItem key={skill} value={skill}>{skill}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {selectedSkills.map(skill => (
+                            <Badge key={skill} variant="secondary" className="pl-2 pr-1 py-1">
+                              {skill}
+                              <button type="button" onClick={() => removeSkill(skill)} className="ml-1 hover:text-red-600">
+                                <Code2 className="w-3 h-3" />
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <Label>응답 시간 * (예: 1시간, 30분)</Label>

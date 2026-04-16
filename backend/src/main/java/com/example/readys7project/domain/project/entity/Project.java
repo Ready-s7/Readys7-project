@@ -117,9 +117,14 @@ public class Project extends BaseEntity {
         }
     }
 
+    public void decreaseProposalCount() {
+        if (this.currentProposalCount > 0) {
+            this.currentProposalCount--;
+        }
+    }
+
     // 프로젝트 상태 변경 로직
     public void changeStatus(ProjectStatus newStatus) {
         this.status = newStatus;
     }
-
 }

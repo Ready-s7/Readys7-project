@@ -151,12 +151,12 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
                         project.id,
                         project.title,
                         project.description,
-                        project.category,
+                        project.category.name,
                         project.minBudget,
                         project.maxBudget,
                         project.duration,
                         project.skills,
-                        project.status,
+                        project.status.stringValue(),
                         project.currentProposalCount,
                         project.maxProposalCount,
                         project.client.user.name,
@@ -165,6 +165,9 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
                         project.updatedAt
                 ))
                 .from(project)
+                .leftJoin(project.category)
+                .leftJoin(project.client)
+                .leftJoin(project.client.user)
                 .where(searchAllCondition(keyword))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())

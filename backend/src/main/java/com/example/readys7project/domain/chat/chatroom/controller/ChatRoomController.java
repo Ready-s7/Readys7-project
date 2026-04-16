@@ -40,4 +40,16 @@ public class ChatRoomController {
         String email = userDetails.getEmail();
         return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, chatRoomService.getMyChatRooms(email, pageable)));
     }
+
+    // 채팅방 삭제
+    @DeleteMapping("/v1/chat/rooms/{roomId}")
+    public ResponseEntity<ApiResponseDto<Void>> deleteChatRoom(
+            @PathVariable Long roomId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        String email = userDetails.getEmail();
+        chatRoomService.deleteChatRoom(roomId, email);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                .body(ApiResponseDto.successWithNoContent());
+    }
 }

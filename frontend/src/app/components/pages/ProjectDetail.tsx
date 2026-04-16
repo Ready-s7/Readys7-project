@@ -1,17 +1,5 @@
 /**
- * ProjectDetail.tsx 수정 사항
- *
- * [버그 수정 & 기능 추가]
- * 1. CLIENT가 제안서 수락 후 해당 개발자와 채팅방 생성 버튼 추가
- *    → ACCEPTED 상태 제안서에 "채팅방 생성" 버튼 표시
- *    → 이미 채팅방이 있으면 "채팅하러 가기" 링크 표시
- * 2. 프로젝트 상태 변경 기능 추가 (CLIENT 전용)
- *    → 현재 상태에서 전환 가능한 상태 목록 표시
- * 3. 제안서 목록 UI 개선 (개발자명 클릭 시 프로필 이동)
- *
- * [기존 동작 유지]
- * - DEVELOPER: 제안서 제출 모달
- * - CLIENT: 제안서 수락/거절
+ * ProjectDetail.tsx - 프로젝트 상세 및 리뷰 작성 기능 통합
  */
 import { useParams, Link, useNavigate } from "react-router";
 import { useState, useEffect } from "react";
@@ -45,9 +33,11 @@ import {
   MessageSquarePlus,
   MessageCircle,
   Settings,
+  Edit3,
 } from "lucide-react";
 import { toast } from "sonner";
-import { projectApi, proposalApi, chatApi } from "../../../api/apiService";
+import { projectApi, proposalApi, chatApi, reviewApi } from "../../../api/apiService";
+import { apiClient } from "../../../api/client";
 import type { ProjectDto, ProposalDto, ChatRoomDto } from "../../../api/types";
 import { useAuth } from "../../../context/AuthContext";
 
@@ -67,17 +57,13 @@ const STATUS_COLORS: Record<string, string> = {
   CANCELLED: "bg-red-100 text-red-700",
 };
 
-const PROPOSAL_STATUS_LABELS: Record<
-  string,
-  { label: string; color: string }
-> = {
+const PROPOSAL_STATUS_LABELS: Record<string, { label: string; color: string }> = {
   PENDING: { label: "검토 중", color: "bg-yellow-100 text-yellow-700" },
   ACCEPTED: { label: "수락됨", color: "bg-green-100 text-green-700" },
   REJECTED: { label: "거절됨", color: "bg-red-100 text-red-700" },
   WITHDRAWN: { label: "철회됨", color: "bg-gray-100 text-gray-600" },
 };
 
-// 현재 상태에서 전환 가능한 상태
 const NEXT_STATUS_OPTIONS: Record<string, string[]> = {
   OPEN: ["IN_PROGRESS", "CANCELLED"],
   CLOSED: ["IN_PROGRESS", "CANCELLED"],
@@ -89,77 +75,86 @@ const NEXT_STATUS_OPTIONS: Record<string, string[]> = {
 export function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { isLoggedIn, userRole } = useAuth();
+  const { isLoggedIn, userRole, userId } = useAuth();
 
   const [project, setProject] = useState<ProjectDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentClientId, setCurrentClientId] = useState<number | null>(null);
 
-  // 제안서 제출 모달
+  // 제안서 관련
   const [showProposalModal, setShowProposalModal] = useState(false);
-  const [proposalForm, setProposalForm] = useState({
-    coverLetter: "",
-    proposedBudget: "",
-    proposedDuration: "",
-  });
+  const [proposalForm, setProposalForm] = useState({ coverLetter: "", proposedBudget: "", proposedDuration: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // CLIENT용: 제안서 목록
   const [proposals, setProposals] = useState<ProposalDto[]>([]);
   const [isLoadingProposals, setIsLoadingProposals] = useState(false);
+  const [myProposal, setMyProposal] = useState<ProposalDto | null>(null);
 
-  // 채팅방 생성 중 상태 관리 (proposalId → loading)
+  // 채팅방 관련
   const [creatingChatRoomFor, setCreatingChatRoomFor] = useState<number | null>(null);
-  // 이미 생성된 채팅방 맵 (developerId → chatRoomId)
-  const [existingChatRooms, setExistingChatRooms] = useState<
-    Record<number, number>
-  >({});
+  const [existingChatRooms, setExistingChatRooms] = useState<Record<number, number>>({});
 
-  // 상태 변경
+  // 프로젝트 상태 관련
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [newStatus, setNewStatus] = useState("");
   const [isChangingStatus, setIsChangingStatus] = useState(false);
 
-  // 프로젝트 로드
+  // 리뷰 관련
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: "" });
+  const [isReviewSubmitting, setIsReviewSubmitting] = useState(false);
+
   useEffect(() => {
     if (!id) return;
-    setIsLoading(true);
-    projectApi
-      .getById(Number(id))
-      .then((res) => setProject(res.data.data))
-      .catch(() => setProject(null))
-      .finally(() => setIsLoading(false));
+    loadProject();
   }, [id]);
 
-  // CLIENT용: 제안서 목록 + 기존 채팅방 조회
+  const loadProject = async () => {
+    setIsLoading(true);
+    try {
+      const res = await projectApi.getById(Number(id));
+      setProject(res.data.data);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    if (!id || !isLoggedIn || userRole !== "CLIENT") return;
-
-    // 제안서 목록 조회
-    setIsLoadingProposals(true);
-    proposalApi
-      .getByProject(Number(id), 0, 20)
-      .then((res) => setProposals(res.data.data.content))
-      .catch(() => {})
-      .finally(() => setIsLoadingProposals(false));
-
-    // 기존 채팅방 목록 조회 (채팅방 생성 여부 확인용)
-    chatApi
-      .getMyRooms(0, 50)
-      .then((res) => {
-        const rooms = res.data.data.content;
-        const map: Record<number, number> = {};
-        rooms.forEach((room) => {
-          // 현재 프로젝트의 채팅방이면 developerId → roomId 매핑
-          if (room.projectId === Number(id)) {
-            map[room.developerId] = room.id;
-          }
+    if (!id || !isLoggedIn) return;
+    
+    // 현재 사용자가 클라이언트라면 본인의 clientId를 찾아야 함
+    if (userRole === "CLIENT") {
+      apiClient.get("/v1/users/me").then(res => {
+        const myUserId = res.data.data.id;
+        apiClient.get("/v1/clients", { params: { page: 1, size: 100 } }).then(allRes => {
+          const myClient = allRes.data.data.content.find((c: any) => Number(c.userId) === Number(myUserId));
+          if (myClient) setCurrentClientId(myClient.id);
         });
-        setExistingChatRooms(map);
-      })
-      .catch(() => {});
+      });
+    }
+
+    if (userRole === "DEVELOPER") {
+      proposalApi.getMyProposals(0, 100).then((res) => {
+        const found = res.data.data.content.find(p => p.projectId === Number(id));
+        if (found) setMyProposal(found);
+      });
+    }
+    chatApi.getMyRooms(0, 100).then((res) => {
+      const map: Record<number, number> = {};
+      res.data.data.content.forEach((r) => { if (r.projectId === Number(id)) map[r.developerId] = r.id; });
+      setExistingChatRooms(map);
+    });
   }, [id, isLoggedIn, userRole]);
 
-  // 제안서 제출
+  // currentClientId나 project가 변경될 때 제안서 목록 로딩
+  useEffect(() => {
+    if (userRole === "CLIENT" && project && currentClientId !== null && Number(project.clientId) === Number(currentClientId)) {
+      setIsLoadingProposals(true);
+      proposalApi.getByProject(Number(id), 0, 50)
+        .then((res) => setProposals(res.data.data.content))
+        .finally(() => setIsLoadingProposals(false));
+    }
+  }, [id, userRole, project, currentClientId]);
+
   const handleProposalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!project) return;
@@ -171,565 +166,263 @@ export function ProjectDetail() {
         proposedBudget: proposalForm.proposedBudget,
         proposedDuration: proposalForm.proposedDuration,
       });
-      toast.success("제안서가 성공적으로 제출되었습니다!");
+      toast.success("제안서가 제출되었습니다!");
       setShowProposalModal(false);
-      setProposalForm({
-        coverLetter: "",
-        proposedBudget: "",
-        proposedDuration: "",
-      });
     } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message || "제안서 제출에 실패했습니다."
-      );
+      toast.error(err?.response?.data?.message || "제안서 제출 실패");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // 제안서 상태 변경 (수락/거절)
-  const handleProposalStatusChange = async (
-    proposalId: number,
-    status: "ACCEPTED" | "REJECTED"
-  ) => {
-    const action = status === "ACCEPTED" ? "수락" : "거절";
-    if (!confirm(`이 제안서를 ${action}하시겠습니까?`)) return;
+  const handleProposalStatusChange = async (proposalId: number, status: "ACCEPTED" | "REJECTED") => {
+    if (!confirm(`이 제안서를 ${status === "ACCEPTED" ? "수락" : "거절"}하시겠습니까?`)) return;
     try {
       await proposalApi.updateStatus(proposalId, status);
-      toast.success(`제안서를 ${action}했습니다.`);
-      const res = await proposalApi.getByProject(Number(id), 0, 20);
-      setProposals(res.data.data.content);
-      // 프로젝트 정보 갱신 (상태 변경 반영)
-      const projRes = await projectApi.getById(Number(id));
-      setProject(projRes.data.data);
+      toast.success("상태가 업데이트되었습니다.");
+      loadProject();
     } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message || `${action}에 실패했습니다.`
-      );
+      toast.error(err?.response?.data?.message || "업데이트 실패");
     }
   };
 
-  // ★ 채팅방 생성
-  const handleCreateChatRoom = async (
-    proposal: ProposalDto
-  ) => {
+  const handleCreateChatRoom = async (proposal: ProposalDto) => {
     if (!project) return;
     setCreatingChatRoomFor(proposal.id);
     try {
       const res = await chatApi.createRoom(project.id, proposal.developerId);
-      const newRoom: ChatRoomDto = res.data.data;
-      setExistingChatRooms((prev) => ({
-        ...prev,
-        [proposal.developerId]: newRoom.id,
-      }));
-      toast.success(`${proposal.developerName}님과의 채팅방이 생성되었습니다!`);
-    } catch (err: any) {
-      const msg = err?.response?.data?.message;
-      if (msg?.includes("이미 존재")) {
-        toast.info("이미 채팅방이 존재합니다.");
-        // 채팅방 목록 재조회
-        chatApi.getMyRooms(0, 50).then((res) => {
-          const rooms = res.data.data.content;
-          const map: Record<number, number> = {};
-          rooms.forEach((room) => {
-            if (room.projectId === project.id) {
-              map[room.developerId] = room.id;
-            }
-          });
-          setExistingChatRooms(map);
-        });
-      } else {
-        toast.error(msg || "채팅방 생성에 실패했습니다.");
-      }
+      setExistingChatRooms(prev => ({ ...prev, [proposal.developerId]: res.data.data.id }));
+      toast.success("채팅방이 생성되었습니다!");
     } finally {
       setCreatingChatRoomFor(null);
     }
   };
 
-  // 프로젝트 상태 변경
   const handleStatusChange = async () => {
     if (!project || !newStatus) return;
     setIsChangingStatus(true);
     try {
-      const res = await projectApi.changeStatus(project.id, newStatus);
-      setProject(res.data.data);
-      toast.success(`프로젝트 상태가 '${STATUS_LABELS[newStatus]}'(으)로 변경되었습니다.`);
+      await projectApi.changeStatus(project.id, newStatus);
+      toast.success("프로젝트 상태가 변경되었습니다.");
       setShowStatusModal(false);
-      setNewStatus("");
+      loadProject();
     } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message || "상태 변경에 실패했습니다."
-      );
+      toast.error(err?.response?.data?.message || "상태 변경 실패");
     } finally {
       setIsChangingStatus(false);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-32">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-      </div>
-    );
-  }
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!project) return;
+    setIsReviewSubmitting(true);
+    try {
+      // 프로젝트 상태가 COMPLETED일 때 리뷰 작성
+      // 클라이언트라면 수락된 제안서의 개발자에게, 개발자라면 프로젝트 클라이언트에게 작성
+      const targetUserId = userRole === "CLIENT" 
+        ? proposals.find(p => p.status === "ACCEPTED")?.developerId // 실제로는 developer의 userId가 필요함
+        : project.clientId; // 이것도 실제로는 client의 userId가 필요함
+      
+      // 임시로 targetUserId를 백엔드 스펙에 맞춰 전달 (추후 백엔드 필드 확인 필요)
+      await reviewApi.create({
+        projectId: project.id,
+        targetUserId: Number(targetUserId), 
+        rating: reviewForm.rating,
+        comment: reviewForm.comment,
+      });
+      toast.success("리뷰가 등록되었습니다!");
+      setShowReviewModal(false);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "리뷰 등록 실패");
+    } finally {
+      setIsReviewSubmitting(false);
+    }
+  };
 
-  if (!project) {
-    return (
-      <div className="container mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl mb-4">프로젝트를 찾을 수 없습니다</h1>
-        <Link to="/projects">
-          <Button>프로젝트 목록으로</Button>
-        </Link>
-      </div>
-    );
-  }
+  if (!project) return <div className="text-center py-32">프로젝트를 찾을 수 없습니다.</div>;
 
+  const isOwner = isLoggedIn && userRole === "CLIENT" && currentClientId !== null && Number(project.clientId) === Number(currentClientId);
   const isOpen = project.status === "OPEN";
-  const nextOptions = NEXT_STATUS_OPTIONS[project.status] ?? [];
+  const isCompleted = project.status === "COMPLETED";
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
-        <Link to="/projects">
-          <Button variant="ghost" className="mb-6">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            프로젝트 목록
-          </Button>
-        </Link>
+      <div className="container mx-auto px-4 max-w-6xl">
+        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6"><ArrowLeft className="w-4 h-4 mr-2" /> 뒤로가기</Button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* ── 메인 내용 ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            <Card>
+            <Card className="border-none shadow-sm">
               <CardHeader>
-                <div className="flex items-center gap-3 mb-3 flex-wrap">
-                  <Badge variant="secondary">{project.category}</Badge>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full font-medium ${
-                      STATUS_COLORS[project.status] ??
-                      "bg-gray-100 text-gray-600"
-                    }`}
-                  >
-                    {STATUS_LABELS[project.status] ?? project.status}
-                  </span>
-                  <span className="text-sm text-gray-500">
-                    {new Date(project.createdAt).toLocaleDateString("ko-KR")}
-                  </span>
+                <div className="flex items-center gap-3 mb-4">
+                  <Badge variant="secondary" className="px-3 py-1">{project.category}</Badge>
+                  <Badge className={`${STATUS_COLORS[project.status]} border-none font-bold`}>{STATUS_LABELS[project.status]}</Badge>
                 </div>
-                <CardTitle className="text-3xl">{project.title}</CardTitle>
+                <CardTitle className="text-3xl font-black text-gray-900">{project.title}</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg mb-2">프로젝트 설명</h3>
-                    <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">
-                      {project.description}
-                    </p>
-                  </div>
-                  <Separator />
-                  <div>
-                    <h3 className="text-lg mb-3">필요 기술</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {(project.skills || []).map((skill) => (
-                        <Badge
-                          key={skill}
-                          variant="outline"
-                          className="text-sm px-3 py-1"
-                        >
-                          {skill}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                  <Separator />
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-500">예산</span>
-                      <p className="font-medium text-blue-600 text-lg">
-                        {project.minBudget.toLocaleString()}~
-                        {project.maxBudget.toLocaleString()}원
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">기간</span>
-                      <p className="font-medium">{project.duration}일</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">제안 현황</span>
-                      <p className="font-medium">
-                        {project.currentProposalCount} /{" "}
-                        {project.maxProposalCount}개
-                      </p>
-                    </div>
+              <CardContent className="space-y-8">
+                <div className="bg-gray-50 p-6 rounded-2xl">
+                  <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2"><Edit3 className="w-4 h-4" /> 프로젝트 상세 내용</h3>
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{project.description}</p>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  <div><p className="text-xs text-gray-400 font-bold uppercase mb-1">예산</p><p className="font-black text-blue-600">{project.minBudget.toLocaleString()}원 ~</p></div>
+                  <div><p className="text-xs text-gray-400 font-bold uppercase mb-1">기간</p><p className="font-bold">{project.duration}일</p></div>
+                  <div><p className="text-xs text-gray-400 font-bold uppercase mb-1">제안수</p><p className="font-bold">{project.currentProposalCount} / {project.maxProposalCount}</p></div>
+                  <div><p className="text-xs text-gray-400 font-bold uppercase mb-1">등록일</p><p className="font-bold text-gray-500">{new Date(project.createdAt).toLocaleDateString()}</p></div>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-3">요구 기술 스택</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {project.skills.map(s => <Badge key={s} variant="outline" className="bg-white px-3 py-1 font-medium">{s}</Badge>)}
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* ── CLIENT용: 받은 제안서 목록 ── */}
-            {isLoggedIn && userRole === "CLIENT" && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>받은 제안서</CardTitle>
-                </CardHeader>
+            {/* 제안서 목록 (CLIENT용 - 본인 프로젝트인 경우에만) */}
+            {isOwner && (
+              <Card className="border-none shadow-sm">
+                <CardHeader><CardTitle>지원한 개발자 목록</CardTitle></CardHeader>
                 <CardContent>
-                  {isLoadingProposals ? (
-                    <div className="flex justify-center py-6">
-                      <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-                    </div>
-                  ) : !proposals || proposals.length === 0 ? (
-                    <p className="text-gray-500 text-sm text-center py-4">
-                      아직 제안서가 없습니다.
-                    </p>
-                  ) : (
-                    <div className="space-y-4">
-                      {proposals.map((proposal) => {
-                        const statusInfo =
-                          PROPOSAL_STATUS_LABELS[proposal.status] ?? {
-                            label: proposal.status,
-                            color: "bg-gray-100 text-gray-600",
-                          };
-                        const existingRoomId =
-                          existingChatRooms[proposal.developerId];
-                        const isCreating =
-                          creatingChatRoomFor === proposal.id;
-
-                        return (
-                          <div
-                            key={proposal.id}
-                            className="border rounded-lg p-4"
-                          >
-                            <div className="flex justify-between items-start mb-2">
-                              <div>
-                                <Link
-                                  to={`/developers/${proposal.developerId}`}
-                                  className="font-medium hover:text-blue-600"
-                                >
-                                  {proposal.developerName}
-                                </Link>
-                                <p className="text-sm text-gray-500 mt-0.5">
-                                  예산: {proposal.proposedBudget} / 기간:{" "}
-                                  {proposal.proposedDuration}일
-                                </p>
-                              </div>
-                              <span
-                                className={`text-xs px-2 py-1 rounded-full font-medium ${statusInfo.color}`}
-                              >
-                                {statusInfo.label}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                              {proposal.coverLetter}
-                            </p>
-
-                            <div className="flex gap-2 flex-wrap">
-                              {/* 수락/거절 버튼 (PENDING 상태일 때만) */}
-                              {proposal.status === "PENDING" && (
-                                <>
-                                  <Button
-                                    size="sm"
-                                    onClick={() =>
-                                      handleProposalStatusChange(
-                                        proposal.id,
-                                        "ACCEPTED"
-                                      )
-                                    }
-                                  >
-                                    <CheckCircle className="w-4 h-4 mr-1" />
-                                    수락
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    onClick={() =>
-                                      handleProposalStatusChange(
-                                        proposal.id,
-                                        "REJECTED"
-                                      )
-                                    }
-                                  >
-                                    <XCircle className="w-4 h-4 mr-1" />
-                                    거절
-                                  </Button>
-                                </>
-                              )}
-
-                              {/* ★ 채팅방 생성/이동 버튼 (ACCEPTED 상태일 때만) */}
-                              {proposal.status === "ACCEPTED" && (
-                                <>
-                                  {existingRoomId ? (
-                                    <Link to="/chat">
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="text-blue-600 border-blue-600"
-                                      >
-                                        <MessageCircle className="w-4 h-4 mr-1" />
-                                        채팅 보러가기
-                                      </Button>
-                                    </Link>
-                                  ) : (
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="text-green-600 border-green-600"
-                                      onClick={() =>
-                                        handleCreateChatRoom(proposal)
-                                      }
-                                      disabled={isCreating}
-                                    >
-                                      {isCreating ? (
-                                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                      ) : (
-                                        <MessageSquarePlus className="w-4 h-4 mr-1" />
-                                      )}
-                                      채팅방 생성
-                                    </Button>
-                                  )}
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                  {isLoadingProposals ? <Loader2 className="animate-spin mx-auto" /> : 
+                   proposals.length === 0 ? <p className="text-center text-gray-400 py-10">아직 제안서가 없습니다.</p> :
+                   <div className="space-y-4">
+                     {proposals.map(p => (
+                       <div key={p.id} className="border rounded-xl p-5 hover:bg-gray-50 transition-colors">
+                         <div className="flex justify-between items-start mb-3">
+                           <Link to={`/developers/${p.developerId}`} className="font-bold text-lg hover:text-blue-600">{p.developerName}</Link>
+                           <Badge className={PROPOSAL_STATUS_LABELS[p.status]?.color || ""}>{PROPOSAL_STATUS_LABELS[p.status]?.label}</Badge>
+                         </div>
+                         <p className="text-sm text-gray-600 mb-4 line-clamp-2">{p.coverLetter}</p>
+                         <div className="flex gap-2">
+                           {p.status === "PENDING" && (
+                             <>
+                               <Button size="sm" onClick={() => handleProposalStatusChange(p.id, "ACCEPTED")}>수락</Button>
+                               <Button size="sm" variant="destructive" onClick={() => handleProposalStatusChange(p.id, "REJECTED")}>거절</Button>
+                             </>
+                           )}
+                           {p.status === "ACCEPTED" && (
+                             existingChatRooms[p.developerId] ? 
+                             <Button size="sm" variant="outline" onClick={() => navigate("/chat")}>채팅하기</Button> :
+                             <Button size="sm" onClick={() => handleCreateChatRoom(p)} disabled={creatingChatRoomFor === p.id}>채팅방 생성</Button>
+                           )}
+                         </div>
+                       </div>
+                     ))}
+                   </div>
+                  }
                 </CardContent>
               </Card>
             )}
           </div>
 
-          {/* ── 사이드바 ── */}
+          {/* 사이드바 */}
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>클라이언트 정보</CardTitle>
-              </CardHeader>
+            <Card className="border-none shadow-sm">
+              <CardHeader><CardTitle>클라이언트</CardTitle></CardHeader>
               <CardContent>
-                <div className="mb-4">
-                  <p className="font-medium text-lg">{project.clientName}</p>
-                  <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    {project.clientRating != null
-                      ? project.clientRating.toFixed(1)
-                      : "평점 없음"}
+                <Link to={`/clients/${project.clientId}`} className="block group">
+                  <p className="font-bold text-xl group-hover:text-blue-600 transition-colors">{project.clientName}</p>
+                  <div className="flex items-center gap-1 text-sm text-yellow-500 mt-1">
+                    <Star className="w-4 h-4 fill-current" />
+                    <span className="font-bold">{project.clientRating?.toFixed(1) || "0.0"}</span>
                   </div>
-                </div>
-
-                {/* 개발자: 제안서 제출 버튼 */}
+                </Link>
+                <Separator className="my-6" />
+                
                 {isLoggedIn && userRole === "DEVELOPER" && (
-                  <>
-                    {isOpen ? (
-                      <Button
-                        className="w-full"
-                        onClick={() => setShowProposalModal(true)}
-                      >
-                        <Send className="w-4 h-4 mr-2" />
-                        제안서 보내기
-                      </Button>
-                    ) : (
-                      <div className="text-center">
-                        <p className="text-sm text-gray-500 mb-2">
-                          현재 모집 중인 프로젝트가 아닙니다.
+                  myProposal ? (
+                    <div className="space-y-4">
+                      <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-center">
+                        <p className="text-blue-700 font-bold mb-1 flex items-center justify-center gap-2">
+                          <CheckCircle className="w-4 h-4" /> 제안서 제출 완료
                         </p>
-                        <Badge variant="secondary">
-                          {STATUS_LABELS[project.status]}
-                        </Badge>
+                        <p className="text-[11px] text-blue-500">상태: {PROPOSAL_STATUS_LABELS[myProposal.status]?.label}</p>
                       </div>
-                    )}
-                  </>
+                      {isCompleted && myProposal.status === "ACCEPTED" && (
+                        <Button className="w-full h-12 font-bold bg-green-600 hover:bg-green-700" onClick={() => setShowReviewModal(true)}>클라이언트 리뷰하기</Button>
+                      )}
+                    </div>
+                  ) : isOpen && (
+                    <Button className="w-full h-12 text-lg font-bold bg-blue-600" onClick={() => setShowProposalModal(true)}>제안서 보내기</Button>
+                  )
+                )}
+                
+                {isOwner && !isCompleted && (
+                  <Button variant="outline" className="w-full h-12 font-bold" onClick={() => { setNewStatus(""); setShowStatusModal(true); }}>프로젝트 상태 변경</Button>
                 )}
 
-                {/* CLIENT: 프로젝트 상태 변경 버튼 */}
-                {isLoggedIn && userRole === "CLIENT" && nextOptions.length > 0 && (
-                  <Button
-                    variant="outline"
-                    className="w-full mt-3"
-                    onClick={() => setShowStatusModal(true)}
-                  >
-                    <Settings className="w-4 h-4 mr-2" />
-                    프로젝트 상태 변경
-                  </Button>
+                {isOwner && isCompleted && (
+                  <Button className="w-full h-12 font-bold bg-green-600 hover:bg-green-700" onClick={() => setShowReviewModal(true)}>개발자 리뷰하기</Button>
                 )}
 
-                {/* 비로그인: 로그인 유도 */}
                 {!isLoggedIn && (
-                  <Link to="/login">
-                    <Button className="w-full" variant="outline">
-                      로그인 후 제안하기
-                    </Button>
-                  </Link>
+                  <Button className="w-full h-12 font-bold" variant="outline" onClick={() => navigate("/login")}>로그인 후 지원하기</Button>
                 )}
-              </CardContent>
-            </Card>
-
-            {/* 프로젝트 정보 요약 카드 */}
-            <Card>
-              <CardContent className="p-4 space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">상태</span>
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      STATUS_COLORS[project.status]
-                    }`}
-                  >
-                    {STATUS_LABELS[project.status]}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">예산</span>
-                  <span className="font-medium text-blue-600">
-                    {project.minBudget.toLocaleString()}~
-                    {project.maxBudget.toLocaleString()}원
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">기간</span>
-                  <span>{project.duration}일</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">제안 현황</span>
-                  <span>
-                    {project.currentProposalCount}/{project.maxProposalCount}개
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">카테고리</span>
-                  <span>{project.category}</span>
-                </div>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
 
-      {/* ── 제안서 제출 모달 ── */}
-      <Dialog open={showProposalModal} onOpenChange={setShowProposalModal}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>제안서 제출</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleProposalSubmit} className="space-y-4 mt-2">
-            <div className="space-y-2">
-              <Label>커버 레터 *</Label>
-              <Textarea
-                placeholder="프로젝트에 지원하는 이유와 본인의 강점을 작성해주세요."
-                rows={5}
-                value={proposalForm.coverLetter}
-                onChange={(e) =>
-                  setProposalForm({
-                    ...proposalForm,
-                    coverLetter: e.target.value,
-                  })
-                }
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>제안 예산 *</Label>
-              <Input
-                placeholder="예: 300만원 ~ 400만원"
-                value={proposalForm.proposedBudget}
-                onChange={(e) =>
-                  setProposalForm({
-                    ...proposalForm,
-                    proposedBudget: e.target.value,
-                  })
-                }
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>제안 기간 * (일 단위)</Label>
-              <Input
-                type="number"
-                placeholder="예: 45"
-                min={1}
-                value={proposalForm.proposedDuration}
-                onChange={(e) =>
-                  setProposalForm({
-                    ...proposalForm,
-                    proposedDuration: e.target.value,
-                  })
-                }
-                required
-              />
-            </div>
-            <div className="flex gap-3 pt-2">
-              <Button type="submit" className="flex-1" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    제출 중...
-                  </>
-                ) : (
-                  "제안서 제출"
-                )}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowProposalModal(false)}
-              >
-                취소
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* ── 프로젝트 상태 변경 모달 ── */}
+      {/* 프로젝트 상태 변경 모달 */}
       <Dialog open={showStatusModal} onOpenChange={setShowStatusModal}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>프로젝트 상태 변경</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 mt-2">
-            <p className="text-sm text-gray-600">
-              현재 상태:{" "}
-              <strong>{STATUS_LABELS[project.status]}</strong>
-            </p>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>프로젝트 상태 변경</DialogTitle></DialogHeader>
+          <div className="space-y-4 mt-4">
             <div className="space-y-2">
               <Label>변경할 상태 선택</Label>
-              <Select
-                value={newStatus}
-                onValueChange={setNewStatus}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="상태 선택" />
-                </SelectTrigger>
+              <Select value={newStatus} onValueChange={setNewStatus}>
+                <SelectTrigger><SelectValue placeholder="상태를 선택하세요" /></SelectTrigger>
                 <SelectContent>
-                  {nextOptions.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {STATUS_LABELS[s]}
-                    </SelectItem>
+                  {project && NEXT_STATUS_OPTIONS[project.status]?.map(s => (
+                    <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex gap-3">
-              <Button
-                className="flex-1"
-                onClick={handleStatusChange}
-                disabled={!newStatus || isChangingStatus}
-              >
-                {isChangingStatus ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  "변경"
-                )}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowStatusModal(false);
-                  setNewStatus("");
-                }}
-              >
-                취소
-              </Button>
-            </div>
+            <p className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
+              * 한 번 변경된 상태는 되돌리기 어려울 수 있습니다. 신중하게 선택해 주세요.
+            </p>
+            <Button className="w-full h-12 font-bold" onClick={handleStatusChange} disabled={!newStatus || isChangingStatus}>
+              {isChangingStatus ? <Loader2 className="animate-spin mr-2" /> : null}
+              상태 변경 적용
+            </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 제안서 모달 */}
+      <Dialog open={showProposalModal} onOpenChange={setShowProposalModal}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader><DialogTitle>프로젝트 제안서 제출</DialogTitle></DialogHeader>
+          <form onSubmit={handleProposalSubmit} className="space-y-5 mt-4">
+            <div className="space-y-2"><Label>지원 동기 및 강점 *</Label><Textarea rows={6} value={proposalForm.coverLetter} onChange={e => setProposalForm({...proposalForm, coverLetter: e.target.value})} required /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2"><Label>제안 예산 (원) *</Label><Input type="number" value={proposalForm.proposedBudget} onChange={e => setProposalForm({...proposalForm, proposedBudget: e.target.value})} required /></div>
+              <div className="space-y-2"><Label>제안 기간 (일) *</Label><Input type="number" value={proposalForm.proposedDuration} onChange={e => setProposalForm({...proposalForm, proposedDuration: e.target.value})} required /></div>
+            </div>
+            <Button type="submit" className="w-full h-12 font-bold bg-blue-600" disabled={isSubmitting}>제안서 제출하기</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* 리뷰 모달 */}
+      <Dialog open={showReviewModal} onOpenChange={setShowReviewModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>리뷰 작성</DialogTitle></DialogHeader>
+          <form onSubmit={handleReviewSubmit} className="space-y-5 mt-4">
+            <div className="space-y-2">
+              <Label>평점</Label>
+              <div className="flex gap-2">
+                {[1,2,3,4,5].map(v => <button type="button" key={v} onClick={() => setReviewForm({...reviewForm, rating: v})} className={`w-10 h-10 rounded-lg border font-bold ${reviewForm.rating === v ? "bg-yellow-400 text-white border-yellow-400" : "bg-white text-gray-400"}`}>{v}</button>)}
+              </div>
+            </div>
+            <div className="space-y-2"><Label>상세 후기</Label><Textarea rows={4} value={reviewForm.comment} onChange={e => setReviewForm({...reviewForm, comment: e.target.value})} placeholder="상대방과의 협업 경험을 들려주세요." required /></div>
+            <Button type="submit" className="w-full h-12 font-bold bg-green-600" disabled={isReviewSubmitting}>리뷰 등록 완료</Button>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

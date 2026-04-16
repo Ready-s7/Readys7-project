@@ -214,7 +214,7 @@ public class ClientService {
     // 로그인 유저 권한 체크
     private void validateRole(User user) {
         UserRole userRole = user.getUserRole();
-        if(!(UserRole.ADMIN.equals(userRole) || UserRole.CLIENT.equals(userRole))) {
+        if(!(UserRole.ADMIN.equals(userRole) || UserRole.CLIENT.equals(userRole) || UserRole.DEVELOPER.equals(userRole))) {
             throw new ClientException(ErrorCode.USER_FORBIDDEN);
         }
     }
