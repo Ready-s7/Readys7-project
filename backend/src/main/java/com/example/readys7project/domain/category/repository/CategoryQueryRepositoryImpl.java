@@ -2,15 +2,17 @@ package com.example.readys7project.domain.category.repository;
 
 import com.example.readys7project.domain.category.entity.Category;
 import com.example.readys7project.domain.category.entity.QCategory;
-import com.example.readys7project.domain.search.dto.response.CategoryPopularSearchResponseDto;
+import com.example.readys7project.domain.search.dto.response.CategoriesTotalSearchResponseDto;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 
 import java.util.List;
 
@@ -62,37 +64,59 @@ public class CategoryQueryRepositoryImpl implements CategoryQueryRepository {
                 .fetch();
     }
 
+    // 통합 검색 페이징 구현
     @Override
-    public Page<CategoryPopularSearchResponseDto> categoriesPopularSearch(String keyword, Pageable pageable) {
+    public Page<CategoriesTotalSearchResponseDto> categoriesTotalSearch(String keyword, Pageable pageable) {
 
-        List<CategoryPopularSearchResponseDto> content = queryFactory
-                .select(Projections.constructor(CategoryPopularSearchResponseDto.class,
+        List<CategoriesTotalSearchResponseDto> content = queryFactory
+                .select(Projections.constructor(CategoriesTotalSearchResponseDto.class,
                         category.id,
                         category.name,
                         category.icon
                 ))
                 .from(category)
-                .where(nameLike(keyword))
+                .where(searchCondition(keyword))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .orderBy(category.displayOrder.asc())
                 .fetch();
 
-        Long total = queryFactory
+        // 카운트 쿼리 분리
+        JPAQuery<Long> countQuery = queryFactory
                 .select(category.count())
                 .from(category)
-                .where(nameLike(keyword))
-                .fetchOne();
+                .where(searchCondition(keyword));
 
-        long totalCount = total != null ? total : 0L;
+        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
 
-        return new PageImpl<>(content, pageable, totalCount);
     }
 
+    private Predicate searchCondition(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return null;
+        }
+
+        String trimmedKeyword = keyword.trim();
+        BooleanBuilder builder = new BooleanBuilder();
+
+        builder.or(nameLike(trimmedKeyword));
+        builder.or(descriptionLike(trimmedKeyword));
+
+        return builder.getValue();
+    }
+
+    // 카테고리 이름 검색 조건
     private BooleanExpression nameLike(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
             return null;
         }
         return category.name.containsIgnoreCase(keyword);
+    }
+
+    private BooleanExpression descriptionLike(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return null;
+        }
+        return category.description.containsIgnoreCase(keyword);
     }
 }
