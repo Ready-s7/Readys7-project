@@ -42,7 +42,7 @@ public class ReviewController {
             @RequestParam(required = false) Integer minRating,
             @RequestParam(required = false) Integer maxRating,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "5") int size,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
         String email = customUserDetails.getEmail();
@@ -59,7 +59,7 @@ public class ReviewController {
             @RequestParam(required = false) Integer minRating,
             @RequestParam(required = false) Integer maxRating,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "5") int size,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     )
     {

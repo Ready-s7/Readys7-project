@@ -129,7 +129,7 @@ export function AdminDashboard() {
     try {
       await adminApi.updateStatus(adminId, action);
       toast.success(action === "APPROVED" ? "관리자를 승인했습니다." : "관리자를 거절했습니다.");
-      setPendingAdmins((prev) => prev.filter((a) => a.id !== adminId));
+      setPendingAdmins((prev) => prev.filter((a) => a.adminId !== adminId));
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "처리에 실패했습니다.");
     } finally {
@@ -339,8 +339,8 @@ export function AdminDashboard() {
                           <div className="flex gap-2">
                             <Button
                               size="sm"
-                              onClick={() => handleAdminAction(admin.id, "APPROVED")}
-                              disabled={processingId === admin.id}
+                              onClick={() => handleAdminAction(admin.adminId!, "APPROVED")}
+                              disabled={processingId === admin.adminId}
                             >
                               {processingId === admin.id ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -352,8 +352,8 @@ export function AdminDashboard() {
                             <Button
                               size="sm"
                               variant="destructive"
-                              onClick={() => handleAdminAction(admin.id, "REJECTED")}
-                              disabled={processingId === admin.id}
+                              onClick={() => handleAdminAction(admin.adminId!, "REJECTED")}
+                              disabled={processingId === admin.adminId}
                             >
                               <XCircle className="w-4 h-4 mr-1" />
                               거절
