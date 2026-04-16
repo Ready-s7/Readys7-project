@@ -15,10 +15,10 @@ public class SearchRanking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(name = "keyword", unique = true, nullable = false)
     private String keyword;
 
-    @Column(nullable = false)
+    @Column(name = "search_count", nullable = false)
     private Integer searchCount;
 
     @Column(name = "is_deleted")
