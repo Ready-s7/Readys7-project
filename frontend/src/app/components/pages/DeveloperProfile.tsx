@@ -88,22 +88,27 @@ export function DeveloperProfile() {
     if (!id) return;
     setIsLoading(true);
     try {
-      const [devRes, reviewRes, portRes] = await Promise.allSettled([
+      const promises: Promise<any>[] = [
         developerApi.getById(Number(id)),
-        reviewApi.getByDeveloper(Number(id), { page: 0, size: 20 }),
         portfolioApi.getByDeveloper(Number(id), undefined, 1, 10),
-      ]);
-      if (devRes.status === "fulfilled") {
-        const dev = devRes.value.data.data;
-        setDeveloper(dev);
-        // 개발자의 userId를 찾기 (리뷰 작성 시 targetUserId 필요)
-        // 백엔드에 별도 엔드포인트가 없으므로 userEmail 기반으로 찾거나,
-        // 여기서는 개발자 ID를 사용 (백엔드에서 개발자 ID 기반으로 처리)
+      ];
+
+      // 로그인한 경우에만 리뷰 데이터 요청
+      if (isLoggedIn) {
+        promises.push(reviewApi.getByDeveloper(Number(id), { page: 1, size: 20 }));
       }
-      if (reviewRes.status === "fulfilled")
-        setReviews(reviewRes.value.data.data.content);
-      if (portRes.status === "fulfilled")
-        setPortfolios(portRes.value.data.data.content);
+
+      const results = await Promise.allSettled(promises);
+
+      if (results[0].status === "fulfilled") {
+        setDeveloper(results[0].value.data.data);
+      }
+      if (results[1].status === "fulfilled") {
+        setPortfolios(results[1].value.data.data.content);
+      }
+      if (isLoggedIn && results[2] && results[2].status === "fulfilled") {
+        setReviews(results[2].value.data.data.content);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -357,7 +362,15 @@ export function DeveloperProfile() {
                     )}
                   </CardHeader>
                   <CardContent>
-                    {(reviews?.length || 0) > 0 ? (
+                    {!isLoggedIn ? (
+                      <div className="text-center py-12 text-gray-500">
+                        <Star className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                        <p>리뷰 목록은 로그인 후 확인할 수 있습니다.</p>
+                        <Link to="/login">
+                          <Button size="sm" variant="outline" className="mt-4">로그인하기</Button>
+                        </Link>
+                      </div>
+                    ) : (reviews?.length || 0) > 0 ? (
                       <div className="space-y-6">
                         {reviews.map((review) => (
                           <div key={review.id} className="border-b pb-6 last:border-0">
