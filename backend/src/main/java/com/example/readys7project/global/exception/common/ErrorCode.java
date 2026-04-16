@@ -75,7 +75,7 @@ public enum ErrorCode {
 
     // PopularSearch
     SEARCH_LENGTH_TOO_LONG(HttpStatus.BAD_REQUEST, "검색어 최대 길이를 초과했습니다."),
-    SEARCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "검색에 서비스 이용 중 서버 에러가 발생했습니다.");
+    SEARCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "검색 서비스 이용 중 서버 에러가 발생했습니다.");
 
     private final HttpStatus status;
     private final String message;

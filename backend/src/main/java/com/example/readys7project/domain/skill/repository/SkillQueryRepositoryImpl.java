@@ -1,19 +1,22 @@
 package com.example.readys7project.domain.skill.repository;
 
-import com.example.readys7project.domain.search.dto.response.SkillPopularSearchResponseDto;
+import com.example.readys7project.domain.search.dto.response.SkillsTotalSearchResponseDto;
 import com.example.readys7project.domain.skill.entity.QSkill;
 import com.example.readys7project.domain.skill.entity.Skill;
 import com.example.readys7project.domain.skill.enums.SkillCategory;
 import com.example.readys7project.domain.user.admin.entity.QAdmin;
 import com.example.readys7project.domain.user.auth.entity.QUser;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -85,44 +88,68 @@ public class SkillQueryRepositoryImpl implements SkillQueryRepository{
         return new PageImpl<>(content, pageable, total == null ? 0 : total);
     }
 
-    // 인기 검색 페이징
+    // 통합 검색 페이징
     @Override
-    public Page<SkillPopularSearchResponseDto> skillsPopularSearch(String keyword, Pageable pageable) {
+    public Page<SkillsTotalSearchResponseDto> skillsTotalSearch(String keyword, Pageable pageable) {
 
         // 데이터 조회
-        List<SkillPopularSearchResponseDto> content = jpaQueryFactory
-                .select(Projections.constructor(SkillPopularSearchResponseDto.class,
+        List<SkillsTotalSearchResponseDto> content = jpaQueryFactory
+                .select(Projections.constructor(SkillsTotalSearchResponseDto.class,
                         skill.id,
                         skill.name,
                         skill.skillCategory
                 ))
                 .from(skill)
-                .where(nameLike(keyword))
+                .where(searchCondition(keyword))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .orderBy(skill.name.asc()) // 가,나,다 순 알파벳 정렬
                 .fetch();
 
-        // 전체 데이터 개수 조회
-        Long total = jpaQueryFactory
+        // 카운트 쿼리 분리 (지연 로딩)
+        JPAQuery<Long> contQuery = jpaQueryFactory
                 .select(skill.count())
                 .from(skill)
-                .where(nameLike(keyword))
-                .fetchOne();
+                .where(searchCondition(keyword));
 
-        // 데이터 개수 조회 결과가 없을 수도 있으니, 방어코드
-        long totalCount = total != null ? total : 0L;
-
-        // PageImpl로 감싸서 반환
-        return new PageImpl<>(content, pageable, totalCount);
+        return PageableExecutionUtils.getPage(content, pageable, contQuery::fetchOne);
     }
 
-    // BooleanExpression (where 절에 활용)
+    private Predicate searchCondition(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return null;
+        }
+
+        // 미리 trim처리
+        String trimmedKeyword = keyword.trim();
+
+        BooleanBuilder builder = new BooleanBuilder();
+
+        // 기술 이름 검색 (Java, React 등등)
+        builder.or(nameLike(trimmedKeyword));
+        // 카테고리 이름 검색 (Backend, Frontend 등등)
+        builder.or(categoryNameLike(trimmedKeyword));
+
+        return builder.getValue();
+
+    }
+
+    // Skill 이름 검색 조건
     private BooleanExpression nameLike(String keyword) {
         // 검색 키워드가 없으면 그냥 리턴해주고, 포함되어있으면 해당 키워드 리턴해줌
         if (keyword == null || keyword.trim().isEmpty()) {
             return null;
         }
-        return skill.name.contains(keyword);
+        return skill.name.containsIgnoreCase(keyword);
+    }
+
+    // SkillCategory 검색 조건
+    private BooleanExpression categoryNameLike(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return null;
+        }
+        // stringValue -> Enum 타입을 String으로 변환환해줌
+        // Enum 타입의 SkillCategory를 검색 조건에 포함시키기 위해 stringValue()로 변환
+        return skill.skillCategory.stringValue().containsIgnoreCase(keyword);
     }
 }

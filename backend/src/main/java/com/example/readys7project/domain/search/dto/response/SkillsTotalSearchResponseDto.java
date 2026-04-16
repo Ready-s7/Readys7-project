@@ -4,7 +4,7 @@ import com.example.readys7project.domain.skill.enums.SkillCategory;
 import lombok.Builder;
 
 @Builder
-public record SkillPopularSearchResponseDto (
+public record SkillsTotalSearchResponseDto(
 
         Long id,
 
