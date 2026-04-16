@@ -1,12 +1,5 @@
 /**
- * apiService.ts (전면 수정판)
- *
- * 주요 수정 사항:
- * 1. projectApi.changeStatus - params가 아닌 body로 status 전달 (백엔드 @RequestBody)
- * 2. portfolioApi - 수정/삭제를 portfolioId 기반으로 수정 (백엔드 PathVariable 사용)
- * 3. developerApi.getMyProjects - 올바른 엔드포인트 사용
- * 4. adminApi.getPendingList - 페이지 파라미터 수정
- * 5. searchApi 추가 - 통합검색 및 인기검색어
+ * apiService.ts - 전면 최적화판
  */
 import { apiClient } from "./client";
 import type {
@@ -26,6 +19,9 @@ import type {
     PortfolioDto,
     ClientDto,
     ClientPageResponse,
+    CsChatRoomDto,
+    PopularRankingResponseDto,
+    TotalSearchResponseDto,
 } from "./types";
 
 // ─────────────────────────────────────────────────────────────
@@ -105,11 +101,10 @@ export const projectApi = {
     delete: (projectId: number) =>
         apiClient.delete(`/v1/projects/${projectId}`),
 
-    // ★ 수정: 백엔드가 @RequestBody를 기대하므로 body로 전송
     changeStatus: (projectId: number, status: string) =>
         apiClient.patch<SuccessResponse<ProjectDto>>(
             `/v1/projects/${projectId}/status`,
-            { status }  // params가 아닌 body
+            { status }
         ),
 };
 
@@ -151,7 +146,6 @@ export const developerApi = {
     ) =>
         apiClient.put<SuccessResponse<DeveloperDto>>("/v1/developers/profile", data),
 
-    // ★ 수정: 올바른 엔드포인트 /v1/developers/me/my-projects
     getMyProjects: (page = 0, size = 10) =>
         apiClient.get<SuccessResponse<PageResponse<ProjectDto>>>(
             "/v1/developers/me/my-projects",
@@ -280,6 +274,9 @@ export const chatApi = {
             developerId,
         }),
 
+    deleteRoom: (roomId: number) =>
+        apiClient.delete(`/v1/chat/rooms/${roomId}`),
+
     getMyRooms: (page = 0, size = 20) =>
         apiClient.get<SuccessResponse<PageResponse<ChatRoomDto>>>(
             "/v1/chat/rooms",
@@ -326,7 +323,6 @@ export const skillApi = {
 
 // ─────────────────────────────────────────────────────────────
 // 포트폴리오 API
-// ★ 수정: 수정/삭제는 portfolioId PathVariable 기반
 // ─────────────────────────────────────────────────────────────
 export const portfolioApi = {
     getByDeveloper: (developerId: number, skill?: string, page = 1, size = 10) =>
@@ -344,7 +340,6 @@ export const portfolioApi = {
     }) =>
         apiClient.post<SuccessResponse<PortfolioDto>>("/v1/portfolios", data),
 
-    // ★ 수정: portfolioId를 PathVariable로 전송
     update: (
         portfolioId: number,
         data: {
@@ -360,7 +355,6 @@ export const portfolioApi = {
             data
         ),
 
-    // ★ 수정: portfolioId를 PathVariable로 전송
     delete: (portfolioId: number) =>
         apiClient.delete(`/v1/portfolios/${portfolioId}`),
 };
@@ -369,7 +363,6 @@ export const portfolioApi = {
 // 관리자 API
 // ─────────────────────────────────────────────────────────────
 export const adminApi = {
-    // ★ 수정: 페이지 파라미터를 page=1부터 시작
     getPendingList: (page = 1, size = 10) =>
         apiClient.get<SuccessResponse<AdminListResponse>>(
             "/v1/admins",
@@ -387,12 +380,45 @@ export const adminApi = {
 };
 
 // ─────────────────────────────────────────────────────────────
-// 검색 API (신규 추가)
+// 검색 API
 // ─────────────────────────────────────────────────────────────
 export const searchApi = {
-    // 통합 검색 (인기검색어 기반)
-    getPopular: (keyword?: string, page = 0, size = 5) =>
-        apiClient.get("/v1/popular", {
+    getTotalSearch: (keyword?: string, page = 0, size = 5) =>
+        apiClient.get<SuccessResponse<TotalSearchResponseDto>>("/v1/search/all", {
             params: { keyword, page, size },
         }),
+
+    getPopularRanking: (limit = 10) =>
+        apiClient.get<SuccessResponse<PopularRankingResponseDto[]>>("/v1/search/popular", {
+            params: { limit },
+        }),
+};
+
+// ─────────────────────────────────────────────────────────────
+// CS API
+// ─────────────────────────────────────────────────────────────
+export const csApi = {
+    createRoom: (data: { title: string }) =>
+        apiClient.post<SuccessResponse<CsChatRoomDto>>("/v1/cs/rooms", data),
+
+    getMyRooms: (page = 1, size = 10) =>
+        apiClient.get<SuccessResponse<PageResponse<CsChatRoomDto>>>("/v1/cs/rooms", {
+            params: { page, size },
+        }),
+
+    getAllRooms: (params: { status?: string; page?: number; size?: number }) =>
+        apiClient.get<SuccessResponse<PageResponse<CsChatRoomDto>>>("/v1/admin/cs/rooms", {
+            params,
+        }),
+
+    updateStatus: (roomId: number, status: string) =>
+        apiClient.patch<SuccessResponse<CsChatRoomDto>>(`/v1/admin/cs/rooms/${roomId}/status`, null, {
+            params: { status },
+        }),
+
+    updateMessage: (messageId: number, content: string) =>
+        apiClient.patch<SuccessResponse<CsMessageDto>>(`/v1/cs/messages/${messageId}`, { content }),
+
+    deleteMessage: (messageId: number) =>
+        apiClient.delete(`/v1/cs/messages/${messageId}`),
 };

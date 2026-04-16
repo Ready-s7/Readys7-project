@@ -42,6 +42,7 @@ export function Header() {
   const navItems = [
     { path: "/projects", label: "프로젝트" },
     { path: "/developers", label: "개발자" },
+    { path: "/cs", label: "고객센터" },
   ];
 
   const isActive = (path: string) => location.pathname.startsWith(path);
@@ -135,6 +136,11 @@ export function Header() {
                     <DropdownMenuItem onClick={() => navigate("/my-profile")} className="cursor-pointer py-2 focus:bg-blue-50">
                       <Pencil className="w-4 h-4 mr-3 text-gray-500" />
                       <span className="text-sm">내 프로필 수정</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem onClick={() => navigate("/cs")} className="cursor-pointer py-2 focus:bg-blue-50">
+                      <MessageCircle className="w-4 h-4 mr-3 text-gray-500" />
+                      <span className="text-sm">고객센터 문의</span>
                     </DropdownMenuItem>
                     
                     {roleMenuItems().length > 0 && (

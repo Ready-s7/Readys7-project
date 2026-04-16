@@ -69,4 +69,8 @@ export const authApi = {
   /** 내 정보 조회 - name, phoneNumber 포함 */
   getMe: () =>
       apiClient.get<SuccessResponse<GetUserInfoResponse>>("/v1/users/me"),
+
+  /** 회원 탈퇴 */
+  withdraw: () =>
+      apiClient.delete("/v1/users/me"),
 };

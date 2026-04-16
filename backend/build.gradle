@@ -67,6 +67,11 @@ sourceSets {
             srcDirs += [ querydslDir ]
         }
     }
+    test {
+        java {
+            srcDirs -= [ querydslDir ]
+        }
+    }
 }
 
 jar {

@@ -150,6 +150,7 @@ public class DeveloperService {
     private ProjectDto convertToProjectDto(Project project) {
         return new ProjectDto(
                 project.getId(),
+                project.getClient().getId(),
                 project.getTitle(),
                 project.getDescription(),
                 project.getCategory().getName(),

@@ -270,6 +270,7 @@ public class ProjectService {
     private ProjectDto convertToDto(Project project) {
         return new ProjectDto(
                 project.getId(),
+                project.getClient().getId(),
                 project.getTitle(),
                 project.getDescription(),
                 project.getCategory().getName(),

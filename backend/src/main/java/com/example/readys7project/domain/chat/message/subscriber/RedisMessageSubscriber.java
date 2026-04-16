@@ -10,6 +10,8 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
+import com.example.readys7project.domain.chat.cs.dto.CsMessageResponseDto;
+
 @Component
 @RequiredArgsConstructor
 public class RedisMessageSubscriber implements MessageListener {
@@ -20,21 +22,22 @@ public class RedisMessageSubscriber implements MessageListener {
     @Override
     public void onMessage(Message message, byte[] pattern) {
         try {
-            // Redis에서 받은 메시지를 DTO로 역직렬화
-            MessageResponseDto responseDto = redisObjectMapper.readValue(
-                    message.getBody(), MessageResponseDto.class
-            );
-
-            if (responseDto == null) {
-                return;
-            }
-
-            // 채널명에서 roomId 추출 (chat-room:{roomId})
             String channel = new String(message.getChannel());
-            String roomId = channel.replace("chat-room:", "");
+            byte[] body = message.getBody();
 
-            // STOMP 구독자들에게 브로드캐스트
-            messagingTemplate.convertAndSend("/receive/chat/rooms/" + roomId, responseDto);
+            if (channel.startsWith("chat-room:")) {
+                String roomId = channel.replace("chat-room:", "");
+                MessageResponseDto responseDto = redisObjectMapper.readValue(body, MessageResponseDto.class);
+                if (responseDto != null) {
+                    messagingTemplate.convertAndSend("/receive/chat/rooms/" + roomId, responseDto);
+                }
+            } else if (channel.startsWith("cs-room:")) {
+                String roomId = channel.replace("cs-room:", "");
+                CsMessageResponseDto responseDto = redisObjectMapper.readValue(body, CsMessageResponseDto.class);
+                if (responseDto != null) {
+                    messagingTemplate.convertAndSend("/receive/chat/cs/" + roomId, responseDto);
+                }
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
