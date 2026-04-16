@@ -38,4 +38,13 @@ public class SearchController {
         return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, searchRankingService.getPopularRanking(limit)));
     }
 
+    // Caffeine 사용
+    @GetMapping("/v2/search/all")
+    public ResponseEntity<ApiResponseDto<TotalSearchResponseDto>> getTotalSearchV2(
+            @RequestParam(required = false) String keyword,
+            @PageableDefault(size = 5) Pageable pageable
+    ) {
+        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, searchRankingService.getTotalSearchV2(keyword, pageable)));
+    }
+
 }

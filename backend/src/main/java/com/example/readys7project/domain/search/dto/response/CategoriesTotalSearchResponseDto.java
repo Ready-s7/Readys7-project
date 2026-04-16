@@ -4,10 +4,10 @@ import lombok.Builder;
 
 @Builder
 public record CategoriesTotalSearchResponseDto(
-
-        Long Id,
-
+        Long id,
+        Long adminId,
         String name,
-
-        String icon
+        String icon,
+        String description,
+        Integer displayOrder
 ) {}

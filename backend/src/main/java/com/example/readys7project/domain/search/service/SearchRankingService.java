@@ -10,6 +10,7 @@ import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.SearchException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -82,6 +83,7 @@ public class SearchRankingService {
     // getValue()를 호출하면 -> "Java"가 나오고, getScore() -> "100.0"이 나옴
     // Set<> -> ZSet은 중복을 허용하지 않기 때문에 Set 인터페이스로 사용
 
+    @Transactional(readOnly = true)
     public List<PopularRankingResponseDto> getPopularRanking(int limit) {
         Set<ZSetOperations.TypedTuple<Object>> rankingList =
                 redisTemplate.opsForZSet().reverseRangeWithScores(RANKING_KEY, 0, limit - 1);
@@ -142,8 +144,6 @@ public class SearchRankingService {
         );
     }
 
-}
-
 /* Redis는 데이터를 어떻게 전달해줄까?
  Redis의 ZSet은 내부적으로 [값(Value), 점수(Score)]가 묶인 상태로 저장되지만, 우리가 자바에서 꺼낼 때는
  어떤 메서드를 쓰느냐에 따라 데이터의 형태가 달라짐
@@ -174,3 +174,27 @@ public class SearchRankingService {
 
  5. 최종 응답
  PopularRankingResponseDto 리스트가 JSON 형태로 사용자 화면에 뿌려짐*/
+
+
+    @Transactional(readOnly = true)
+    @Cacheable(value = "totalSearch", key = "#keyword", condition = "#keyword.length() >= 2")
+    public TotalSearchResponseDto getTotalSearchV2(String keyword, Pageable pageable) {
+
+        // Cache Miss
+        log.info("Cache Miss DB에서 데이터를 조회합니다. :{}", keyword);
+
+        try {
+            Page<ProjectsTotalSearchResponseDto> projectPage = projectRepository.projectsTotalSearch(keyword, pageable);
+            Page<CategoriesTotalSearchResponseDto> categoryPage = categoryRepository.categoriesTotalSearch(keyword, pageable);
+            Page<SkillsTotalSearchResponseDto> skillPage = skillRepository.skillsTotalSearch(keyword, pageable);
+
+            return new TotalSearchResponseDto(projectPage, categoryPage, skillPage);
+        } catch (Exception e) {
+            log.warn("검색 중 에러 발생: {}", e.getMessage());
+            throw new SearchException(ErrorCode.SEARCH_FAILED);
+        }
+    }
+
+
+}
+

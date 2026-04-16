@@ -71,8 +71,11 @@ public class CategoryQueryRepositoryImpl implements CategoryQueryRepository {
         List<CategoriesTotalSearchResponseDto> content = queryFactory
                 .select(Projections.constructor(CategoriesTotalSearchResponseDto.class,
                         category.id,
+                        category.admin.id,
                         category.name,
-                        category.icon
+                        category.icon,
+                        category.description,
+                        category.displayOrder
                 ))
                 .from(category)
                 .where(searchCondition(keyword))
