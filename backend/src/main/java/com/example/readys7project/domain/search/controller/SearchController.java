@@ -1,5 +1,6 @@
 package com.example.readys7project.domain.search.controller;
 
+import com.example.readys7project.domain.search.dto.response.PopularRankingResponseDto;
 import com.example.readys7project.domain.search.dto.response.TotalSearchResponseDto;
 import com.example.readys7project.domain.search.service.SearchRankingService;
 import com.example.readys7project.global.dto.ApiResponseDto;
@@ -28,10 +29,13 @@ public class SearchController {
         return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, searchRankingService.getTotalSearchV1(keyword, pageable)));
     }
 
+
+    // Redis ZSet 적용 해야됨 (인기검색어 조회)
     @GetMapping("/v1/search/popular")
-    public ResponseEntity<ApiResponseDto<List<String>>> getPopularRanking() {
-        List<String> ranking = searchRankingService.getPopularRanking();
-        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, ranking));
+    public ResponseEntity<ApiResponseDto<List<PopularRankingResponseDto>>> getPopularRanking(
+            @RequestParam(defaultValue = "10") int limit
+    ) {
+        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, searchRankingService.getPopularRanking(limit)));
     }
 
 }
