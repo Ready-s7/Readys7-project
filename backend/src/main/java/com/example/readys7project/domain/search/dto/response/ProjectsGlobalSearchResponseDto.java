@@ -8,7 +8,7 @@ import java.util.List;
 // 프로젝트 인기검색 DTO (캐시 사용 안 하는 버전)
 
 @Builder
-public record ProjectsTotalSearchResponseDto(
+public record ProjectsGlobalSearchResponseDto(
         Long id,
         String title,
         String description,

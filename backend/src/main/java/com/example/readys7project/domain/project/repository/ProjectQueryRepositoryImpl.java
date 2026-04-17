@@ -4,7 +4,7 @@ import com.example.readys7project.domain.category.entity.Category;
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.project.entity.QProject;
 import com.example.readys7project.domain.project.enums.ProjectStatus;
-import com.example.readys7project.domain.search.dto.response.ProjectsTotalSearchResponseDto;
+import com.example.readys7project.domain.search.dto.response.ProjectsGlobalSearchResponseDto;
 import com.example.readys7project.domain.user.auth.entity.QUser;
 import com.example.readys7project.domain.user.client.entity.QClient;
 import com.querydsl.core.BooleanBuilder;
@@ -138,15 +138,15 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
 
     // 통합 검색 페이징
     @Override
-    public Page<ProjectsTotalSearchResponseDto> projectsTotalSearch(String keyword, Pageable pageable) {
+    public Page<ProjectsGlobalSearchResponseDto> projectsGlobalSearch(String keyword, Pageable pageable) {
 
 
         // 1. 데이터 조회
 
         // ProjectPopularSearchResponseDto에 정의된 필요한 5개의 필드만 가져옴
         // Project 내부의 기본 필드들만 가져오기 때문에 다른 테이블 조회를 하지 않음 -> Fetch Join 안써도 N+1 발생 X
-        List<ProjectsTotalSearchResponseDto> content = jpaQueryFactory
-                .select(Projections.constructor(ProjectsTotalSearchResponseDto.class,
+        List<ProjectsGlobalSearchResponseDto> content = jpaQueryFactory
+                .select(Projections.constructor(ProjectsGlobalSearchResponseDto.class,
                         qProject.id,
                         qProject.title,
                         qProject.description,

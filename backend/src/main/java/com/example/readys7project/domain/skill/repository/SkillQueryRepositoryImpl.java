@@ -1,6 +1,6 @@
 package com.example.readys7project.domain.skill.repository;
 
-import com.example.readys7project.domain.search.dto.response.SkillsTotalSearchResponseDto;
+import com.example.readys7project.domain.search.dto.response.SkillsGlobalSearchResponseDto;
 import com.example.readys7project.domain.skill.entity.QSkill;
 import com.example.readys7project.domain.skill.entity.Skill;
 import com.example.readys7project.domain.skill.enums.SkillCategory;
@@ -88,11 +88,11 @@ public class SkillQueryRepositoryImpl implements SkillQueryRepository{
 
     // 통합 검색 페이징
     @Override
-    public Page<SkillsTotalSearchResponseDto> skillsTotalSearch(String keyword, Pageable pageable) {
+    public Page<SkillsGlobalSearchResponseDto> skillsGlobalSearch(String keyword, Pageable pageable) {
 
         // 데이터 조회
-        List<SkillsTotalSearchResponseDto> content = jpaQueryFactory
-                .select(Projections.constructor(SkillsTotalSearchResponseDto.class,
+        List<SkillsGlobalSearchResponseDto> content = jpaQueryFactory
+                .select(Projections.constructor(SkillsGlobalSearchResponseDto.class,
                         qSkill.id,
                         qSkill.admin.id,
                         qSkill.admin.user.name,

@@ -6,6 +6,7 @@ import com.example.readys7project.domain.search.repository.SearchRankingReposito
 import com.example.readys7project.domain.search.dto.response.*;
 import com.example.readys7project.domain.search.entity.SearchRanking;
 import com.example.readys7project.domain.skill.repository.SkillRepository;
+import com.example.readys7project.domain.user.developer.repository.DeveloperRepository;
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.SearchException;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ public class SearchService {
     private final CategoryRepository categoryRepository;
     private final SkillRepository skillRepository;
     private final SearchRankingRepository searchRankingRepository;
+    private final DeveloperRepository developerRepository;
     private final RedisTemplate<String, Object> redisTemplate;
 
     // 랭킹 키
@@ -53,7 +55,7 @@ public class SearchService {
     // V1 캐시 사용 X
     // 랭킹 업데이트를 위해서 readOnly 제거
     @Transactional
-    public TotalSearchResponseDto getTotalSearchV1(
+    public GlobalSearchResponseDto searchV1(
             Long userId,
             String keyword,
             Pageable pageable) {
@@ -68,7 +70,7 @@ public class SearchService {
         }
 
         // 미리 담아주고
-        TotalSearchResponseDto result = totalSearch(trimKeyword, pageable);
+        GlobalSearchResponseDto result = GlobalSearch(trimKeyword, pageable);
 
         // 검색 결과가 존재한다면, 업데이트 로직에게 넘기기
         if (hasAnyResult(result)) {
@@ -82,7 +84,8 @@ public class SearchService {
     @Transactional(readOnly = true)
     @Cacheable(value = "totalSearch",
             key = "T(com.example.readys7project.domain.search.util.SearchCacheKeyGenerator).generate(#keyword, #pageable)")
-    public TotalSearchResponseDto getTotalSearchV2(String keyword, Pageable pageable) {
+
+    public GlobalSearchResponseDto searchV2(String keyword, Pageable pageable) {
 
         String trimKeyword = validateSearchKeyword(keyword);
 
@@ -93,7 +96,7 @@ public class SearchService {
         // Cache Miss
         log.info("Cache Miss DB에서 데이터를 조회합니다. :{}", trimKeyword);
 
-        return totalSearch(trimKeyword, pageable);
+        return GlobalSearch(trimKeyword, pageable);
     }
 
     // 상위 10개 인기 검색어 순위 조회
@@ -136,7 +139,7 @@ public class SearchService {
 
 
     // 검색 결과 존재 여부 확인하는 로직
-    private boolean hasAnyResult(TotalSearchResponseDto result) {
+    private boolean hasAnyResult(GlobalSearchResponseDto result) {
         return !result.projects().isEmpty() || !result.categories().isEmpty() || !result.skills().isEmpty();
     }
 
@@ -201,8 +204,9 @@ public class SearchService {
 
 
     // 빈 값을 리턴해주는 공용 정적 팩토리 메서드
-    public static TotalSearchResponseDto empty(Pageable pageable) {
-        return TotalSearchResponseDto.of(
+    public static GlobalSearchResponseDto empty(Pageable pageable) {
+        return GlobalSearchResponseDto.of(
+                Page.empty(pageable),
                 Page.empty(pageable),
                 Page.empty(pageable),
                 Page.empty(pageable)
@@ -239,23 +243,22 @@ public class SearchService {
     }
 
     // 공용 DTO 리턴 메서드
-    private TotalSearchResponseDto totalSearch(String keyword, Pageable pageable) {
+    private GlobalSearchResponseDto GlobalSearch(String keyword, Pageable pageable) {
         try {
-            Page<ProjectsTotalSearchResponseDto> projectPage =
-                    projectRepository.projectsTotalSearch(keyword, pageable);
-            Page<CategoriesTotalSearchResponseDto> categoryPage =
-                    categoryRepository.categoriesTotalSearch(keyword, pageable);
-            Page<SkillsTotalSearchResponseDto> skillPage =
-                    skillRepository.skillsTotalSearch(keyword, pageable);
+            Page<ProjectsGlobalSearchResponseDto> projectPage =
+                    projectRepository.projectsGlobalSearch(keyword, pageable);
+            Page<CategoriesGlobalSearchResponseDto> categoryPage =
+                    categoryRepository.categoriesGlobalSearch(keyword, pageable);
+            Page<SkillsGlobalSearchResponseDto> skillPage =
+                    skillRepository.skillsGlobalSearch(keyword, pageable);
+            Page<DeveloperGlobalSearchResponseDto> developerPage =
+                    developerRepository.developerGlobalSearch(keyword, pageable);
 
-            return new TotalSearchResponseDto(projectPage, categoryPage, skillPage);
+            return new GlobalSearchResponseDto(projectPage, categoryPage, skillPage, developerPage);
 
         } catch (Exception e) {
             log.warn("통합 검색 중 DB 에러 발생 - 키워드: [{}], 메시지: {}", keyword, e.getMessage());
             throw new SearchException(ErrorCode.SEARCH_FAILED);
         }
     }
-
-
 }
-

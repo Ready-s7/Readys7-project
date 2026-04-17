@@ -1,7 +1,7 @@
 package com.example.readys7project.domain.category.repository;
 
 import com.example.readys7project.domain.category.entity.Category;
-import com.example.readys7project.domain.search.dto.response.CategoriesTotalSearchResponseDto;
+import com.example.readys7project.domain.search.dto.response.CategoriesGlobalSearchResponseDto;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
@@ -64,10 +64,10 @@ public class CategoryQueryRepositoryImpl implements CategoryQueryRepository {
 
     // 통합 검색 페이징 구현
     @Override
-    public Page<CategoriesTotalSearchResponseDto> categoriesTotalSearch(String keyword, Pageable pageable) {
+    public Page<CategoriesGlobalSearchResponseDto> categoriesGlobalSearch(String keyword, Pageable pageable) {
 
-        List<CategoriesTotalSearchResponseDto> content = queryFactory
-                .select(Projections.constructor(CategoriesTotalSearchResponseDto.class,
+        List<CategoriesGlobalSearchResponseDto> content = queryFactory
+                .select(Projections.constructor(CategoriesGlobalSearchResponseDto.class,
                         category.id,
                         category.admin.id,
                         category.name,

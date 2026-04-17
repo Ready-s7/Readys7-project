@@ -1,6 +1,7 @@
 package com.example.readys7project.domain.user.developer.repository;
 
 import com.example.readys7project.domain.project.entity.Project;
+import com.example.readys7project.domain.search.dto.response.DeveloperGlobalSearchResponseDto;
 import com.example.readys7project.domain.user.developer.entity.Developer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,4 +18,6 @@ public interface DeveloperQueryRepository {
 
     // 내 프로젝트 목록 조회 (ACCEPTED된 제안서의 프로젝트)
     Page<Project> findMyProjects(Developer developer, Pageable pageable);
+
+    Page<DeveloperGlobalSearchResponseDto> developerGlobalSearch(String keyword, Pageable pageable);
 }
