@@ -39,7 +39,7 @@ export function ProjectList() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
     searchParams.get("categoryId") ?? "all"
   );
-  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("OPEN");
 
   useEffect(() => {
     categoryApi.getAll().then((res) => {
@@ -141,10 +141,13 @@ export function ProjectList() {
               <Select value={selectedStatus} onValueChange={(v) => {setSelectedStatus(v); setCurrentPage(0);}}>
                 <SelectTrigger><SelectValue placeholder="상태" /></SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="OPEN">모집중</SelectItem>
                   <SelectItem value="all">전체 상태</SelectItem>
-                  {Object.entries(STATUS_LABELS).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>{label}</SelectItem>
-                  ))}
+                  {Object.entries(STATUS_LABELS)
+                    .filter(([key]) => key !== "OPEN")
+                    .map(([key, label]) => (
+                      <SelectItem key={key} value={key}>{label}</SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
@@ -152,11 +155,7 @@ export function ProjectList() {
         </Card>
 
         <div className="mb-4 text-gray-600 flex items-center gap-2">
-          <span>총 {
-            selectedStatus === "all"
-                ? projects.filter(p => p.status === "OPEN").length
-                : projects.length
-          }개의 프로젝트</span>
+          <span>총 {projects.length}개의 프로젝트</span>
         </div>
 
         {isLoading ? (
@@ -164,9 +163,7 @@ export function ProjectList() {
         ) : (
           <>
             <div className="grid grid-cols-1 gap-4">
-              {(projects || [])
-                  .filter(p => selectedStatus !== "all" || p.status === "OPEN")
-                  .map((project) => {
+              {(projects || []).map((project) => {
                 if (!project || typeof project !== 'object') return null;
                 const cat = (categories || []).find(
                   (c) => c.name && project.category && c.name.toLowerCase() === project.category.toLowerCase()
