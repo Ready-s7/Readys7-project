@@ -1,7 +1,7 @@
 package com.example.readys7project.domain.search.controller;
 
 import com.example.readys7project.domain.search.dto.response.PopularRankingResponseDto;
-import com.example.readys7project.domain.search.dto.response.TotalSearchResponseDto;
+import com.example.readys7project.domain.search.dto.response.GlobalSearchResponseDto;
 import com.example.readys7project.domain.search.service.SearchService;
 import com.example.readys7project.global.dto.ApiResponseDto;
 import com.example.readys7project.global.security.CustomUserDetails;
@@ -24,13 +24,13 @@ public class SearchController {
     private final SearchService searchService;
 
     @GetMapping("/v1/search/all")
-    public ResponseEntity<ApiResponseDto<TotalSearchResponseDto>> getTotalSearchV1(
+    public ResponseEntity<ApiResponseDto<GlobalSearchResponseDto>> SearchV1(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam(required = false) String keyword,
             @PageableDefault(size = 5) Pageable pageable
     ) {
         Long userId = customUserDetails.getUser().getId();
-        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, searchService.getTotalSearchV1(userId, keyword, pageable)));
+        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, searchService.SearchV1(userId, keyword, pageable)));
     }
 
 
@@ -44,11 +44,11 @@ public class SearchController {
 
     // Caffeine 사용
     @GetMapping("/v2/search/all")
-    public ResponseEntity<ApiResponseDto<TotalSearchResponseDto>> getTotalSearchV2(
+    public ResponseEntity<ApiResponseDto<GlobalSearchResponseDto>> SearchV2(
             @RequestParam(required = false) String keyword,
             @PageableDefault(size = 5) Pageable pageable
     ) {
-        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, searchService.getTotalSearchV2(keyword, pageable)));
+        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, searchService.SearchV2(keyword, pageable)));
     }
 
 }

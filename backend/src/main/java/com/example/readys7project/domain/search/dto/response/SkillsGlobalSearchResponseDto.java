@@ -6,7 +6,7 @@ import lombok.Builder;
 import java.time.LocalDateTime;
 
 @Builder
-public record SkillsTotalSearchResponseDto(
+public record SkillsGlobalSearchResponseDto(
         Long id,
         Long adminId,
         String adminName,

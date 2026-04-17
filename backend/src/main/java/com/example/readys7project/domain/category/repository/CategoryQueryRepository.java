@@ -1,7 +1,7 @@
 package com.example.readys7project.domain.category.repository;
 
 import com.example.readys7project.domain.category.entity.Category;
-import com.example.readys7project.domain.search.dto.response.CategoriesTotalSearchResponseDto;
+import com.example.readys7project.domain.search.dto.response.CategoriesGlobalSearchResponseDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -16,5 +16,5 @@ public interface CategoryQueryRepository {
     List<Category> searchCategories(String name, String description);
 
     // 통합 검색 페이징 구현
-    Page<CategoriesTotalSearchResponseDto> categoriesTotalSearch(String keyword, Pageable pageable);
+    Page<CategoriesGlobalSearchResponseDto> categoriesGlobalSearch(String keyword, Pageable pageable);
 }

@@ -3,7 +3,7 @@ package com.example.readys7project.domain.search.dto.response;
 import lombok.Builder;
 
 @Builder
-public record CategoriesTotalSearchResponseDto(
+public record CategoriesGlobalSearchResponseDto(
         Long id,
         Long adminId,
         String name,
