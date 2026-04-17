@@ -9,6 +9,7 @@ import java.util.List;
 public record ProjectDto(
     Long id,
     Long clientId,
+    Long clientUserId,
     String title,
     String description,
     String category,

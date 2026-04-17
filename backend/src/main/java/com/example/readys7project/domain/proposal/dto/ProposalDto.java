@@ -10,6 +10,7 @@ public record ProposalDto(
         Long projectId,
         String projectTitle,
         Long developerId,
+        Long developerUserId,
         String developerName,
         String coverLetter,
         String proposedBudget,

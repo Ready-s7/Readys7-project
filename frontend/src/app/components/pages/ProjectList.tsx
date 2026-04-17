@@ -14,6 +14,7 @@ import {
 import { Search, Filter, Loader2 } from "lucide-react";
 import { projectApi, categoryApi } from "../../../api/apiService";
 import type { ProjectDto, CategoryDto } from "../../../api/types";
+import { useAuth } from "../../../context/AuthContext";
 
 const STATUS_LABELS: Record<string, string> = {
   OPEN: "모집중",
@@ -24,6 +25,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export function ProjectList() {
+  const { userRole } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [projects, setProjects] = useState<ProjectDto[]>([]);
@@ -200,7 +202,7 @@ export function ProjectList() {
                               {(project.minBudget || 0).toLocaleString()} ~ {(project.maxBudget || 0).toLocaleString()}원
                             </div>
                             <div className="text-gray-600 text-sm mb-4">예상 기간: {project.duration || 0}일</div>
-                            {project.status === "OPEN" && <Button className="w-full md:w-auto">제안하기</Button>}
+                            {project.status === "OPEN" && userRole === "DEVELOPER" && <Button className="w-full md:w-auto">제안하기</Button>}
                           </div>
                         </div>
                       </CardContent>

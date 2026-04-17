@@ -219,6 +219,7 @@ public class ProposalService {
                 .projectId(proposal.getProject().getId())
                 .projectTitle(proposal.getProject().getTitle())
                 .developerId(proposal.getDeveloper().getId())
+                .developerUserId(proposal.getDeveloper().getUser().getId())
                 .developerName(proposal.getDeveloper().getUser().getName())
                 .coverLetter(proposal.getCoverLetter())
                 .proposedBudget(proposal.getProposedBudget())

@@ -151,6 +151,7 @@ public class DeveloperService {
         return new ProjectDto(
                 project.getId(),
                 project.getClient().getId(),
+                project.getClient().getUser().getId(),
                 project.getTitle(),
                 project.getDescription(),
                 project.getCategory().getName(),

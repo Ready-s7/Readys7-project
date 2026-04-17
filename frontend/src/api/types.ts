@@ -1,100 +1,25 @@
+import { apiClient } from "./client";
+
 /**
- * types.ts (수정판)
- *
- * 주요 수정 사항:
- * 1. GetUserInfoResponse에 name, phoneNumber 필드 추가 (백엔드 GetUserInformationResponseDto 반영)
- * 2. ProposalDto.status 타입을 소문자/대문자 모두 허용 (백엔드가 toUpperCase()로 반환하지만 안전하게)
- * 3. AdminDashboard용 타입 추가
+ * types.ts - 전면 최적화판
  */
 
-// ─────────────────────────────────────────────────────────────
-// 공통 응답 래퍼
-// ─────────────────────────────────────────────────────────────
 export interface SuccessResponse<T> {
   success: boolean;
-  status: number;
+  message: string;
   data: T;
 }
 
-export interface ErrorResponse {
-  code: string;
-  message: string;
-  data: null | Record<string, string>;
-}
-
-// 페이지 응답 (Spring Page<T>)
 export interface PageResponse<T> {
   content: T[];
-  pageable: {
-    pageNumber: number;
-    pageSize: number;
-  };
-  totalElements: number;
   totalPages: number;
-  last: boolean;
-  first: boolean;
-}
-
-// 클라이언트 전용 페이지 응답 (PageResponseDto)
-export interface ClientPageResponse<T> {
-  content: T[];
-  currentPage: number;
+  totalElements: number;
   size: number;
-  totalCount: number;
-  totalPage: number;
+  number: number;
 }
 
 // ─────────────────────────────────────────────────────────────
-// 인증 관련 타입
-// ─────────────────────────────────────────────────────────────
-export interface LoginResponse {
-  refreshToken: string;
-  email: string;
-}
-
-export interface UserDto {
-  id: number;
-  email: string;
-  name: string;
-  role: "CLIENT" | "DEVELOPER" | "ADMIN";
-  createdAt: string;
-}
-
-// ★ 수정: 백엔드 GetUserInformationResponseDto 필드 완전 반영
-export interface GetUserInfoResponse {
-  id: number;
-  email: string;
-  name: string;           // ★ 추가
-  phoneNumber: string;    // ★ 추가
-  userRole: "CLIENT" | "DEVELOPER" | "ADMIN";
-  description: string | null;
-  createdAt: string;
-}
-
-// ─────────────────────────────────────────────────────────────
-// 프로젝트 관련 타입
-// ─────────────────────────────────────────────────────────────
-export interface ProjectDto {
-  id: number;
-  clientId: number;
-  title: string;
-  description: string;
-  category: string;
-  minBudget: number;
-  maxBudget: number;
-  duration: number;
-  skills: string[];
-  status: "OPEN" | "CLOSED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
-  currentProposalCount: number;
-  maxProposalCount: number;
-  clientName: string;
-  clientRating: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// ─────────────────────────────────────────────────────────────
-// 카테고리 타입
+// 카테고리 관련 타입
 // ─────────────────────────────────────────────────────────────
 export interface CategoryDto {
   id: number;
@@ -110,7 +35,7 @@ export interface CategoryDto {
 // ─────────────────────────────────────────────────────────────
 export interface DeveloperDto {
   id: number;
-  userId: number;       // ★ 중요: 클라이언트 프로필 매칭에 사용
+  userId: number;
   name: string;
   title: string;
   rating: number;
@@ -132,7 +57,7 @@ export interface DeveloperDto {
 // ─────────────────────────────────────────────────────────────
 export interface ClientDto {
   id: number;
-  userId: number;       // ★ 중요: 본인 프로필 매칭에 사용
+  userId: number;
   name: string;
   title: string;
   completedProject: number;
@@ -143,19 +68,41 @@ export interface ClientDto {
 }
 
 // ─────────────────────────────────────────────────────────────
+// 프로젝트 관련 타입
+// ─────────────────────────────────────────────────────────────
+export interface ProjectDto {
+  id: number;
+  clientId: number;
+  clientUserId: number; // 추가됨
+  title: string;
+  description: string;
+  category: string;
+  minBudget: number;
+  maxBudget: number;
+  duration: number;
+  skills: string[];
+  status: string;
+  currentProposalCount: number;
+  maxProposalCount: number;
+  clientName: string;
+  clientRating: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ─────────────────────────────────────────────────────────────
 // 제안서 관련 타입
-// ★ 수정: status를 소문자 형태로 (백엔드가 toUpperCase()로 반환하지만 실제론 소문자로 오는 경우 있음)
 // ─────────────────────────────────────────────────────────────
 export interface ProposalDto {
   id: number;
   projectId: number;
   projectTitle: string;
   developerId: number;
+  developerUserId: number; // 추가됨
   developerName: string;
   coverLetter: string;
   proposedBudget: string;
   proposedDuration: string;
-  // 백엔드가 toUpperCase()로 반환하지만 안전하게 대소문자 모두 허용
   status: string;
   createdAt: string;
   updatedAt: string;
@@ -324,7 +271,7 @@ export interface SearchProjectDto {
 }
 
 export interface SearchCategoryDto {
-  Id: number; // 백엔드 DTO 대문자 반영
+  Id: number;
   name: string;
   icon: string | null;
 }
@@ -353,4 +300,12 @@ export interface DeveloperRegisterRequest {
   responseTime: string;
   availableForWork: boolean;
   participateType: "INDIVIDUAL" | "COMPANY";
+}
+
+export interface ClientPageResponse<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;
 }

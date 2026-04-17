@@ -42,6 +42,7 @@ export function Header() {
   const navItems = [
     { path: "/projects", label: "프로젝트" },
     { path: "/developers", label: "개발자" },
+    { path: "/clients", label: "클라이언트" },
     { path: "/cs", label: "고객센터" },
   ];
 
