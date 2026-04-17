@@ -24,25 +24,12 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @RequiredArgsConstructor
-
 public class AdminService {
 
     private final AdminRepository adminRepository;
 
     @Transactional(readOnly = true)
-    public GetAllAdminListResponseDto getAllPendingAdminList(CustomUserDetails customUserDetails, Pageable pageable) {
-
-        // customUserDetails 에서 로그인한 User 정보 꺼내오기
-        User user = customUserDetails.getUser();
-
-        // 해당 유저 중 Admin이 존재하는지 DB에 찾아보기
-        Admin admin = adminRepository.findByUser(user)
-                .orElseThrow(() -> new AdminException(ErrorCode.ADMIN_NOT_FOUND));
-
-        // 관리자 역할이 슈퍼어드민이 아니면 예외던지기
-        if(!admin.getAdminRole().equals(AdminRole.SUPER_ADMIN)) {
-            throw new AdminException(ErrorCode.INVALID_ADMIN_ROLE);
-        }
+    public GetAllAdminListResponseDto getAllPendingAdminList(Pageable pageable) {
 
         /* PageRequest.of() -> PageRequest 객체를 만들어주는 정적 팩토리 메서드 (Spring Data가 제공)
          getPageNumber -> 몇 번째 페이지인지 (페이지 번호)
@@ -76,22 +63,8 @@ public class AdminService {
     @Transactional
     public UpdateAdminStatusResponseDto updateAdminStatus(
             Long adminId,
-            UpdateAdminStatusRequestDto updateAdminStatusRequestDto,
-            CustomUserDetails customUserDetails
+            UpdateAdminStatusRequestDto updateAdminStatusRequestDto
     ) {
-
-        // customUserDetails에서 User 꺼내오기
-        User user = customUserDetails.getUser();
-
-        // adminRepository에 User 정보로 관리자 조회하기
-        Admin admin = adminRepository.findByUser(user)
-                .orElseThrow(() -> new AdminException(ErrorCode.ADMIN_NOT_FOUND));
-
-        // SuperAdmin인지 체크
-        if (admin.getAdminRole() != AdminRole.SUPER_ADMIN || admin.getStatus() != AdminStatus.APPROVED) {
-            throw new AdminException(ErrorCode.USER_FORBIDDEN);
-        }
-
         // 승인받아야하는 관리자 조회
         Admin targetAdmin = adminRepository.findById(adminId)
                 .orElseThrow(() -> new AdminException(ErrorCode.ADMIN_NOT_FOUND));
@@ -126,17 +99,5 @@ public class AdminService {
                 targetAdmin.getStatus(),
                 targetAdmin.getUpdatedAt()
         );
-
-        /* 전체 흐름
-         customUserDetails -> Spring Security의 @AuthenticationPrincipal을 사용하기 위해  UserDetails 인터페이스를 구현한 클래스인데,
-         Jwt 토큰 검증 후 SecurityContextHolder에 저장된 로그인한 유저의 정보를 꺼내올 수 있음.
-         -> Controller 에서 꺼냄
-
-         1. customUserDetails 안에 저장되어있는 User 정보를 getUser로 가져옴,
-         2. User 중에서 관리자가 있는지 adminRepository에 조회 해보기
-         3. 해당 User가 SuperAdmin이 맞는지 체크
-         4. 승인받아야하는 관리자가 있는지 조회
-         5. 있으면 승인 메서드 호출해서 넘기기 */
-
     }
 }

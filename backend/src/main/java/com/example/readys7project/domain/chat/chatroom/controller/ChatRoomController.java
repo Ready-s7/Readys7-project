@@ -1,6 +1,6 @@
 package com.example.readys7project.domain.chat.chatroom.controller;
 
-import com.example.readys7project.domain.chat.chatroom.dto.ChatRoomDto;
+import com.example.readys7project.domain.chat.chatroom.dto.response.ChatRoomResponseDto;
 import com.example.readys7project.domain.chat.chatroom.dto.request.CreateChatRoomRequestDto;
 import com.example.readys7project.domain.chat.chatroom.service.ChatRoomService;
 import com.example.readys7project.global.dto.ApiResponseDto;
@@ -22,7 +22,7 @@ public class ChatRoomController {
 
     // 채팅방 생성
     @PostMapping("/v1/chat/rooms")
-    public ResponseEntity<ApiResponseDto<ChatRoomDto>> createChatRoom(
+    public ResponseEntity<ApiResponseDto<ChatRoomResponseDto>> createChatRoom(
             @Valid @RequestBody CreateChatRoomRequestDto request,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
@@ -33,7 +33,7 @@ public class ChatRoomController {
 
     // 내 채팅방 목록 조회
     @GetMapping("/v1/chat/rooms")
-    public ResponseEntity<ApiResponseDto<Page<ChatRoomDto>>> getMyChatRooms(
+    public ResponseEntity<ApiResponseDto<Page<ChatRoomResponseDto>>> getMyChatRooms(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             Pageable pageable
     ) {

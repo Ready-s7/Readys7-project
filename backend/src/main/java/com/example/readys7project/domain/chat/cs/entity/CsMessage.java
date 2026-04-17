@@ -1,6 +1,6 @@
 package com.example.readys7project.domain.chat.cs.entity;
 
-import com.example.readys7project.domain.chat.message.MessageEventType;
+import com.example.readys7project.domain.chat.message.enums.MessageEventType;
 import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.global.entity.BaseEntity;
 import jakarta.persistence.*;

@@ -1,6 +1,6 @@
 package com.example.readys7project.domain.chat.cs.publisher;
 
-import com.example.readys7project.domain.chat.cs.dto.CsMessageResponseDto;
+import com.example.readys7project.domain.chat.cs.dto.response.CsMessageResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;

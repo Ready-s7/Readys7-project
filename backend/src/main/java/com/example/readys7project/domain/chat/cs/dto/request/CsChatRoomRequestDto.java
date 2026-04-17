@@ -1,4 +1,4 @@
-package com.example.readys7project.domain.chat.cs.dto;
+package com.example.readys7project.domain.chat.cs.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 

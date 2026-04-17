@@ -1,8 +1,8 @@
 package com.example.readys7project.domain.chat.cs.controller;
 
-import com.example.readys7project.domain.chat.cs.dto.CsChatRoomRequestDto;
-import com.example.readys7project.domain.chat.cs.dto.CsChatRoomResponseDto;
-import com.example.readys7project.domain.chat.cs.dto.CsMessageResponseDto;
+import com.example.readys7project.domain.chat.cs.dto.request.CsChatRoomRequestDto;
+import com.example.readys7project.domain.chat.cs.dto.response.CsChatRoomResponseDto;
+import com.example.readys7project.domain.chat.cs.dto.response.CsMessageResponseDto;
 import com.example.readys7project.domain.chat.cs.enums.CsStatus;
 import com.example.readys7project.domain.chat.cs.service.CsChatService;
 import com.example.readys7project.domain.chat.message.dto.request.SendMessageRequestDto;

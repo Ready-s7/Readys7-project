@@ -1,11 +1,13 @@
 package com.example.readys7project.domain.proposal.controller;
 
-import com.example.readys7project.domain.proposal.dto.ProposalDto;
+import com.example.readys7project.domain.proposal.dto.response.ProposalResponseDto;
 import com.example.readys7project.domain.proposal.dto.request.ProposalRequestDto;
 import com.example.readys7project.domain.proposal.dto.request.UpdateProposalRequestDto;
 import com.example.readys7project.domain.proposal.service.ProposalService;
 import com.example.readys7project.global.dto.ApiResponseDto;
 import com.example.readys7project.global.security.CustomUserDetails;
+import com.example.readys7project.global.aop.CheckOwnerOrAdmin;
+import com.example.readys7project.global.aop.EntityType;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,8 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequiredArgsConstructor
 public class ProposalController {
@@ -24,7 +24,7 @@ public class ProposalController {
     private final ProposalService proposalService;
 
     @PostMapping("/v1/proposals")
-    public ResponseEntity<ApiResponseDto<ProposalDto>> createProposal(
+    public ResponseEntity<ApiResponseDto<ProposalResponseDto>> createProposal(
             @Valid @RequestBody ProposalRequestDto request,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
@@ -35,27 +35,25 @@ public class ProposalController {
     }
 
     @GetMapping("/v1/proposals")
-    public ResponseEntity<ApiResponseDto<Page<ProposalDto>>> getProposalsByProject(
+    @CheckOwnerOrAdmin(type = EntityType.PROJECT, idParam = "projectId")
+    public ResponseEntity<ApiResponseDto<Page<ProposalResponseDto>>> getProposalsByProject(
             @RequestParam Long projectId,
-            @AuthenticationPrincipal CustomUserDetails customUserDetails,
             Pageable pageable
     ) {
-        String email = customUserDetails.getEmail();
         return ResponseEntity
-                .ok(ApiResponseDto.success(HttpStatus.OK, proposalService.getProposalsByProject(projectId, email, pageable)));
+                .ok(ApiResponseDto.success(HttpStatus.OK, proposalService.getProposalsByProject(projectId, pageable)));
     }
 
     @GetMapping("/v1/proposals/{proposalId}")
-    public ResponseEntity<ApiResponseDto<ProposalDto>> getProposal(
-            @PathVariable Long proposalId,
-            @AuthenticationPrincipal CustomUserDetails customUserDetails
+    @CheckOwnerOrAdmin(type = EntityType.PROPOSAL, idParam = "proposalId")
+    public ResponseEntity<ApiResponseDto<ProposalResponseDto>> getProposal(
+            @PathVariable Long proposalId
     ) {
-        String email = customUserDetails.getEmail();
-        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, proposalService.getProposal(proposalId, email)));
+        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, proposalService.getProposal(proposalId)));
     }
 
     @GetMapping("/v1/proposals/my-proposals")
-    public ResponseEntity<ApiResponseDto<Page<ProposalDto>>> getMyProposals(
+    public ResponseEntity<ApiResponseDto<Page<ProposalResponseDto>>> getMyProposals(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             Pageable pageable
     ) {
@@ -65,16 +63,16 @@ public class ProposalController {
     }
 
     @PatchMapping(value = "/v1/proposals/{proposalId}")
-    public ResponseEntity<ApiResponseDto<ProposalDto>> updateProposalStatus(
+    @CheckOwnerOrAdmin(type = EntityType.PROPOSAL, idParam = "proposalId")
+    public ResponseEntity<ApiResponseDto<ProposalResponseDto>> updateProposalStatus(
             @PathVariable Long proposalId,
             @RequestBody UpdateProposalRequestDto request,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
-        String email = customUserDetails.getEmail();
         return ResponseEntity
                 .ok(ApiResponseDto.success(
                         HttpStatus.OK,
-                        proposalService.updateProposalStatus(proposalId, request, email)
+                        proposalService.updateProposalStatus(proposalId, request, customUserDetails.getEmail())
                 ));
     }
 }

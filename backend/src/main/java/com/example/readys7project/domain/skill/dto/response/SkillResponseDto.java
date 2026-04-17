@@ -1,4 +1,4 @@
-package com.example.readys7project.domain.skill.dto;
+package com.example.readys7project.domain.skill.dto.response;
 
 import com.example.readys7project.domain.skill.enums.SkillCategory;
 import lombok.Builder;
@@ -6,7 +6,7 @@ import lombok.Builder;
 import java.time.LocalDateTime;
 
 @Builder
-public record SkillDto (
+public record SkillResponseDto(
         Long id,
         Long adminId,
         String adminName,

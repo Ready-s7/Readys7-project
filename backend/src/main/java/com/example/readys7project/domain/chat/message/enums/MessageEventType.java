@@ -1,4 +1,4 @@
-package com.example.readys7project.domain.chat.message;
+package com.example.readys7project.domain.chat.message.enums;
 
 import lombok.RequiredArgsConstructor;
 

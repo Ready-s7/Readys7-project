@@ -1,11 +1,11 @@
-package com.example.readys7project.domain.proposal.dto;
+package com.example.readys7project.domain.proposal.dto.response;
 
 import lombok.Builder;
 
 import java.time.LocalDateTime;
 
 @Builder
-public record ProposalDto(
+public record ProposalResponseDto(
         Long id,
         Long projectId,
         String projectTitle,

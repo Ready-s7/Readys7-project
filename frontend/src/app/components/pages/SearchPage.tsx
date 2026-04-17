@@ -135,7 +135,7 @@ export function SearchPage() {
                             <div className="md:text-right shrink-0 flex flex-col justify-between items-end min-w-[150px]">
                               <div className="mb-4">
                                 <div className="text-lg font-black text-blue-600">
-                                  {(p.minBudget || 0).toLocaleString()}원 ~
+                                  {(p.minBudget || 0).toLocaleString()}원 ~ {(p.maxBudget || 0).toLocaleString()}원
                                 </div>
                                 <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">예상 기간: {p.duration || 0}일</div>
                               </div>

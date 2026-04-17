@@ -1,14 +1,14 @@
 package com.example.readys7project.domain.chat.cs.service;
 
-import com.example.readys7project.domain.chat.cs.dto.CsChatRoomRequestDto;
-import com.example.readys7project.domain.chat.cs.dto.CsChatRoomResponseDto;
-import com.example.readys7project.domain.chat.cs.dto.CsMessageResponseDto;
+import com.example.readys7project.domain.chat.cs.dto.request.CsChatRoomRequestDto;
+import com.example.readys7project.domain.chat.cs.dto.response.CsChatRoomResponseDto;
+import com.example.readys7project.domain.chat.cs.dto.response.CsMessageResponseDto;
 import com.example.readys7project.domain.chat.cs.entity.CsChatRoom;
 import com.example.readys7project.domain.chat.cs.entity.CsMessage;
 import com.example.readys7project.domain.chat.cs.enums.CsStatus;
 import com.example.readys7project.domain.chat.cs.repository.CsChatRoomRepository;
 import com.example.readys7project.domain.chat.cs.repository.CsMessageRepository;
-import com.example.readys7project.domain.chat.message.MessageEventType;
+import com.example.readys7project.domain.chat.message.enums.MessageEventType;
 import com.example.readys7project.domain.chat.message.dto.request.SendMessageRequestDto;
 import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.domain.user.auth.enums.UserRole;
@@ -51,8 +51,7 @@ public class CsChatService {
     // CS 채팅방 상세 조회
     @Transactional(readOnly = true)
     public CsChatRoomResponseDto getCsRoom(Long roomId, String email) {
-        CsChatRoom room = csChatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new ChatRoomException(ErrorCode.CHATROOM_NOT_FOUND));
+        CsChatRoom room = findCsChatRoom(roomId);
         
         User user = findUserByEmail(email);
         if (!room.getInquirer().getId().equals(user.getId()) && user.getUserRole() != UserRole.ADMIN) {
@@ -65,8 +64,7 @@ public class CsChatService {
     // CS 채팅방 메시지 목록 조회
     @Transactional(readOnly = true)
     public List<CsMessageResponseDto> getCsMessages(Long roomId, String email) {
-        CsChatRoom room = csChatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new ChatRoomException(ErrorCode.CHATROOM_NOT_FOUND));
+        CsChatRoom room = findCsChatRoom(roomId);
         
         User user = findUserByEmail(email);
         if (!room.getInquirer().getId().equals(user.getId()) && user.getUserRole() != UserRole.ADMIN) {
@@ -82,8 +80,7 @@ public class CsChatService {
     // CS 메시지 저장
     @Transactional
     public CsMessageResponseDto saveMessage(Long roomId, SendMessageRequestDto request, String email) {
-        CsChatRoom room = csChatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new ChatRoomException(ErrorCode.CHATROOM_NOT_FOUND));
+        CsChatRoom room = findCsChatRoom(roomId);
         
         User sender = findUserByEmail(email);
         
@@ -101,8 +98,7 @@ public class CsChatService {
     // CS 시스템 메시지 저장 (입장/퇴장)
     @Transactional
     public CsMessageResponseDto saveSystemMessage(Long roomId, String email, boolean isEnter) {
-        CsChatRoom room = csChatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new ChatRoomException(ErrorCode.CHATROOM_NOT_FOUND));
+        CsChatRoom room = findCsChatRoom(roomId);
         
         User sender = findUserByEmail(email);
         String content = String.format("%s님이 %s하셨습니다.", sender.getName(), isEnter ? "입장" : "퇴장");
@@ -139,8 +135,7 @@ public class CsChatService {
     // [관리자] 문의 상태 변경
     @Transactional
     public CsChatRoomResponseDto updateCsStatus(Long roomId, CsStatus newStatus) {
-        CsChatRoom room = csChatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new ChatRoomException(ErrorCode.CHATROOM_NOT_FOUND));
+        CsChatRoom room = findCsChatRoom(roomId);
         
         room.updateStatus(newStatus);
         return convertToDto(room);
@@ -178,6 +173,12 @@ public class CsChatService {
     private User findUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new ChatRoomException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    private CsChatRoom findCsChatRoom(Long roomId) {
+        return csChatRoomRepository.findById(roomId).orElseThrow(
+                () -> new ChatRoomException(ErrorCode.CHATROOM_NOT_FOUND)
+        );
     }
 
     private CsChatRoomResponseDto convertToDto(CsChatRoom room) {

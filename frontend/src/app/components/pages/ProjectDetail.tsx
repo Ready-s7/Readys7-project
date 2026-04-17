@@ -270,7 +270,7 @@ export function ProjectDetail() {
                   <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{project.description}</p>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  <div><p className="text-xs text-gray-400 font-bold uppercase mb-1">예산</p><p className="font-black text-blue-600">{project.minBudget.toLocaleString()}원 ~</p></div>
+                  <div><p className="text-xs text-gray-400 font-bold uppercase mb-1">예산</p><p className="font-black text-blue-600">{project.minBudget.toLocaleString()}원 ~ {project.maxBudget.toLocaleString()}원</p></div>
                   <div><p className="text-xs text-gray-400 font-bold uppercase mb-1">기간</p><p className="font-bold">{project.duration}일</p></div>
                   <div><p className="text-xs text-gray-400 font-bold uppercase mb-1">제안수</p><p className="font-bold">{project.currentProposalCount} / {project.maxProposalCount}</p></div>
                   <div><p className="text-xs text-gray-400 font-bold uppercase mb-1">등록일</p><p className="font-bold text-gray-500">{new Date(project.createdAt).toLocaleDateString()}</p></div>

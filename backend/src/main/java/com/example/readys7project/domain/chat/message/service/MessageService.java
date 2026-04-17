@@ -2,7 +2,7 @@ package com.example.readys7project.domain.chat.message.service;
 
 import com.example.readys7project.domain.chat.chatroom.entity.ChatRoom;
 import com.example.readys7project.domain.chat.chatroom.repository.ChatRoomRepository;
-import com.example.readys7project.domain.chat.message.MessageEventType;
+import com.example.readys7project.domain.chat.message.enums.MessageEventType;
 import com.example.readys7project.domain.chat.message.dto.request.SendMessageRequestDto;
 import com.example.readys7project.domain.chat.message.dto.response.MessageCursorResponseDto;
 import com.example.readys7project.domain.chat.message.dto.response.MessageResponseDto;

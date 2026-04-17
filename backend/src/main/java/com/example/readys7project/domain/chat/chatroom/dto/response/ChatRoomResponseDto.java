@@ -1,11 +1,11 @@
-package com.example.readys7project.domain.chat.chatroom.dto;
+package com.example.readys7project.domain.chat.chatroom.dto.response;
 
 import lombok.Builder;
 
 import java.time.LocalDateTime;
 
 @Builder
-public record ChatRoomDto(
+public record ChatRoomResponseDto(
 
         Long id,
         Long projectId,
