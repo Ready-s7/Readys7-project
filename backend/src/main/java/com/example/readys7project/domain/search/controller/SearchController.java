@@ -23,7 +23,7 @@ public class SearchController {
 
     private final SearchService searchService;
 
-    @GetMapping("/v1/search/all")
+    @GetMapping("/v1/search")
     public ResponseEntity<ApiResponseDto<GlobalSearchResponseDto>> SearchV1(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam(required = false) String keyword,
@@ -43,7 +43,7 @@ public class SearchController {
     }
 
     // Caffeine 사용
-    @GetMapping("/v2/search/all")
+    @GetMapping("/v2/search")
     public ResponseEntity<ApiResponseDto<GlobalSearchResponseDto>> SearchV2(
             @RequestParam(required = false) String keyword,
             @PageableDefault(size = 5) Pageable pageable
