@@ -23,7 +23,7 @@ public class CacheConfig {
         CaffeineCache totalSearchCache = new CaffeineCache("totalSearch",
                 Caffeine.newBuilder()
                         // 데이터가 캐시에 저장된 후 1분 후 삭제되게 설정
-                        .expireAfterWrite(1, TimeUnit.MINUTES)
+                        .expireAfterWrite(1, TimeUnit.HOURS)
                         // 최대 100개가 들어갈 수 있게 설정
                         .maximumSize(100)
                         .build());
