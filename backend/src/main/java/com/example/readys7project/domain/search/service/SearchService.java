@@ -21,12 +21,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class SearchRankingService {
+public class SearchService {
 
     private final ProjectRepository projectRepository;
     private final CategoryRepository categoryRepository;
@@ -34,61 +35,64 @@ public class SearchRankingService {
     private final SearchRankingRepository searchRankingRepository;
     private final RedisTemplate<String, Object> redisTemplate;
 
+    // 랭킹 키
     private static final String RANKING_KEY = "ranking";
+    // DEDUP -> Deduplication 중복 제거의 줄임말
+    private static final String DEDUP_PREFIX = "dedup:";
+    // 검색 후 5분 동안은 동일 키워드 검색 카운팅 X, 5분 이후로 카운팅 O
+    private static final long DEDUP_TTL_SECONDS = 300;
 
     /* 어떤 사용자가 악의적으로 수만자의 긴 텍스트를 검색창에 넣으면 서버 메모리가 감당을 못할 수 있음,
        이러한 상황을 방지하기 위한 방어코드*/
     private static final int MAX_KEYWORD = 20;
 
+    // V1 캐시 사용 X
     // 랭킹 업데이트를 위해서 readOnly 제거
     @Transactional
-    public TotalSearchResponseDto getTotalSearchV1(String keyword, Pageable pageable) {
+    public TotalSearchResponseDto getTotalSearchV1(
+            Long userId,
+            String keyword,
+            Pageable pageable) {
 
-        // 검색값 (keyword)가 빈값인지 체크
-        if (keyword == null || keyword.isBlank()) {
+        // 양 끝 공백 제거
+        String trimKeyword = validateSearchKeyword(keyword);
+
+        // 한번 더 null 체크
+        if (trimKeyword == null || trimKeyword.isBlank()) {
             // NPE 방지를 위해 빈 객체를 리턴
             return empty(pageable);
         }
-        // 양 끝 공백 제거
-        String trimKeyword = keyword.trim();
 
-        // 의미 없는 검색 방지 (ex 1글자 검색)
-        if (trimKeyword.length() < 2) {
+        // 업데이트 로직에게 넘기기
+        updateRankingCount(trimKeyword, userId);
+
+        return totalSearch(trimKeyword, pageable);
+    }
+
+    // V2 카페인 적용
+    @Transactional(readOnly = true)
+    @Cacheable(value = "totalSearch",
+            key = "#keyword + '_' + #pageable.pageNumber",
+            condition = "#keyword != null && #keyword.trim().length() >= 2")
+    public TotalSearchResponseDto getTotalSearchV2(Long userId, String keyword, Pageable pageable) {
+
+        String trimKeyword = validateSearchKeyword(keyword);
+
+        if (trimKeyword == null || trimKeyword.isBlank()) {
             return empty(pageable);
         }
 
-        // 최대 검색 길이를 초과한 경우 예외 던지기
-        if (trimKeyword.length() > MAX_KEYWORD) {
-            throw new SearchException(ErrorCode.SEARCH_LENGTH_TOO_LONG);
-        }
+        // Cache Miss
+        log.info("Cache Miss DB에서 데이터를 조회합니다. :{}", trimKeyword);
 
-        updateRankingCount(trimKeyword);
-
-        try {
-            Page<ProjectsTotalSearchResponseDto> projectPage = projectRepository.projectsTotalSearch(trimKeyword, pageable);
-            Page<CategoriesTotalSearchResponseDto> categoryPage = categoryRepository.categoriesTotalSearch(trimKeyword, pageable);
-            Page<SkillsTotalSearchResponseDto> skillPage = skillRepository.skillsTotalSearch(trimKeyword, pageable);
-
-            return new TotalSearchResponseDto(projectPage, categoryPage, skillPage);
-        } catch (Exception e) {
-            log.warn("통합 검색 중 DB 에러 발생 - 키워드: [{}], 메시지: {}", trimKeyword, e.getMessage());
-            throw new SearchException(ErrorCode.SEARCH_FAILED);
-        }
+        return totalSearch(trimKeyword, pageable);
     }
 
     // 상위 10개 인기 검색어 순위 조회
-
-    // Set<ZSetOperations.TypedTuple<String>> -> Redis에서 꺼내온 [ 검색어 + 점수 ] 세트들의 묶음
-    // String -> 실제 데이터, TypedTuple -> Redis ZSet의 핵심인 [ 값(Value) + 점수(Score)]를 한번에 담고 있는 상자
-    // getValue()를 호출하면 -> "Java"가 나오고, getScore() -> "100.0"이 나옴
-    // Set<> -> ZSet은 중복을 허용하지 않기 때문에 Set 인터페이스로 사용
-
     @Transactional(readOnly = true)
     public List<PopularRankingResponseDto> getPopularRanking(int limit) {
         Set<ZSetOperations.TypedTuple<Object>> rankingList =
                 redisTemplate.opsForZSet().reverseRangeWithScores(RANKING_KEY, 0, limit - 1);
-
-        // reverseRangeWithScores -> 순위만 가져오지 말고, 점수까지고 같이 달라는 의미
 
         if (rankingList == null || rankingList.isEmpty()) {
             return Collections.emptyList();
@@ -105,6 +109,13 @@ public class SearchRankingService {
                             .keyword(cleanKeyword)
                             .build();
                 }).toList();
+    }
+
+        /* Set<ZSetOperations.TypedTuple<String>> -> Redis에서 꺼내온 [ 검색어 + 점수 ] 세트들의 묶음
+        Object -> 실제 데이터, TypedTuple -> Redis ZSet의 핵심인 [ 값(Value) + 점수(Score)]를 한번에 담고 있는 상자
+        getValue()를 호출하면 -> "Java"가 나오고, getScore() -> "100.0"이 나옴
+        Set<> -> ZSet은 중복을 허용하지 않기 때문에 Set 인터페이스로 사용
+        reverseRangeWithScores -> 순위만 가져오지 말고, 점수까지고 같이 달라는 의미*/
 
         /* AtomicInteger -> 자바에서 멀티스레드 환경에서도 안전하게 숫자를 계산할 수 있게해주는 원자적 변수,
          여러 사람이 동시에 접근해도 숫자가 꼬이지 않도록 특수 설계된 전용 계산기
@@ -114,12 +125,25 @@ public class SearchRankingService {
          하지만 AtomicInteger를는 객체이기 때문에, 람다 안에서도 내부 값을 안전하게 바꿀 수 있다*/
 
         // getAndIncrement() -> "현재 값을 먼저 가져오고, 그 다음에 1을 증가시켜라는 의미
-    }
 
-    private void updateRankingCount(String keyword) {
+
+    // 인기 검색어 랭킹 집계용 업데이트 로직
+    private void updateRankingCount(String keyword, Long userId) {
+        String dedupKey = DEDUP_PREFIX + userId + ":" + keyword;
+
+        // 키가 없을 때만 저장 (이미 비어있으면 false 반환)
+        Boolean isFirstSearch = redisTemplate.opsForValue()
+                .setIfAbsent(dedupKey, "1", DEDUP_TTL_SECONDS, TimeUnit.SECONDS);
+
+        // false -> 5분 내 동일 사용자 + 동일 키워드 -> 카운팅 스킵
+        if (Boolean.FALSE.equals(isFirstSearch)) {
+            // 바로 리턴시키기
+            return;
+        }
+
         // DB에 점수 업데이트하는 로직
         SearchRanking searchRanking = searchRankingRepository.findByKeywordAndIsDeletedFalse(keyword)
-                .orElseGet( () -> new SearchRanking(keyword));
+                .orElseGet(() -> new SearchRanking(keyword));
         // orElseGet -> 없으면 뒤에 명령문을 실행하라는 의미
 
         if (searchRanking.getId() != null) {
@@ -134,15 +158,6 @@ public class SearchRankingService {
         redisTemplate.opsForZSet().incrementScore(RANKING_KEY, keyword, 1);
     }
 
-
-    // 빈 값을 리턴해주는 공용 정적 팩토리 메서드
-    public static TotalSearchResponseDto empty(Pageable pageable) {
-        return new TotalSearchResponseDto(
-                Page.empty(pageable),
-                Page.empty(pageable),
-                Page.empty(pageable)
-        );
-    }
 
 /* Redis는 데이터를 어떻게 전달해줄까?
  Redis의 ZSet은 내부적으로 [값(Value), 점수(Score)]가 묶인 상태로 저장되지만, 우리가 자바에서 꺼낼 때는
@@ -176,21 +191,54 @@ public class SearchRankingService {
  PopularRankingResponseDto 리스트가 JSON 형태로 사용자 화면에 뿌려짐*/
 
 
-    @Transactional(readOnly = true)
-    @Cacheable(value = "totalSearch", key = "#keyword", condition = "#keyword.length() >= 2")
-    public TotalSearchResponseDto getTotalSearchV2(String keyword, Pageable pageable) {
 
-        // Cache Miss
-        log.info("Cache Miss DB에서 데이터를 조회합니다. :{}", keyword);
+    // 빈 값을 리턴해주는 공용 정적 팩토리 메서드
+    public static TotalSearchResponseDto empty(Pageable pageable) {
+        return new TotalSearchResponseDto(
+                Page.empty(pageable),
+                Page.empty(pageable),
+                Page.empty(pageable)
+        );
+    }
 
+    // 키워드 검증 공용 메서드
+    private String validateSearchKeyword(String keyword) {
+
+        // 키워드가 null이거나 비어있으면 null 리턴
+        if (keyword == null || keyword.isBlank()) {
+            return null;
+        }
+
+        // 양끝 공백 제거
+        String trimKeyword = keyword.trim();
+
+        // 최소글자 2글자로 제한 (의미없는 검색 방지)
+        if (trimKeyword.length() < 2) {
+            return null;
+        }
+
+        // 최대 글자수 제한 (악의적 검색 방지)
+        if (trimKeyword.length() > MAX_KEYWORD) {
+            throw new SearchException(ErrorCode.SEARCH_LENGTH_TOO_LONG);
+        }
+
+        return trimKeyword;
+    }
+
+    // 공용 DTO 리턴 메서드
+    private TotalSearchResponseDto totalSearch(String keyword, Pageable pageable) {
         try {
-            Page<ProjectsTotalSearchResponseDto> projectPage = projectRepository.projectsTotalSearch(keyword, pageable);
-            Page<CategoriesTotalSearchResponseDto> categoryPage = categoryRepository.categoriesTotalSearch(keyword, pageable);
-            Page<SkillsTotalSearchResponseDto> skillPage = skillRepository.skillsTotalSearch(keyword, pageable);
+            Page<ProjectsTotalSearchResponseDto> projectPage =
+                    projectRepository.projectsTotalSearch(keyword, pageable);
+            Page<CategoriesTotalSearchResponseDto> categoryPage =
+                    categoryRepository.categoriesTotalSearch(keyword, pageable);
+            Page<SkillsTotalSearchResponseDto> skillPage =
+                    skillRepository.skillsTotalSearch(keyword, pageable);
 
             return new TotalSearchResponseDto(projectPage, categoryPage, skillPage);
+
         } catch (Exception e) {
-            log.warn("검색 중 에러 발생: {}", e.getMessage());
+            log.warn("통합 검색 중 DB 에러 발생 - 키워드: [{}], 메시지: {}", keyword, e.getMessage());
             throw new SearchException(ErrorCode.SEARCH_FAILED);
         }
     }
