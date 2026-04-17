@@ -72,9 +72,9 @@ public class SearchService {
     // V2 카페인 적용
     @Transactional(readOnly = true)
     @Cacheable(value = "totalSearch",
-            key = "#keyword + '_' + #pageable.pageNumber",
+            key = "#keyword",
             condition = "#keyword != null && #keyword.trim().length() >= 2")
-    public TotalSearchResponseDto getTotalSearchV2(Long userId, String keyword, Pageable pageable) {
+    public TotalSearchResponseDto getTotalSearchV2(String keyword, Pageable pageable) {
 
         String trimKeyword = validateSearchKeyword(keyword);
 

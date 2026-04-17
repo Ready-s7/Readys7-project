@@ -45,12 +45,10 @@ public class SearchController {
     // Caffeine 사용
     @GetMapping("/v2/search/all")
     public ResponseEntity<ApiResponseDto<TotalSearchResponseDto>> getTotalSearchV2(
-            @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam(required = false) String keyword,
             @PageableDefault(size = 5) Pageable pageable
     ) {
-        Long userId = customUserDetails.getUser().getId();
-        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, searchService.getTotalSearchV2(userId, keyword, pageable)));
+        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, searchService.getTotalSearchV2(keyword, pageable)));
     }
 
 }
