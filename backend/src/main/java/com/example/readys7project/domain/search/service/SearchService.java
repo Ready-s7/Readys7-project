@@ -219,7 +219,7 @@ public class SearchService {
         }
 
         // 양끝 공백 제거
-        String trimKeyword = keyword.trim();
+        String trimKeyword = keyword.trim().toLowerCase();
 
         // 최소글자 2글자로 제한 (의미없는 검색 방지)
         if (trimKeyword.length() < 2) {
