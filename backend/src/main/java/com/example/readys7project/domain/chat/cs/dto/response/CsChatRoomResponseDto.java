@@ -1,4 +1,4 @@
-package com.example.readys7project.domain.chat.cs.dto;
+package com.example.readys7project.domain.chat.cs.dto.response;
 
 import com.example.readys7project.domain.chat.cs.enums.CsStatus;
 import lombok.Builder;

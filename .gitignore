@@ -41,3 +41,6 @@ out/
 
 ### frontpid ###
 .frontend.pid
+
+### Harness Engineering ###
+.harness/

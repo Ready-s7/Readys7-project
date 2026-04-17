@@ -6,6 +6,8 @@ import com.example.readys7project.domain.review.dto.request.ReviewUpdateRequestD
 import com.example.readys7project.domain.review.service.ReviewService;
 import com.example.readys7project.global.dto.ApiResponseDto;
 import com.example.readys7project.global.security.CustomUserDetails;
+import com.example.readys7project.global.aop.CheckOwnerOrAdmin;
+import com.example.readys7project.global.aop.EntityType;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,8 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,7 +34,6 @@ public class ReviewController {
     }
 
     // 개발자 조회
-    //  구분선 params 추가
     @GetMapping(value = "/v1/reviews", params = "developerId")
     public ResponseEntity<ApiResponseDto<Page<ReviewDto>>> getReviewsByDeveloper(
             @RequestParam Long developerId,
@@ -46,12 +45,11 @@ public class ReviewController {
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
         String email = customUserDetails.getEmail();
-        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, reviewService.getReviewsByDeveloper(developerId, rating, minRating, maxRating, page, size,email)));
+        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, reviewService.getReviewsByDeveloper(developerId, rating, minRating, maxRating, page, size, email)));
     }
 
 
     // 클라이언트 조회
-    // . 구분선 params 추가
     @GetMapping(value = "/v1/reviews", params = "clientId")
     public ResponseEntity<ApiResponseDto<Page<ReviewDto>>> getReviewsByClient(
             @RequestParam Long clientId,
@@ -64,32 +62,29 @@ public class ReviewController {
     )
     {
         String email = customUserDetails.getEmail();
-        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, reviewService.getReviewsByClient(clientId, rating, minRating, maxRating, page, size,email)));
+        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, reviewService.getReviewsByClient(clientId, rating, minRating, maxRating, page, size, email)));
     }
 
-    // 리뷰 수정
+    // 리뷰 수정 (본인 작성 리뷰만 가능 - AOP 검증)
     @PatchMapping("/v1/reviews/{reviewId}")
+    @CheckOwnerOrAdmin(type = EntityType.REVIEW, idParam = "reviewId")
     public ResponseEntity<ApiResponseDto<ReviewDto>> updateReview(
             @PathVariable Long reviewId,
             @Valid @RequestBody ReviewUpdateRequestDto request,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ){
-        String email = customUserDetails.getEmail();
-        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, reviewService.updateReview(reviewId,request,email)));
-
+        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, reviewService.updateReview(reviewId, request, customUserDetails.getEmail())));
     }
 
 
-    // 리뷰 삭제
+    // 리뷰 삭제 (본인 작성 리뷰 / 관리자 가능 - AOP 검증)
     @DeleteMapping("/v1/reviews/{reviewId}")
+    @CheckOwnerOrAdmin(type = EntityType.REVIEW, idParam = "reviewId")
     public ResponseEntity<ApiResponseDto<ReviewDto>> deleteReview(
             @PathVariable Long reviewId,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ){
-        String email = customUserDetails.getEmail();
-        reviewService.deleteReview(reviewId,email);
+        reviewService.deleteReview(reviewId, customUserDetails.getEmail());
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponseDto.successWithNoContent());
-
     }
-
 }

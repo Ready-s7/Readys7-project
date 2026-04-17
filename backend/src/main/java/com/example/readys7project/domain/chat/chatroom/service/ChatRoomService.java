@@ -1,6 +1,6 @@
 package com.example.readys7project.domain.chat.chatroom.service;
 
-import com.example.readys7project.domain.chat.chatroom.dto.ChatRoomDto;
+import com.example.readys7project.domain.chat.chatroom.dto.response.ChatRoomResponseDto;
 import com.example.readys7project.domain.chat.chatroom.dto.request.CreateChatRoomRequestDto;
 import com.example.readys7project.domain.chat.chatroom.entity.ChatRoom;
 import com.example.readys7project.domain.chat.chatroom.repository.ChatRoomRepository;
@@ -34,7 +34,7 @@ public class ChatRoomService {
     private final UnreadCountService unreadCountService;
 
     @Transactional
-    public ChatRoomDto createChatRoom(CreateChatRoomRequestDto request, String email) {
+    public ChatRoomResponseDto createChatRoom(CreateChatRoomRequestDto request, String email) {
 
         // user 가져오기
         User user = findUser(email);
@@ -93,7 +93,7 @@ public class ChatRoomService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ChatRoomDto> getMyChatRooms(String email, Pageable pageable) {
+    public Page<ChatRoomResponseDto> getMyChatRooms(String email, Pageable pageable) {
         // user 가져오기
         User user = findUser(email);
 
@@ -121,10 +121,10 @@ public class ChatRoomService {
         chatRoomRepository.delete(chatRoom);
     }
 
-    public ChatRoomDto convertToDto(ChatRoom chatRoom, Long userId) {
+    public ChatRoomResponseDto convertToDto(ChatRoom chatRoom, Long userId) {
         Long unreadCount = unreadCountService.getCount(chatRoom.getId(), userId);
 
-        return ChatRoomDto.builder()
+        return ChatRoomResponseDto.builder()
                 .id(chatRoom.getId())
                 .projectId(chatRoom.getProject().getId())
                 .projectTitle(chatRoom.getProject().getTitle())

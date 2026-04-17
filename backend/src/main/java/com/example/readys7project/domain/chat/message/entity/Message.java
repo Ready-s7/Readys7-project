@@ -1,10 +1,9 @@
 package com.example.readys7project.domain.chat.message.entity;
 
 import com.example.readys7project.domain.chat.chatroom.entity.ChatRoom;
-import com.example.readys7project.domain.chat.message.MessageEventType;
+import com.example.readys7project.domain.chat.message.enums.MessageEventType;
 import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.global.entity.BaseEntity;
-import com.example.readys7project.global.exception.domain.MessageException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

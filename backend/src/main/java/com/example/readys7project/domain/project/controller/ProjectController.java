@@ -7,6 +7,8 @@ import com.example.readys7project.domain.project.dto.request.ProjectUpdateReques
 import com.example.readys7project.domain.project.service.ProjectService;
 import com.example.readys7project.global.dto.ApiResponseDto;
 import com.example.readys7project.global.security.CustomUserDetails;
+import com.example.readys7project.global.aop.CheckOwnerOrAdmin;
+import com.example.readys7project.global.aop.EntityType;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -63,36 +65,34 @@ public class ProjectController {
 
     // 프로젝트 수정 (본인 Client만 가능)
     @PutMapping("/v1/projects/{projectId}")
+    @CheckOwnerOrAdmin(type = EntityType.PROJECT, idParam = "projectId")
     public ResponseEntity<ApiResponseDto<ProjectDto>> updateProject(
             @PathVariable Long projectId,
-            @Valid @RequestBody ProjectUpdateRequestDto request,
-            @AuthenticationPrincipal CustomUserDetails customUserDetails
+            @Valid @RequestBody ProjectUpdateRequestDto request
     ) {
-        String email = customUserDetails.getEmail();         // 검증 추가
         return ResponseEntity.ok(ApiResponseDto
-                .success(HttpStatus.OK, projectService.updateProject(projectId, request, email)));
+                .success(HttpStatus.OK, projectService.updateProject(projectId, request)));
     }
 
     // 프로젝트 상태 변경 (CLIENT 본인 / ADMIN)
     @PatchMapping("/v1/projects/{projectId}/status")
+    @CheckOwnerOrAdmin(type = EntityType.PROJECT, idParam = "projectId")
     public ResponseEntity<ApiResponseDto<ProjectDto>> changeProjectStatus(
             @PathVariable Long projectId,
             @RequestBody ProjectStatusUpdateRequestDto request,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
-        String email = customUserDetails.getEmail();
         return ResponseEntity.ok(ApiResponseDto
-                .success(HttpStatus.OK, projectService.changeProjectStatus(projectId, request.status(), email)));
+                .success(HttpStatus.OK, projectService.changeProjectStatus(projectId, request.status(), customUserDetails.getEmail())));
     }
 
     // 프로젝트 삭제 (본인 Client만 가능)
     @DeleteMapping("/v1/projects/{projectId}")
+    @CheckOwnerOrAdmin(type = EntityType.PROJECT, idParam = "projectId")
     public ResponseEntity<ApiResponseDto<Void>> deleteProject(
-            @PathVariable Long projectId,
-            @AuthenticationPrincipal CustomUserDetails customUserDetails
+            @PathVariable Long projectId
     ) {
-        String email = customUserDetails.getEmail();          // 검증 추가
-        projectService.deleteProject(projectId, email);
+        projectService.deleteProject(projectId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .body(ApiResponseDto.successWithNoContent());
     }

@@ -10,7 +10,7 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
-import com.example.readys7project.domain.chat.cs.dto.CsMessageResponseDto;
+import com.example.readys7project.domain.chat.cs.dto.response.CsMessageResponseDto;
 
 @Component
 @RequiredArgsConstructor

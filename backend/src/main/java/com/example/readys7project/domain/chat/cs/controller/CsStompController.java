@@ -1,6 +1,6 @@
 package com.example.readys7project.domain.chat.cs.controller;
 
-import com.example.readys7project.domain.chat.cs.dto.CsMessageResponseDto;
+import com.example.readys7project.domain.chat.cs.dto.response.CsMessageResponseDto;
 import com.example.readys7project.domain.chat.cs.publisher.CsRedisMessagePublisher;
 import com.example.readys7project.domain.chat.cs.service.CsChatService;
 import com.example.readys7project.domain.chat.message.dto.request.SendMessageRequestDto;

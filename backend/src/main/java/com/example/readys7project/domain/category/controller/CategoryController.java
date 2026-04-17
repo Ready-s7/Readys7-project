@@ -1,5 +1,6 @@
 package com.example.readys7project.domain.category.controller;
 
+import com.example.readys7project.global.aop.AdminOnly;
 import com.example.readys7project.domain.category.dto.CategoryDto;
 import com.example.readys7project.domain.category.dto.request.CategoryRequestDto;
 import com.example.readys7project.domain.category.dto.request.CategoryUpdateRequestDto;
@@ -22,6 +23,7 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     // 카테고리 생성 (ADMIN 만 가능)
+    @AdminOnly
     @PostMapping("/v1/categories")
     public ResponseEntity<ApiResponseDto<CategoryDto>> createCategory(
             @Valid@RequestBody CategoryRequestDto request,
@@ -42,30 +44,29 @@ public class CategoryController {
     @GetMapping("/v1/categories/search")
     public ResponseEntity<ApiResponseDto<List<CategoryDto>>> searchCategories(
             @RequestParam String name,
-            @RequestParam(required = false) String description) {  // optional이므로 required = false
+            @RequestParam(required = false) String description // optional이므로 required = false
+    ) {
         return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK,
                 categoryService.searchCategories(name, description)));
     }
 
     // 카테고리 수정 (ADMIN 만 가능)
+    @AdminOnly
     @PatchMapping("/v1/categories/{categoryId}")
     public ResponseEntity<ApiResponseDto<CategoryDto>> updateCategory(
             @PathVariable Long categoryId,
-            @Valid@RequestBody CategoryUpdateRequestDto request,
-            @AuthenticationPrincipal CustomUserDetails customUserDetails
+            @Valid@RequestBody CategoryUpdateRequestDto request
     ) {
-        String email = customUserDetails.getEmail();
-        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, categoryService.updateCategory(categoryId, request, email)));
+        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, categoryService.updateCategory(categoryId, request)));
     }
 
     // 카테고리 삭제 (ADMIN 만 가능)
+    @AdminOnly
     @DeleteMapping("/v1/categories/{categoryId}")
     public ResponseEntity<ApiResponseDto<Void>> deleteCategory(
-            @PathVariable Long categoryId,
-            @AuthenticationPrincipal CustomUserDetails customUserDetails
+            @PathVariable Long categoryId
     ) {
-        String email = customUserDetails.getEmail();
-        categoryService.deleteCategory(categoryId, email);
+        categoryService.deleteCategory(categoryId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponseDto.successWithNoContent());
     }
 }
