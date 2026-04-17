@@ -2,7 +2,7 @@ package com.example.readys7project.domain.search.service;
 
 import com.example.readys7project.domain.category.repository.CategoryRepository;
 import com.example.readys7project.domain.project.repository.ProjectRepository;
-import com.example.readys7project.domain.search.Repository.SearchRankingRepository;
+import com.example.readys7project.domain.search.repository.SearchRankingRepository;
 import com.example.readys7project.domain.search.dto.response.*;
 import com.example.readys7project.domain.search.entity.SearchRanking;
 import com.example.readys7project.domain.skill.repository.SkillRepository;
@@ -81,8 +81,7 @@ public class SearchService {
     // V2 카페인 적용
     @Transactional(readOnly = true)
     @Cacheable(value = "totalSearch",
-            key = "#keyword",
-            condition = "#keyword != null && #keyword.trim().length() >= 2")
+            key = "T(com.example.readys7project.domain.search.util.SearchCacheKeyGenerator).generate(#keyword, #pageable)")
     public TotalSearchResponseDto getTotalSearchV2(String keyword, Pageable pageable) {
 
         String trimKeyword = validateSearchKeyword(keyword);
