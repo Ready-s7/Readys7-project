@@ -34,7 +34,7 @@ public class SearchController {
     }
 
 
-    // Redis ZSet 적용 해야됨 (인기검색어 조회)
+    // 인기검색어 조회
     @GetMapping("/v1/search/popular")
     public ResponseEntity<ApiResponseDto<List<PopularRankingResponseDto>>> getPopularRanking(
             @RequestParam(defaultValue = "10") int limit
