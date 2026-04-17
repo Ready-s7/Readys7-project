@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -46,6 +47,9 @@ public class SearchService {
        이러한 상황을 방지하기 위한 방어코드*/
     private static final int MAX_KEYWORD = 20;
 
+    // 특수 문자 차단 패턴 추가
+    private static final Pattern INVALID_PATTERN = Pattern.compile("[<>\"'%;()&+\\-=]");
+
     // V1 캐시 사용 X
     // 랭킹 업데이트를 위해서 readOnly 제거
     @Transactional
@@ -58,15 +62,20 @@ public class SearchService {
         String trimKeyword = validateSearchKeyword(keyword);
 
         // 한번 더 null 체크
-        if (trimKeyword == null || trimKeyword.isBlank()) {
+        if (trimKeyword == null) {
             // NPE 방지를 위해 빈 객체를 리턴
             return empty(pageable);
         }
 
-        // 업데이트 로직에게 넘기기
-        updateRankingCount(trimKeyword, userId);
+        // 미리 담아주고
+        TotalSearchResponseDto result = totalSearch(trimKeyword, pageable);
 
-        return totalSearch(trimKeyword, pageable);
+        // 검색 결과가 존재한다면, 업데이트 로직에게 넘기기
+        if (hasAnyResult(result)) {
+            updateRankingCount(trimKeyword, userId);
+        }
+
+        return result;
     }
 
     // V2 카페인 적용
@@ -124,7 +133,13 @@ public class SearchService {
          AtomicInteger를 사용하는 이유 : 자바의 람다 안에서는 지역변수를 수정할 수 없는 규칙이 있다,
          하지만 AtomicInteger를는 객체이기 때문에, 람다 안에서도 내부 값을 안전하게 바꿀 수 있다*/
 
-        // getAndIncrement() -> "현재 값을 먼저 가져오고, 그 다음에 1을 증가시켜라는 의미
+    // getAndIncrement() -> "현재 값을 먼저 가져오고, 그 다음에 1을 증가시켜라는 의미
+
+
+    // 검색 결과 존재 여부 확인하는 로직
+    private boolean hasAnyResult(TotalSearchResponseDto result) {
+        return !result.projects().isEmpty() || !result.categories().isEmpty() || !result.skills().isEmpty();
+    }
 
 
     // 인기 검색어 랭킹 집계용 업데이트 로직
@@ -143,16 +158,11 @@ public class SearchService {
 
         // DB에 점수 업데이트하는 로직
         SearchRanking searchRanking = searchRankingRepository.findByKeywordAndIsDeletedFalse(keyword)
-                .orElseGet(() -> new SearchRanking(keyword));
+                .orElseGet(() -> searchRankingRepository.save(new SearchRanking(keyword)));
         // orElseGet -> 없으면 뒤에 명령문을 실행하라는 의미
 
-        if (searchRanking.getId() != null) {
-            // 이미 검색했던 값이면 +1
-            searchRanking.increaseSearchCount();
-        } else {
-            // 처음 생긴 검색한 값이면 DB에 저장
-            searchRankingRepository.save(searchRanking);
-        }
+        // 신규/기존 구분 없이 항상 +1 (신규는 save 직후 count 1이 됨)
+        searchRanking.increaseSearchCount();
 
         // Redis ZSet 점수 업데이트 로직
         redisTemplate.opsForZSet().incrementScore(RANKING_KEY, keyword, 1);
@@ -191,10 +201,9 @@ public class SearchService {
  PopularRankingResponseDto 리스트가 JSON 형태로 사용자 화면에 뿌려짐*/
 
 
-
     // 빈 값을 리턴해주는 공용 정적 팩토리 메서드
     public static TotalSearchResponseDto empty(Pageable pageable) {
-        return new TotalSearchResponseDto(
+        return TotalSearchResponseDto.of(
                 Page.empty(pageable),
                 Page.empty(pageable),
                 Page.empty(pageable)
@@ -220,6 +229,11 @@ public class SearchService {
         // 최대 글자수 제한 (악의적 검색 방지)
         if (trimKeyword.length() > MAX_KEYWORD) {
             throw new SearchException(ErrorCode.SEARCH_LENGTH_TOO_LONG);
+        }
+
+        // 특수 문자 차단
+        if (INVALID_PATTERN.matcher(trimKeyword).find()) {
+            throw new SearchException(ErrorCode.SEARCH_INVALID_CHARACTER);
         }
 
         return trimKeyword;

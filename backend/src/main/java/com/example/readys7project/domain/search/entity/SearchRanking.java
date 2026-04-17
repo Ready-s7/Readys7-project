@@ -26,7 +26,7 @@ public class SearchRanking {
 
     public SearchRanking(String keyword) {
         this.keyword = keyword;
-        this.searchCount = 1; // 첫 검색은 1부터 시작
+        this.searchCount = 0; // increaseSearchCount() 호출시 1 증가 완전 처음 생성일때는 0
     }
 
     // 카운트 증가
