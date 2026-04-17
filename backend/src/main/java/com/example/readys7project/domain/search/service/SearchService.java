@@ -55,7 +55,7 @@ public class SearchService {
     // V1 캐시 사용 X
     // 랭킹 업데이트를 위해서 readOnly 제거
     @Transactional
-    public GlobalSearchResponseDto SearchV1(
+    public GlobalSearchResponseDto searchV1(
             Long userId,
             String keyword,
             Pageable pageable) {
@@ -85,7 +85,7 @@ public class SearchService {
     @Cacheable(value = "totalSearch",
             key = "T(com.example.readys7project.domain.search.util.SearchCacheKeyGenerator).generate(#keyword, #pageable)")
 
-    public GlobalSearchResponseDto SearchV2(String keyword, Pageable pageable) {
+    public GlobalSearchResponseDto searchV2(String keyword, Pageable pageable) {
 
         String trimKeyword = validateSearchKeyword(keyword);
 

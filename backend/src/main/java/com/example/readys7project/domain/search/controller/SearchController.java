@@ -24,13 +24,13 @@ public class SearchController {
     private final SearchService searchService;
 
     @GetMapping("/v1/search")
-    public ResponseEntity<ApiResponseDto<GlobalSearchResponseDto>> SearchV1(
+    public ResponseEntity<ApiResponseDto<GlobalSearchResponseDto>> searchV1(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam(required = false) String keyword,
             @PageableDefault(size = 5) Pageable pageable
     ) {
         Long userId = customUserDetails.getUser().getId();
-        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, searchService.SearchV1(userId, keyword, pageable)));
+        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, searchService.searchV1(userId, keyword, pageable)));
     }
 
 
@@ -44,11 +44,11 @@ public class SearchController {
 
     // Caffeine 사용
     @GetMapping("/v2/search")
-    public ResponseEntity<ApiResponseDto<GlobalSearchResponseDto>> SearchV2(
+    public ResponseEntity<ApiResponseDto<GlobalSearchResponseDto>> searchV2(
             @RequestParam(required = false) String keyword,
             @PageableDefault(size = 5) Pageable pageable
     ) {
-        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, searchService.SearchV2(keyword, pageable)));
+        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, searchService.searchV2(keyword, pageable)));
     }
 
 }
