@@ -1,4 +1,4 @@
-package com.example.readys7project.domain.search.Repository;
+package com.example.readys7project.domain.search.repository;
 
 import com.example.readys7project.domain.search.entity.SearchRanking;
 import org.springframework.data.jpa.repository.JpaRepository;
