@@ -23,7 +23,11 @@ public class StringListConverter implements AttributeConverter<List<String>, Str
             return "[]";
         }
         try {
-            return objectMapper.writeValueAsString(attribute);
+            List<String> lowerSkills = attribute.stream()
+                    .map(String::toLowerCase)
+                    .toList();
+            return objectMapper.writeValueAsString(lowerSkills);
+
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("skills 직렬화 실패", e);
         }
