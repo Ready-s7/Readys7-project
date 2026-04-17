@@ -38,8 +38,7 @@ public class ProposalService {
     public ProposalDto createProposal(ProposalRequestDto request, String userEmail) {
 
         // user 가져오기
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new ProposalException(ErrorCode.USER_NOT_FOUND));
+        User user = findUser(userEmail);
 
         // 개발자인지 검증
         if (user.getUserRole() != UserRole.DEVELOPER) {
@@ -47,12 +46,10 @@ public class ProposalService {
         }
 
         // developer 가져오기
-        Developer developer = developerRepository.findByUser(user)
-                .orElseThrow(() -> new ProposalException(ErrorCode.DEVELOPER_NOT_FOUND));
+        Developer developer = findDeveloper(user);
 
         // project 가져오기
-        Project project = projectRepository.findById(request.projectId())
-                .orElseThrow(() -> new ProposalException(ErrorCode.PROJECT_NOT_FOUND));
+        Project project = findProject(request.projectId());
 
         // 이미 제안서를 제출했는지 확인
         proposalRepository.findByProjectIdAndDeveloperId(project.getId(), developer.getId())
@@ -83,14 +80,10 @@ public class ProposalService {
     public Page<ProposalDto> getProposalsByProject(Long projectId, String email, Pageable pageable) {
 
         // 프로젝트 가져오기
-        Project project = projectRepository.findById(projectId).orElseThrow(
-                () -> new ProposalException(ErrorCode.PROJECT_NOT_FOUND)
-        );
+        Project project = findProject(projectId);
 
         // 현재 사용자 정보 가져오기
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new ProposalException(ErrorCode.USER_NOT_FOUND)
-        );
+        User user = findUser(email);
 
         // 현재 사용자가 해당 프로젝트의 제안서 목록을 열람할 권리가 있는 지 검증
         // (본인의 프로젝트이거나 관리자)가 아니면 에러 처리
@@ -107,19 +100,13 @@ public class ProposalService {
     public ProposalDto getProposal(Long proposalId, String email) {
 
         // proposal 가져오기
-        Proposal proposal = proposalRepository.findById(proposalId).orElseThrow(
-                () -> new ProposalException(ErrorCode.PROPOSAL_NOT_FOUND)
-        );
+        Proposal proposal = findProposal(proposalId);
 
         // 현재 사용자 정보 가져오기
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new ProposalException(ErrorCode.USER_NOT_FOUND)
-        );
+        User user = findUser(email);
 
         // project 가져오기
-        Project project = projectRepository.findById(proposal.getProject().getId()).orElseThrow(
-                () -> new ProposalException(ErrorCode.PROJECT_NOT_FOUND)
-        );
+        Project project = findProject(proposal.getProject().getId());
 
         // 현재 사용자가 해당 제안서를 조회할 수 있는 지 검증
         // (제안서를 작성한 유저이거나 프로젝트를 작성한 유저이거나 관리자)가 아니면 에러 처리
@@ -138,12 +125,10 @@ public class ProposalService {
     public Page<ProposalDto> getMyProposals(String email, Pageable pageable) {
 
         // 유저 가져오기
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ProposalException(ErrorCode.USER_NOT_FOUND));
+        User user = findUser(email);
 
         // 개발자인지 확인
-        Developer developer = developerRepository.findByUser(user)
-                .orElseThrow(() -> new ProposalException(ErrorCode.DEVELOPER_NOT_FOUND));
+        Developer developer = findDeveloper(user);
 
         // 해당 개발자의 제안서 목록 조회
         return proposalRepository.findByDeveloperId(developer.getId(), pageable)
@@ -154,12 +139,10 @@ public class ProposalService {
     public ProposalDto updateProposalStatus(Long proposalId, UpdateProposalRequestDto request, String email) {
 
         // proposal 가져오기
-        Proposal proposal = proposalRepository.findById(proposalId)
-                .orElseThrow(() -> new ProposalException(ErrorCode.PROPOSAL_NOT_FOUND));
+        Proposal proposal = findProposal(proposalId);
 
         // user 가져오기
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ProposalException(ErrorCode.USER_NOT_FOUND));
+        User user = findUser(email);
 
         // '제안서를 작성한 개발자 본인'이거나
         if (!(proposal.getDeveloper().getUser().getId().equals(user.getId())
@@ -182,9 +165,7 @@ public class ProposalService {
             }
         }
 
-        Project project = projectRepository.findById(proposal.getProject().getId()).orElseThrow(
-                () -> new ProposalException(ErrorCode.PROJECT_NOT_FOUND)
-        );
+        Project project = findProject(proposal.getProject().getId());
 
         try {
             // 상태 변경
@@ -195,10 +176,10 @@ public class ProposalService {
                 project.changeStatus(ProjectStatus.IN_PROGRESS);
             }
 
-            // 제안서가 철회됐을 때 해당 프로젝트에 승인된 제안서가 없지만
+            // 제안서가 거절 or 철회됐을 때 해당 프로젝트에 승인된 제안서가 없지만
             // 최대 제안서 개수가 가득 차서 자동으로 모집 종료된 상태였다면
             // 모집 중으로 다시 되돌려주고 && 현재 제안서 수를 -1 해줘야 함.
-            if (request.status().equals(ProposalStatus.WITHDRAWN)) {
+            if (request.status().equals(ProposalStatus.WITHDRAWN) || request.status().equals(ProposalStatus.REJECTED)) {
                 project.decreaseProposalCount();
                 boolean existence = proposalRepository.existsByProjectIdAndStatus(project.getId(), ProposalStatus.ACCEPTED);
                 if (!existence) {
@@ -226,5 +207,29 @@ public class ProposalService {
                 .proposedDuration(proposal.getProposedDuration())
                 .status(proposal.getStatus().name().toUpperCase())
                 .build();
+    }
+
+    private User findUser(String userEmail) {
+        return userRepository.findByEmail(userEmail).orElseThrow(
+                () -> new ProposalException(ErrorCode.USER_NOT_FOUND)
+        );
+    }
+
+    private Project findProject(Long projectId) {
+        return projectRepository.findById(projectId).orElseThrow(
+                () -> new ProposalException(ErrorCode.PROJECT_NOT_FOUND)
+        );
+    }
+
+    private Developer findDeveloper(User user) {
+        return developerRepository.findByUser(user).orElseThrow(
+                () -> new ProposalException(ErrorCode.DEVELOPER_NOT_FOUND)
+        );
+    }
+
+    private Proposal findProposal(Long proposalId) {
+        return proposalRepository.findById(proposalId).orElseThrow(
+                () -> new ProposalException(ErrorCode.PROPOSAL_NOT_FOUND)
+        );
     }
 }
