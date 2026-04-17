@@ -21,7 +21,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-import static com.example.readys7project.domain.skill.entity.QSkill.skill;
 
 @Repository
 @RequiredArgsConstructor
@@ -29,10 +28,10 @@ public class SkillQueryRepositoryImpl implements SkillQueryRepository{
 
     private final JPAQueryFactory jpaQueryFactory;
 
+    QSkill qSkill = QSkill.skill;
 
     @Override
     public Page<Skill> findByNameAndCategory(String name, SkillCategory category, Pageable pageable) {
-        QSkill qSkill = skill;
         QAdmin qAdmin = QAdmin.admin;
         QUser qAdminUser = new QUser("adminUser");
 
@@ -68,7 +67,6 @@ public class SkillQueryRepositoryImpl implements SkillQueryRepository{
 
     @Override
     public Page<Skill> findAllWithAdminAndUser(Pageable pageable) {
-        QSkill qSkill = skill;
         QAdmin qAdmin = QAdmin.admin;
         QUser qAdminUser = new QUser("adminUser");
 
@@ -95,24 +93,24 @@ public class SkillQueryRepositoryImpl implements SkillQueryRepository{
         // 데이터 조회
         List<SkillsTotalSearchResponseDto> content = jpaQueryFactory
                 .select(Projections.constructor(SkillsTotalSearchResponseDto.class,
-                        skill.id,
-                        skill.admin.id,
-                        skill.admin.user.name,
-                        skill.name,
-                        skill.skillCategory,
-                        skill.createdAt
+                        qSkill.id,
+                        qSkill.admin.id,
+                        qSkill.admin.user.name,
+                        qSkill.name,
+                        qSkill.skillCategory,
+                        qSkill.createdAt
                 ))
-                .from(skill)
+                .from(qSkill)
                 .where(searchCondition(keyword))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
-                .orderBy(skill.name.asc()) // 가,나,다 순 알파벳 정렬
+                .orderBy(qSkill.name.asc()) // 가,나,다 순 알파벳 정렬
                 .fetch();
 
         // 카운트 쿼리 분리 (지연 로딩)
         JPAQuery<Long> contQuery = jpaQueryFactory
-                .select(skill.count())
-                .from(skill)
+                .select(qSkill.count())
+                .from(qSkill)
                 .where(searchCondition(keyword));
 
         return PageableExecutionUtils.getPage(content, pageable, contQuery::fetchOne);
@@ -143,7 +141,7 @@ public class SkillQueryRepositoryImpl implements SkillQueryRepository{
         if (keyword == null || keyword.trim().isEmpty()) {
             return null;
         }
-        return skill.name.containsIgnoreCase(keyword);
+        return qSkill.name.containsIgnoreCase(keyword);
     }
 
     // SkillCategory 검색 조건
@@ -153,6 +151,6 @@ public class SkillQueryRepositoryImpl implements SkillQueryRepository{
         }
         // stringValue -> Enum 타입을 String으로 변환환해줌
         // Enum 타입의 SkillCategory를 검색 조건에 포함시키기 위해 stringValue()로 변환
-        return skill.skillCategory.stringValue().containsIgnoreCase(keyword);
+        return qSkill.skillCategory.stringValue().containsIgnoreCase(keyword);
     }
 }

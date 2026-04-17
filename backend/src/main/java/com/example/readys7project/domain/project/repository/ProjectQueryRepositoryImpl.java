@@ -23,13 +23,13 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-import static com.example.readys7project.domain.project.entity.QProject.project;
-
 @Repository
 @RequiredArgsConstructor
 public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
+
+    QProject qProject = QProject.project;
 
     @Override
     public Page<Project> searchProjects(
@@ -39,7 +39,6 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
             List<String> skills,
             Pageable pageable
     ) {
-        QProject qProject = project;
 
         // 동적 조건 빌더 - 각 조건이 null이면 자동으로 무시됨
         BooleanBuilder builder = new BooleanBuilder();
@@ -113,7 +112,6 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
     @Override
     public Page<Project> findByClientWithPageable(Long clientId, Pageable pageable) {
 
-        QProject qProject = project;
         QClient qClient = QClient.client;
         QUser qUser = QUser.user;
 
@@ -142,42 +140,43 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
     @Override
     public Page<ProjectsTotalSearchResponseDto> projectsTotalSearch(String keyword, Pageable pageable) {
 
+
         // 1. 데이터 조회
 
         // ProjectPopularSearchResponseDto에 정의된 필요한 5개의 필드만 가져옴
         // Project 내부의 기본 필드들만 가져오기 때문에 다른 테이블 조회를 하지 않음 -> Fetch Join 안써도 N+1 발생 X
         List<ProjectsTotalSearchResponseDto> content = jpaQueryFactory
                 .select(Projections.constructor(ProjectsTotalSearchResponseDto.class,
-                        project.id,
-                        project.title,
-                        project.description,
-                        project.category.name,
-                        project.minBudget,
-                        project.maxBudget,
-                        project.duration,
-                        project.skills,
-                        project.status.stringValue(),
-                        project.currentProposalCount,
-                        project.maxProposalCount,
-                        project.client.user.name,
-                        project.client.rating,
-                        project.createdAt,
-                        project.updatedAt
+                        qProject.id,
+                        qProject.title,
+                        qProject.description,
+                        qProject.category.name,
+                        qProject.minBudget,
+                        qProject.maxBudget,
+                        qProject.duration,
+                        qProject.skills,
+                        qProject.status.stringValue(),
+                        qProject.currentProposalCount,
+                        qProject.maxProposalCount,
+                        qProject.client.user.name,
+                        qProject.client.rating,
+                        qProject.createdAt,
+                        qProject.updatedAt
                 ))
-                .from(project)
-                .leftJoin(project.category)
-                .leftJoin(project.client)
-                .leftJoin(project.client.user)
+                .from(qProject)
+                .leftJoin(qProject.category)
+                .leftJoin(qProject.client)
+                .leftJoin(qProject.client.user)
                 .where(searchAllCondition(keyword))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
-                .orderBy(project.createdAt.desc())
+                .orderBy(qProject.createdAt.desc())
                 .fetch();
 
         // 카운트 쿼리 분리
         JPAQuery<Long> countQuery = jpaQueryFactory
-                .select(project.count())
-                .from(project)
+                .select(qProject.count())
+                .from(qProject)
                 .where(searchAllCondition(keyword));
 
         // PageableExecutionUtils를 사용하여 최적화된 Page 객체 반환
@@ -234,7 +233,7 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
             return null;
         }
         // 대소문자 무시하고 키워드 포함
-        return project.title.containsIgnoreCase(keyword);
+        return qProject.title.containsIgnoreCase(keyword);
     }
 
     // description 검색 조건
@@ -242,7 +241,7 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
         if (keyword == null || keyword.trim().isEmpty()) {
             return null;
         }
-        return project.description.containsIgnoreCase(keyword);
+        return qProject.description.containsIgnoreCase(keyword);
     }
 
     // skill 검색 조건
@@ -252,7 +251,7 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
         }
         return Expressions.booleanTemplate(
                 "CAST(JSON_CONTAINS({0}, JSON_QUOTE({1})) AS integer) = 1",
-                project.skills,
+                qProject.skills,
                 keyword
         );
     }
@@ -288,7 +287,7 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
         if (keyword == null || keyword.trim().isEmpty()) {
             return null;
         }
-        return project.category.name.containsIgnoreCase(keyword);
+        return qProject.category.name.containsIgnoreCase(keyword);
     }
 
 }
