@@ -52,10 +52,10 @@ export function ClientDetail() {
         
         // 개발자라면 이 클라이언트와 관련된 프로젝트 목록을 가져옴 (리뷰 작성용)
         if (userRole === "DEVELOPER") {
-          const projectRes = await developerApi.getMyProjects(1, 100);
-          // 이 클라이언트의 프로젝트만 필터링
+          const projectRes = await developerApi.getMyProjects(0, 100);
+          // 이 클라이언트의 프로젝트이면서, 상태가 COMPLETED인 프로젝트만 필터링
           const myProjectsWithThisClient = projectRes.data.data.content.filter(
-            p => p.clientId === clientData.id
+            p => Number(p.clientId) === Number(clientData.id) && p.status === "COMPLETED"
           );
           setProjects(myProjectsWithThisClient);
         }

@@ -270,7 +270,7 @@ export function ProjectCreate() {
               {/* 기술 스택 */}
               <div className="space-y-2">
                 <Label>필요 기술 * (최소 1개)</Label>
-                <Select value={skillInput} onValueChange={addSkill}>
+                <Select value={skillInput} onValueChange={(val) => { addSkill(val); setSkillInput(""); }}>
                   <SelectTrigger>
                     <SelectValue placeholder="목록에서 기술 선택" />
                   </SelectTrigger>
@@ -284,21 +284,15 @@ export function ProjectCreate() {
                       ))}
                   </SelectContent>
                 </Select>
-                {/* 직접 입력도 가능 */}
-                <Input
-                  placeholder="목록에 없는 기술은 직접 입력 후 Enter"
-                  onKeyDown={handleSkillDirectInput}
-                  disabled={isSubmitting}
-                />
                 {selectedSkills.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
+                  <div className="flex flex-wrap gap-2 mt-3">
                     {selectedSkills.map((skill) => (
-                      <Badge key={skill} variant="secondary" className="pr-1">
+                      <Badge key={skill} variant="secondary" className="pl-3 pr-1 py-1 flex items-center gap-1">
                         {skill}
                         <button
                           type="button"
                           onClick={() => removeSkill(skill)}
-                          className="ml-2 hover:bg-gray-300 rounded-full p-0.5"
+                          className="hover:text-red-600 transition-colors"
                         >
                           <X className="w-3 h-3" />
                         </button>

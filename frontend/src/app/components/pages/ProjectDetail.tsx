@@ -27,18 +27,12 @@ import {
   ArrowLeft,
   Star,
   Loader2,
-  Send,
   CheckCircle,
-  XCircle,
-  MessageSquarePlus,
-  MessageCircle,
-  Settings,
   Edit3,
 } from "lucide-react";
 import { toast } from "sonner";
 import { projectApi, proposalApi, chatApi, reviewApi } from "../../../api/apiService";
-import { apiClient } from "../../../api/client";
-import type { ProjectDto, ProposalDto, ChatRoomDto } from "../../../api/types";
+import type { ProjectDto, ProposalDto } from "../../../api/types";
 import { useAuth } from "../../../context/AuthContext";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -79,7 +73,6 @@ export function ProjectDetail() {
 
   const [project, setProject] = useState<ProjectDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentClientId, setCurrentClientId] = useState<number | null>(null);
 
   // 제안서 관련
   const [showProposalModal, setShowProposalModal] = useState(false);
@@ -119,17 +112,16 @@ export function ProjectDetail() {
   };
 
   useEffect(() => {
-    if (!id || !isLoggedIn) return;
+    if (!id || !isLoggedIn || !project) return;
     
-    // 현재 사용자가 클라이언트라면 본인의 clientId를 찾아야 함
-    if (userRole === "CLIENT") {
-      apiClient.get("/v1/users/me").then(res => {
-        const myUserId = res.data.data.id;
-        apiClient.get("/v1/clients", { params: { page: 1, size: 100 } }).then(allRes => {
-          const myClient = allRes.data.data.content.find((c: any) => Number(c.userId) === Number(myUserId));
-          if (myClient) setCurrentClientId(myClient.id);
-        });
-      });
+    const isOwner = userRole === "CLIENT" && Number(project.clientUserId) === Number(userId);
+    const isAdmin = userRole === "ADMIN";
+
+    if (isOwner || isAdmin) {
+      setIsLoadingProposals(true);
+      proposalApi.getByProject(Number(id), 0, 50)
+        .then((res) => setProposals(res.data.data.content))
+        .finally(() => setIsLoadingProposals(false));
     }
 
     if (userRole === "DEVELOPER") {
@@ -138,22 +130,13 @@ export function ProjectDetail() {
         if (found) setMyProposal(found);
       });
     }
+
     chatApi.getMyRooms(0, 100).then((res) => {
       const map: Record<number, number> = {};
       res.data.data.content.forEach((r) => { if (r.projectId === Number(id)) map[r.developerId] = r.id; });
       setExistingChatRooms(map);
     });
-  }, [id, isLoggedIn, userRole]);
-
-  // currentClientId나 project가 변경될 때 제안서 목록 로딩
-  useEffect(() => {
-    if (userRole === "CLIENT" && project && currentClientId !== null && Number(project.clientId) === Number(currentClientId)) {
-      setIsLoadingProposals(true);
-      proposalApi.getByProject(Number(id), 0, 50)
-        .then((res) => setProposals(res.data.data.content))
-        .finally(() => setIsLoadingProposals(false));
-    }
-  }, [id, userRole, project, currentClientId]);
+  }, [id, isLoggedIn, userRole, userId, project]);
 
   const handleProposalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -213,21 +196,38 @@ export function ProjectDetail() {
     }
   };
 
+  const handleDeleteProject = async () => {
+    if (!project) return;
+    if (!window.confirm("정말로 이 프로젝트를 삭제하시겠습니까? 삭제된 프로젝트는 복구할 수 없습니다.")) return;
+    try {
+      await projectApi.delete(project.id);
+      toast.success("프로젝트가 삭제되었습니다.");
+      navigate("/projects");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "삭제 실패");
+    }
+  };
+
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!project) return;
     setIsReviewSubmitting(true);
     try {
-      // 프로젝트 상태가 COMPLETED일 때 리뷰 작성
-      // 클라이언트라면 수락된 제안서의 개발자에게, 개발자라면 프로젝트 클라이언트에게 작성
-      const targetUserId = userRole === "CLIENT" 
-        ? proposals.find(p => p.status === "ACCEPTED")?.developerId // 실제로는 developer의 userId가 필요함
-        : project.clientId; // 이것도 실제로는 client의 userId가 필요함
-      
-      // 임시로 targetUserId를 백엔드 스펙에 맞춰 전달 (추후 백엔드 필드 확인 필요)
-      await reviewApi.create({
+      let targetUserId: number | undefined;
+      if (userRole === "CLIENT") {
+        const acceptedProposal = proposals.find(p => p.status === "ACCEPTED");
+        if (acceptedProposal) targetUserId = Number(acceptedProposal.developerUserId);
+      } else if (userRole === "DEVELOPER") {
+        targetUserId = Number(project.clientUserId);
+      }
+
+      if (!targetUserId) {
+        toast.error("리뷰 대상을 찾을 수 없습니다.");
+        return;
+      }
+
+      await reviewApi.create(targetUserId, {
         projectId: project.id,
-        targetUserId: Number(targetUserId), 
         rating: reviewForm.rating,
         comment: reviewForm.comment,
       });
@@ -240,9 +240,12 @@ export function ProjectDetail() {
     }
   };
 
+  if (isLoading) return <div className="flex justify-center py-32"><Loader2 className="animate-spin" /></div>;
   if (!project) return <div className="text-center py-32">프로젝트를 찾을 수 없습니다.</div>;
 
-  const isOwner = isLoggedIn && userRole === "CLIENT" && currentClientId !== null && Number(project.clientId) === Number(currentClientId);
+  const isOwner = isLoggedIn && userRole === "CLIENT" && Number(project.clientUserId) === Number(userId);
+  const isAdmin = isLoggedIn && userRole === "ADMIN";
+  const canManage = isOwner || isAdmin;
   const isOpen = project.status === "OPEN";
   const isCompleted = project.status === "COMPLETED";
 
@@ -281,8 +284,7 @@ export function ProjectDetail() {
               </CardContent>
             </Card>
 
-            {/* 제안서 목록 (CLIENT용 - 본인 프로젝트인 경우에만) */}
-            {isOwner && (
+            {canManage && (
               <Card className="border-none shadow-sm">
                 <CardHeader><CardTitle>지원한 개발자 목록</CardTitle></CardHeader>
                 <CardContent>
@@ -318,7 +320,6 @@ export function ProjectDetail() {
             )}
           </div>
 
-          {/* 사이드바 */}
           <div className="space-y-6">
             <Card className="border-none shadow-sm">
               <CardHeader><CardTitle>클라이언트</CardTitle></CardHeader>
@@ -350,12 +351,20 @@ export function ProjectDetail() {
                   )
                 )}
                 
-                {isOwner && !isCompleted && (
-                  <Button variant="outline" className="w-full h-12 font-bold" onClick={() => { setNewStatus(""); setShowStatusModal(true); }}>프로젝트 상태 변경</Button>
+                {canManage && isCompleted && (
+                  <Button className="w-full h-12 font-bold bg-green-600 hover:bg-green-700 mb-4" onClick={() => setShowReviewModal(true)}>리뷰하기</Button>
                 )}
 
-                {isOwner && isCompleted && (
-                  <Button className="w-full h-12 font-bold bg-green-600 hover:bg-green-700" onClick={() => setShowReviewModal(true)}>개발자 리뷰하기</Button>
+                {canManage && (
+                  <div className="space-y-2">
+                    {!isCompleted && (
+                      <Button variant="outline" className="w-full h-12 font-bold" onClick={() => { setNewStatus(""); setShowStatusModal(true); }}>프로젝트 상태 변경</Button>
+                    )}
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button variant="outline" className="font-bold border-blue-200 text-blue-600 hover:bg-blue-50" onClick={() => navigate(`/projects/${project.id}/edit`)}>수정</Button>
+                      <Button variant="outline" className="font-bold border-red-200 text-red-600 hover:bg-red-50" onClick={handleDeleteProject}>삭제</Button>
+                    </div>
+                  </div>
                 )}
 
                 {!isLoggedIn && (
@@ -367,34 +376,24 @@ export function ProjectDetail() {
         </div>
       </div>
 
-      {/* 프로젝트 상태 변경 모달 */}
+      {/* 모달들 */}
       <Dialog open={showStatusModal} onOpenChange={setShowStatusModal}>
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>프로젝트 상태 변경</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Label>변경할 상태 선택</Label>
-              <Select value={newStatus} onValueChange={setNewStatus}>
-                <SelectTrigger><SelectValue placeholder="상태를 선택하세요" /></SelectTrigger>
-                <SelectContent>
-                  {project && NEXT_STATUS_OPTIONS[project.status]?.map(s => (
-                    <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <p className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
-              * 한 번 변경된 상태는 되돌리기 어려울 수 있습니다. 신중하게 선택해 주세요.
-            </p>
+            <Select value={newStatus} onValueChange={setNewStatus}>
+              <SelectTrigger><SelectValue placeholder="상태를 선택하세요" /></SelectTrigger>
+              <SelectContent>
+                {project && NEXT_STATUS_OPTIONS[project.status]?.map(s => <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>)}
+              </SelectContent>
+            </Select>
             <Button className="w-full h-12 font-bold" onClick={handleStatusChange} disabled={!newStatus || isChangingStatus}>
-              {isChangingStatus ? <Loader2 className="animate-spin mr-2" /> : null}
-              상태 변경 적용
+              {isChangingStatus && <Loader2 className="animate-spin mr-2" />}상태 변경 적용
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* 제안서 모달 */}
       <Dialog open={showProposalModal} onOpenChange={setShowProposalModal}>
         <DialogContent className="max-w-xl">
           <DialogHeader><DialogTitle>프로젝트 제안서 제출</DialogTitle></DialogHeader>
@@ -409,13 +408,11 @@ export function ProjectDetail() {
         </DialogContent>
       </Dialog>
 
-      {/* 리뷰 모달 */}
       <Dialog open={showReviewModal} onOpenChange={setShowReviewModal}>
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>리뷰 작성</DialogTitle></DialogHeader>
           <form onSubmit={handleReviewSubmit} className="space-y-5 mt-4">
-            <div className="space-y-2">
-              <Label>평점</Label>
+            <div className="space-y-2"><Label>평점</Label>
               <div className="flex gap-2">
                 {[1,2,3,4,5].map(v => <button type="button" key={v} onClick={() => setReviewForm({...reviewForm, rating: v})} className={`w-10 h-10 rounded-lg border font-bold ${reviewForm.rating === v ? "bg-yellow-400 text-white border-yellow-400" : "bg-white text-gray-400"}`}>{v}</button>)}
               </div>
