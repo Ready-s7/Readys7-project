@@ -3,6 +3,7 @@ package com.example.readys7project.config;
 import com.example.readys7project.global.security.CustomUserDetailsService;
 import com.example.readys7project.global.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -32,6 +33,9 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    @Value("${cors.allowed-origins}")
+    private List<String> allowedOrigins;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -56,13 +60,13 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/v1/projects/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/v1/categories/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/v1/developers/**").permitAll()
-                    .requestMatchers(HttpMethod.GET, "v1/skills/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/v1/skills/**").permitAll()
                     
                     // 관리자 전용 경로 설정 추가
                     .requestMatchers("/v1/admin/**").hasRole("ADMIN")
                     
                     .requestMatchers("/v1/developers/profile").authenticated()
-                    .requestMatchers("/v1/developers/my-projects").authenticated()
+                    .requestMatchers("/v1/developers/me/my-projects").authenticated()
                     .requestMatchers("/ws/**").permitAll()
                     .anyRequest().authenticated()
             )
@@ -77,7 +81,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedOrigins(allowedOrigins);
         config.setAllowedMethods(List.of("*"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
