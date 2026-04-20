@@ -3,8 +3,8 @@ package com.example.readys7project.domain.proposal.service;
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.project.repository.ProjectRepository;
 import com.example.readys7project.domain.project.service.ProjectService;
-import com.example.readys7project.domain.proposal.dto.ProposalDto;
 import com.example.readys7project.domain.proposal.dto.request.ProposalRequestDto;
+import com.example.readys7project.domain.proposal.dto.response.ProposalResponseDto;
 import com.example.readys7project.domain.proposal.entity.Proposal;
 import com.example.readys7project.domain.proposal.enums.ProposalStatus;
 import com.example.readys7project.domain.proposal.repository.ProposalRepository;
@@ -30,7 +30,7 @@ public class ProposalTransactionalService {
     private final ProjectService projectService;
 
     @Transactional
-    public ProposalDto createProposalInternal(ProposalRequestDto request, String userEmail) {
+    public ProposalResponseDto createProposalInternal(ProposalRequestDto request, String userEmail) {
 
         // user 가져오기
         User user = userRepository.findByEmail(userEmail)
@@ -79,8 +79,8 @@ public class ProposalTransactionalService {
         return convertToDto(savedProposal);
     }
 
-    private ProposalDto convertToDto(Proposal proposal) {
-        return ProposalDto.builder()
+    private ProposalResponseDto convertToDto(Proposal proposal) {
+        return ProposalResponseDto.builder()
                 .id(proposal.getId())
                 .projectId(proposal.getProject().getId())
                 .projectTitle(proposal.getProject().getTitle())
