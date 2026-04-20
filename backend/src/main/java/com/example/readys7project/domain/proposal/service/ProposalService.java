@@ -36,7 +36,7 @@ public class ProposalService {
     private final ProposalTransactionalService proposalTransactionalService;
     private final LockService lockService;
 
-    public ProposalDto createProposal(ProposalRequestDto request, String userEmail) {
+    public ProposalResponseDto createProposal(ProposalRequestDto request, String userEmail) {
         return lockService.executeWithLock(
                 "project:" + request.projectId(), // Lock Key
                 () -> proposalTransactionalService.createProposalInternal(request, userEmail)
