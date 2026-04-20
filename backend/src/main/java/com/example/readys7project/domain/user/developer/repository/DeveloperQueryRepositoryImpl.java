@@ -190,8 +190,12 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
                 ))
                 .from(qDeveloper)
                 .leftJoin(qDeveloper.user, qUser)
-                // 즉 LIKE 경로에서는 이름만 검색
-                .where(nameLike(keyword))
+                // 이름, 직함, 기술 스택 통합 검색
+                .where(
+                    nameLike(keyword)
+                    .or(titleLike(keyword))
+                    .or(skillsLike(keyword))
+                )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .orderBy(qDeveloper.createdAt.desc())
@@ -201,7 +205,11 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
                 .select(qDeveloper.count())
                 .from(qDeveloper)
                 .leftJoin(qDeveloper.user, qUser)
-                .where(nameLike(keyword));
+                .where(
+                    nameLike(keyword)
+                    .or(titleLike(keyword))
+                    .or(skillsLike(keyword))
+                );
 
         Page<DeveloperGlobalSearchResponseDto> page = PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
         return SearchPageResponseDto.from(page);
@@ -262,6 +270,8 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
                   AND (
                     MATCH(d.title) AGAINST (:keyword IN BOOLEAN MODE)
                     OR MATCH(u.description) AGAINST (:keyword IN BOOLEAN MODE)
+                    OR d.skills LIKE CONCAT('%', :keyword, '%')
+                    OR u.name LIKE CONCAT('%', :keyword, '%')
                   )
                 ORDER BY d.created_at DESC
                 LIMIT :limit OFFSET :offset
@@ -296,6 +306,8 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
                   AND (
                     MATCH(d.title) AGAINST (:keyword IN BOOLEAN MODE)
                     OR MATCH(u.description) AGAINST (:keyword IN BOOLEAN MODE)
+                    OR d.skills LIKE CONCAT('%', :keyword, '%')
+                    OR u.name LIKE CONCAT('%', :keyword, '%')
                   )
                 """;
 
@@ -313,6 +325,23 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
             return null;
         }
         return QUser.user.name.containsIgnoreCase(keyword);
+    }
+
+    // 직함 검색용 LIKE 조건 추가
+    private BooleanExpression titleLike(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return null;
+        }
+        return qDeveloper.title.containsIgnoreCase(keyword);
+    }
+
+    // 기술 스택 검색용 LIKE 조건 추가
+    private BooleanExpression skillsLike(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return null;
+        }
+        // JSON 컬럼을 문자열로 변환하여 검색
+        return Expressions.stringTemplate("CAST({0} AS char)", qDeveloper.skills).containsIgnoreCase(keyword);
     }
 
     // 하이브리드 분기 기준.

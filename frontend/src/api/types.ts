@@ -19,6 +19,14 @@ export interface PageResponse<T> {
   number: number;
 }
 
+export interface SearchPageResponse<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  pageSize: number;
+  pageNumber: number;
+}
+
 // ─────────────────────────────────────────────────────────────
 // 카테고리 관련 타입
 // ─────────────────────────────────────────────────────────────
@@ -287,6 +295,12 @@ export interface SearchCategoryDto {
   icon: string | null;
 }
 
+export interface SearchSkillDto {
+  id: number;
+  name: string;
+  skillCategory: string;
+}
+
 export interface SearchDeveloperDto {
   id: number;
   userId: number;
@@ -307,10 +321,10 @@ export interface SearchDeveloperDto {
 }
 
 export interface TotalSearchResponseDto {
-  projects: PageResponse<SearchProjectDto>;
-  categories: PageResponse<SearchCategoryDto>;
-  skills: PageResponse<SearchSkillDto>;
-  developers: PageResponse<SearchDeveloperDto>;
+  projects: SearchPageResponse<SearchProjectDto>;
+  categories: SearchPageResponse<SearchCategoryDto>;
+  skills: SearchPageResponse<SearchSkillDto>;
+  developers: SearchPageResponse<SearchDeveloperDto>;
 }
 
 export interface DeveloperRegisterRequest {
