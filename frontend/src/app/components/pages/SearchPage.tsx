@@ -157,7 +157,7 @@ export function SearchPage() {
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {results.categories.content.map((c) => (
-                    <Link key={c.Id} to={`/projects?categoryId=${c.Id}`}>
+                    <Link key={c.id} to={`/projects?categoryId=${c.id}`}>
                       <Card className="hover:bg-blue-50 transition-all border-none shadow-sm rounded-2xl text-center p-8 group">
                         <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">{c.icon || "📦"}</div>
                         <div className="font-black text-gray-800 text-lg">{c.name}</div>

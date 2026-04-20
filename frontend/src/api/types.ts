@@ -6,7 +6,8 @@ import { apiClient } from "./client";
 
 export interface SuccessResponse<T> {
   success: boolean;
-  message: string;
+  status: number;
+  message?: string;
   data: T;
 }
 
@@ -265,27 +266,51 @@ export interface PopularRankingResponseDto {
 export interface SearchProjectDto {
   id: number;
   title: string;
+  description: string;
+  category: string;
   minBudget: number;
   maxBudget: number;
+  duration: number;
+  skills: string[];
   status: string;
+  currentProposalCount: number;
+  maxProposalCount: number;
+  clientName: string;
+  clientRating: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface SearchCategoryDto {
-  Id: number;
+  id: number;
   name: string;
   icon: string | null;
 }
 
-export interface SearchSkillDto {
+export interface SearchDeveloperDto {
   id: number;
+  userId: number;
   name: string;
-  skillCategory: string;
+  title: string;
+  rating: number;
+  reviewCount: number;
+  completedProjects: number;
+  skills: string[];
+  minHourlyPay: number;
+  maxHourlyPay: number;
+  responseTime: string;
+  description: string;
+  availableForWork: boolean;
+  participateType: "INDIVIDUAL" | "COMPANY";
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface TotalSearchResponseDto {
   projects: PageResponse<SearchProjectDto>;
   categories: PageResponse<SearchCategoryDto>;
   skills: PageResponse<SearchSkillDto>;
+  developers: PageResponse<SearchDeveloperDto>;
 }
 
 export interface DeveloperRegisterRequest {
