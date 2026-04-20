@@ -6,9 +6,9 @@ import com.example.readys7project.domain.user.client.dto.request.UpdateClientPro
 import com.example.readys7project.domain.user.client.dto.response.*;
 import com.example.readys7project.domain.user.client.service.ClientService;
 import com.example.readys7project.global.dto.ApiResponseDto;
+import com.example.readys7project.global.dto.PageResponseDto;
 import com.example.readys7project.global.security.CustomUserDetails;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

@@ -1,6 +1,5 @@
 package com.example.readys7project.config;
 
-import com.example.readys7project.global.security.CustomUserDetailsService;
 import com.example.readys7project.global.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,6 +60,7 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/v1/categories/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/v1/developers/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/v1/skills/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/v1/search", "/v2/search").permitAll()
                     
                     // 관리자 전용 경로 설정 추가
                     .requestMatchers("/v1/admin/**").hasRole("ADMIN")

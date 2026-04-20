@@ -51,8 +51,8 @@ public class RedisConfig {
 
     // LocalDateTime 처리가 가능한 공통 직렬화 도구
     @Bean
-    public GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer(ObjectMapper createRedisObjectMapper) {
-        return new GenericJackson2JsonRedisSerializer(createRedisObjectMapper);
+    public GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer() {
+        return new GenericJackson2JsonRedisSerializer(createRedisObjectMapper());
     }
 
     @Bean

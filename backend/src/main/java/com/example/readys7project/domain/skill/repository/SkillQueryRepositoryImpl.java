@@ -1,5 +1,6 @@
 package com.example.readys7project.domain.skill.repository;
 
+import com.example.readys7project.domain.search.dto.response.SearchPageResponseDto;
 import com.example.readys7project.domain.search.dto.response.SkillsGlobalSearchResponseDto;
 import com.example.readys7project.domain.skill.entity.QSkill;
 import com.example.readys7project.domain.skill.entity.Skill;
@@ -88,19 +89,24 @@ public class SkillQueryRepositoryImpl implements SkillQueryRepository{
 
     // 통합 검색 페이징
     @Override
-    public Page<SkillsGlobalSearchResponseDto> skillsGlobalSearch(String keyword, Pageable pageable) {
+    public SearchPageResponseDto<SkillsGlobalSearchResponseDto> skillsGlobalSearch(String keyword, Pageable pageable) {
+
+        QAdmin qAdmin = QAdmin.admin;
+        QUser qUser = QUser.user;
 
         // 데이터 조회
         List<SkillsGlobalSearchResponseDto> content = jpaQueryFactory
                 .select(Projections.constructor(SkillsGlobalSearchResponseDto.class,
                         qSkill.id,
-                        qSkill.admin.id,
-                        qSkill.admin.user.name,
+                        qAdmin.id,
+                        qUser.name,
                         qSkill.name,
                         qSkill.skillCategory,
                         qSkill.createdAt
                 ))
                 .from(qSkill)
+                .leftJoin(qSkill.admin, qAdmin)
+                .leftJoin(qAdmin.user, qUser)
                 .where(searchCondition(keyword))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -111,9 +117,13 @@ public class SkillQueryRepositoryImpl implements SkillQueryRepository{
         JPAQuery<Long> contQuery = jpaQueryFactory
                 .select(qSkill.count())
                 .from(qSkill)
+                .leftJoin(qSkill.admin, qAdmin)
+                .leftJoin(qAdmin.user, qUser)
                 .where(searchCondition(keyword));
 
-        return PageableExecutionUtils.getPage(content, pageable, contQuery::fetchOne);
+        Page<SkillsGlobalSearchResponseDto> page = PageableExecutionUtils.getPage(content, pageable, contQuery::fetchOne);
+
+        return SearchPageResponseDto.from(page);
     }
 
     private Predicate searchCondition(String keyword) {
