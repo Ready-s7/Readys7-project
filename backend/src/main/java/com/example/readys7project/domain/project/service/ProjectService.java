@@ -2,8 +2,8 @@ package com.example.readys7project.domain.project.service;
 
 import com.example.readys7project.domain.category.entity.Category;
 import com.example.readys7project.domain.category.repository.CategoryRepository;
-import com.example.readys7project.domain.project.dto.ProjectDto;
-import com.example.readys7project.domain.project.dto.request.ProjectRequestDto;
+import com.example.readys7project.domain.project.dto.ProjectResponseDto;
+import com.example.readys7project.domain.project.dto.request.ProjectCreateRequestDto;
 import com.example.readys7project.domain.project.dto.request.ProjectUpdateRequestDto;
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.project.enums.ProjectStatus;
@@ -37,7 +37,7 @@ public class ProjectService {
      * 프로젝트 생성 (CLIENT 역할을 가진 사용자만 가능)
      */
     @Transactional
-    public ProjectDto createProject(ProjectRequestDto request, String email) {
+    public ProjectResponseDto createProject(ProjectCreateRequestDto request, String email) {
 
         if (request.minBudget() > request.maxBudget()) {
             throw new ProjectException(ErrorCode.PROJECT_BUDGET_BAD_REQUEST);
@@ -68,20 +68,20 @@ public class ProjectService {
     }
 
     @Transactional(readOnly = true)
-    public List<ProjectDto> getAllProjects() {
+    public List<ProjectResponseDto> getAllProjects() {
         return projectRepository.findAll().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public ProjectDto getProjectById(Long id) {
+    public ProjectResponseDto getProjectById(Long id) {
         Project project = findProject(id);
         return convertToDto(project);
     }
 
     @Transactional(readOnly = true)
-    public Page<ProjectDto> searchProjects(String keyword, Long categoryId, String status, List<String> skill, Pageable pageable) {
+    public Page<ProjectResponseDto> searchProjects(String keyword, Long categoryId, String status, List<String> skill, Pageable pageable) {
         Category category = categoryId != null ? findCategory(categoryId) : null;
         ProjectStatus projectStatus = status != null ? ProjectStatus.valueOf(status.toUpperCase()) : null;
 
@@ -93,7 +93,7 @@ public class ProjectService {
      * 프로젝트 수정 (본인 Client만 가능 - AOP에서 검증)
      */
     @Transactional
-    public ProjectDto updateProject(Long id, ProjectUpdateRequestDto request) {
+    public ProjectResponseDto updateProject(Long id, ProjectUpdateRequestDto request) {
         Project project = findProject(id);
 
         Category category = request.categoryId() != null
@@ -138,7 +138,7 @@ public class ProjectService {
      * 프로젝트 상태 변경 (AOP에서 소유권/관리자 검증)
      */
     @Transactional
-    public ProjectDto changeProjectStatus(Long projectId, String statusStr, String email) {
+    public ProjectResponseDto changeProjectStatus(Long projectId, String statusStr, String email) {
         Project project = findProject(projectId);
         ProjectStatus newStatus = ProjectStatus.valueOf(statusStr.toUpperCase());
 
@@ -160,8 +160,8 @@ public class ProjectService {
         }
     }
 
-    private ProjectDto convertToDto(Project project) {
-        return new ProjectDto(
+    private ProjectResponseDto convertToDto(Project project) {
+        return new ProjectResponseDto(
                 project.getId(),
                 project.getClient().getId(),
                 project.getClient().getUser().getId(),

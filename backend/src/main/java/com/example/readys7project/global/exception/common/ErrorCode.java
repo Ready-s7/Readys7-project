@@ -37,6 +37,8 @@ public enum ErrorCode {
     PROPOSAL_ALREADY_ACCEPTED(HttpStatus.CONFLICT, "이미 승인된 제안서가 존재하는 프로젝트입니다."),
     PROPOSAL_NOT_ACCEPTED(HttpStatus.BAD_REQUEST, "제안서가 승인되지 않은 상태입니다."),
     PROPOSAL_ACCEPTED_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "제안서 승인에 실패했습니다."),
+    PROPOSAL_LOCK_FAILED(HttpStatus.CONFLICT, "현재 요청이 많습니다. 잠시 후 다시 시도해주세요."),
+    PROPOSAL_SLOT_FULL(HttpStatus.BAD_REQUEST, "제안서 슬롯이 가득 찼습니다."),
 
     // Admin
     INVALID_ADMIN_ROLE(HttpStatus.UNAUTHORIZED, "잘못된 역할입니다."),

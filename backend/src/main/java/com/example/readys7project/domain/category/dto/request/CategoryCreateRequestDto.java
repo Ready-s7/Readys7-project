@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 @Builder
-public record CategoryRequestDto(
+public record CategoryCreateRequestDto(
 
         @NotBlank(message = "카테고리는 필수입니다.")
         String name,

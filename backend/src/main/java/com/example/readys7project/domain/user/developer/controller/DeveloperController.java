@@ -1,6 +1,6 @@
 package com.example.readys7project.domain.user.developer.controller;
 
-import com.example.readys7project.domain.project.dto.ProjectDto;
+import com.example.readys7project.domain.project.dto.ProjectResponseDto;
 import com.example.readys7project.domain.user.developer.dto.DeveloperDto;
 import com.example.readys7project.domain.user.developer.dto.request.DeveloperProfileRequestDto;
 import com.example.readys7project.domain.user.developer.service.DeveloperService;
@@ -31,7 +31,7 @@ public class DeveloperController {
 
     // 내 프로젝트 목록 조회
     @GetMapping("/v1/developers/me/my-projects")
-    public ResponseEntity<ApiResponseDto<Page<ProjectDto>>> getMyProjects(
+    public ResponseEntity<ApiResponseDto<Page<ProjectResponseDto>>> getMyProjects(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             Pageable pageable) {
         String email = userDetails.getEmail();

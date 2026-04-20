@@ -1,7 +1,7 @@
 package com.example.readys7project.domain.project.controller;
 
-import com.example.readys7project.domain.project.dto.ProjectDto;
-import com.example.readys7project.domain.project.dto.request.ProjectRequestDto;
+import com.example.readys7project.domain.project.dto.ProjectResponseDto;
+import com.example.readys7project.domain.project.dto.request.ProjectCreateRequestDto;
 import com.example.readys7project.domain.project.dto.request.ProjectStatusUpdateRequestDto;
 import com.example.readys7project.domain.project.dto.request.ProjectUpdateRequestDto;
 import com.example.readys7project.domain.project.service.ProjectService;
@@ -28,8 +28,8 @@ public class ProjectController {
 
     // 프로젝트 등록
     @PostMapping("/v1/projects")
-    public ResponseEntity<ApiResponseDto<ProjectDto>> createProject(
-            @Valid @RequestBody ProjectRequestDto request,
+    public ResponseEntity<ApiResponseDto<ProjectResponseDto>> createProject(
+            @Valid @RequestBody ProjectCreateRequestDto request,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
         String email = customUserDetails.getEmail();
@@ -39,21 +39,21 @@ public class ProjectController {
 
     // 프로젝트 전체 목록 조회
     @GetMapping("/v1/projects")
-    public ResponseEntity<ApiResponseDto<List<ProjectDto>>> getAllProjects() {
+    public ResponseEntity<ApiResponseDto<List<ProjectResponseDto>>> getAllProjects() {
         return ResponseEntity.ok(ApiResponseDto
                 .success(HttpStatus.OK, projectService.getAllProjects()));
     }
 
     // 프로젝트 단건 조회
     @GetMapping("/v1/projects/{projectId}")
-    public ResponseEntity<ApiResponseDto<ProjectDto>> getProjectById(@PathVariable Long projectId) {
+    public ResponseEntity<ApiResponseDto<ProjectResponseDto>> getProjectById(@PathVariable Long projectId) {
         return ResponseEntity.ok(ApiResponseDto
                 .success(HttpStatus.OK, projectService.getProjectById(projectId)));
     }
 
     // 프로젝트 검색
     @GetMapping("/v1/projects/search")
-    public ResponseEntity<ApiResponseDto<Page<ProjectDto>>> searchProjects(
+    public ResponseEntity<ApiResponseDto<Page<ProjectResponseDto>>> searchProjects(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String status,
@@ -66,7 +66,7 @@ public class ProjectController {
     // 프로젝트 수정 (본인 Client만 가능)
     @PutMapping("/v1/projects/{projectId}")
     @CheckOwnerOrAdmin(type = EntityType.PROJECT, idParam = "projectId")
-    public ResponseEntity<ApiResponseDto<ProjectDto>> updateProject(
+    public ResponseEntity<ApiResponseDto<ProjectResponseDto>> updateProject(
             @PathVariable Long projectId,
             @Valid @RequestBody ProjectUpdateRequestDto request
     ) {
@@ -77,7 +77,7 @@ public class ProjectController {
     // 프로젝트 상태 변경 (CLIENT 본인 / ADMIN)
     @PatchMapping("/v1/projects/{projectId}/status")
     @CheckOwnerOrAdmin(type = EntityType.PROJECT, idParam = "projectId")
-    public ResponseEntity<ApiResponseDto<ProjectDto>> changeProjectStatus(
+    public ResponseEntity<ApiResponseDto<ProjectResponseDto>> changeProjectStatus(
             @PathVariable Long projectId,
             @RequestBody ProjectStatusUpdateRequestDto request,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
