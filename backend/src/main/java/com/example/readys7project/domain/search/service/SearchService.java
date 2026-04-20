@@ -58,7 +58,7 @@ public class SearchService {
 
     // V2 카페인 적용
     @Transactional(readOnly = true)
-    @Cacheable(value = "totalSearch",
+    @Cacheable(value = "globalSearch",
             key = "T(com.example.readys7project.domain.search.util.SearchCacheKeyGenerator).generate(#keyword, #pageable)")
 
     public GlobalSearchResponseDto searchV2(String keyword, Pageable pageable) {
@@ -68,9 +68,6 @@ public class SearchService {
         if (trimKeyword == null) {
             return empty(pageable);
         }
-
-        // Cache Miss
-        log.info("Cache Miss DB에서 데이터를 조회합니다. :{}", trimKeyword);
 
         return GlobalSearch(trimKeyword, pageable);
     }
@@ -83,7 +80,10 @@ public class SearchService {
 
     // 검색 결과 존재 여부 확인하는 로직
     private boolean hasAnyResult(GlobalSearchResponseDto result) {
-        return !result.projects().isEmpty() || !result.categories().isEmpty() || !result.skills().isEmpty();
+        return !result.projects().content().isEmpty() ||
+                !result.categories().content().isEmpty() ||
+                !result.skills().content().isEmpty() ||
+                !result.developers().content().isEmpty();
     }
 
     // 빈 값을 리턴해주는 공용 정적 팩토리 메서드
@@ -99,13 +99,13 @@ public class SearchService {
     // 공용 DTO 리턴 메서드
     private GlobalSearchResponseDto GlobalSearch(String keyword, Pageable pageable) {
         try {
-            Page<ProjectsGlobalSearchResponseDto> projectPage =
+            SearchPageResponseDto<ProjectsGlobalSearchResponseDto> projectPage =
                     projectRepository.projectsGlobalSearch(keyword, pageable);
-            Page<CategoriesGlobalSearchResponseDto> categoryPage =
+            SearchPageResponseDto<CategoriesGlobalSearchResponseDto> categoryPage =
                     categoryRepository.categoriesGlobalSearch(keyword, pageable);
-            Page<SkillsGlobalSearchResponseDto> skillPage =
+            SearchPageResponseDto<SkillsGlobalSearchResponseDto> skillPage =
                     skillRepository.skillsGlobalSearch(keyword, pageable);
-            Page<DeveloperGlobalSearchResponseDto> developerPage =
+            SearchPageResponseDto<DeveloperGlobalSearchResponseDto> developerPage =
                     developerRepository.developerGlobalSearch(keyword, pageable);
 
             return new GlobalSearchResponseDto(projectPage, categoryPage, skillPage, developerPage);

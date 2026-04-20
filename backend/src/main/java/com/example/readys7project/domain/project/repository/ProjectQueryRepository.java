@@ -4,6 +4,7 @@ import com.example.readys7project.domain.category.entity.Category;
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.project.enums.ProjectStatus;
 import com.example.readys7project.domain.search.dto.response.ProjectsGlobalSearchResponseDto;
+import com.example.readys7project.domain.search.dto.response.SearchPageResponseDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -27,5 +28,5 @@ public interface ProjectQueryRepository {
     Page<Project> findByClientWithPageable(Long clientId, Pageable pageable);
 
     // 통합 검색 페이징 구현
-    Page<ProjectsGlobalSearchResponseDto> projectsGlobalSearch(String keyword, Pageable pageable);
+    SearchPageResponseDto<ProjectsGlobalSearchResponseDto> projectsGlobalSearch(String keyword, Pageable pageable);
 }

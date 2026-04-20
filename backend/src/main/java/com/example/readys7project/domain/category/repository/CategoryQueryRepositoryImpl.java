@@ -2,6 +2,8 @@ package com.example.readys7project.domain.category.repository;
 
 import com.example.readys7project.domain.category.entity.Category;
 import com.example.readys7project.domain.search.dto.response.CategoriesGlobalSearchResponseDto;
+import com.example.readys7project.domain.search.dto.response.SearchPageResponseDto;
+import com.example.readys7project.domain.user.admin.entity.QAdmin;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
@@ -64,18 +66,21 @@ public class CategoryQueryRepositoryImpl implements CategoryQueryRepository {
 
     // 통합 검색 페이징 구현
     @Override
-    public Page<CategoriesGlobalSearchResponseDto> categoriesGlobalSearch(String keyword, Pageable pageable) {
+    public SearchPageResponseDto<CategoriesGlobalSearchResponseDto> categoriesGlobalSearch(String keyword, Pageable pageable) {
+
+        QAdmin qAdmin = QAdmin.admin;
 
         List<CategoriesGlobalSearchResponseDto> content = queryFactory
                 .select(Projections.constructor(CategoriesGlobalSearchResponseDto.class,
                         category.id,
-                        category.admin.id,
+                        qAdmin.id,
                         category.name,
                         category.icon,
                         category.description,
                         category.displayOrder
                 ))
                 .from(category)
+                .leftJoin(category.admin, qAdmin)
                 .where(searchCondition(keyword))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -86,9 +91,13 @@ public class CategoryQueryRepositoryImpl implements CategoryQueryRepository {
         JPAQuery<Long> countQuery = queryFactory
                 .select(category.count())
                 .from(category)
+                .leftJoin(category.admin, qAdmin)
                 .where(searchCondition(keyword));
 
-        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+        Page<CategoriesGlobalSearchResponseDto> page =
+                PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+
+        return SearchPageResponseDto.from(page);
 
     }
 

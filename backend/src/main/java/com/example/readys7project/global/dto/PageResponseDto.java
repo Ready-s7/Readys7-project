@@ -1,4 +1,4 @@
-package com.example.readys7project.domain.user.client.dto.response;
+package com.example.readys7project.global.dto;
 
 import lombok.Builder;
 import org.springframework.data.domain.Page;

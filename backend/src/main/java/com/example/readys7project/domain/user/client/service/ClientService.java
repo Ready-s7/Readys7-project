@@ -8,7 +8,7 @@ import com.example.readys7project.domain.user.auth.repository.UserRepository;
 import com.example.readys7project.domain.user.client.dto.request.UpdateClientProfileRequestDto;
 import com.example.readys7project.domain.user.client.dto.response.ClientProjectsListResponseDto;
 import com.example.readys7project.domain.user.client.dto.response.ClientsResponseDto;
-import com.example.readys7project.domain.user.client.dto.response.PageResponseDto;
+import com.example.readys7project.global.dto.PageResponseDto;
 import com.example.readys7project.domain.user.client.dto.response.UpdateClientProfileResponseDto;
 import com.example.readys7project.domain.user.client.entity.Client;
 import com.example.readys7project.domain.user.client.repository.ClientRepository;

@@ -5,13 +5,10 @@ import com.example.readys7project.domain.user.admin.dto.response.AdminSummaryRes
 import com.example.readys7project.domain.user.admin.dto.response.GetAllAdminListResponseDto;
 import com.example.readys7project.domain.user.admin.dto.response.UpdateAdminStatusResponseDto;
 import com.example.readys7project.domain.user.admin.entity.Admin;
-import com.example.readys7project.domain.user.admin.enums.AdminRole;
 import com.example.readys7project.domain.user.admin.enums.AdminStatus;
 import com.example.readys7project.domain.user.admin.repository.AdminRepository;
-import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.AdminException;
-import com.example.readys7project.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @RequiredArgsConstructor

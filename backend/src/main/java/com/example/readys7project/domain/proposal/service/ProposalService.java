@@ -1,20 +1,18 @@
 package com.example.readys7project.domain.proposal.service;
 
-import com.example.readys7project.domain.project.enums.ProjectStatus;
-import com.example.readys7project.domain.user.developer.entity.Developer;
-import com.example.readys7project.domain.user.developer.repository.DeveloperRepository;
 import com.example.readys7project.domain.project.entity.Project;
+import com.example.readys7project.domain.project.enums.ProjectStatus;
 import com.example.readys7project.domain.project.repository.ProjectRepository;
-import com.example.readys7project.domain.project.service.ProjectService;
-import com.example.readys7project.domain.proposal.dto.response.ProposalResponseDto;
 import com.example.readys7project.domain.proposal.dto.request.ProposalRequestDto;
 import com.example.readys7project.domain.proposal.dto.request.UpdateProposalRequestDto;
+import com.example.readys7project.domain.proposal.dto.response.ProposalResponseDto;
 import com.example.readys7project.domain.proposal.entity.Proposal;
 import com.example.readys7project.domain.proposal.enums.ProposalStatus;
 import com.example.readys7project.domain.proposal.repository.ProposalRepository;
 import com.example.readys7project.domain.user.auth.entity.User;
-import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.domain.user.auth.repository.UserRepository;
+import com.example.readys7project.domain.user.developer.entity.Developer;
+import com.example.readys7project.domain.user.developer.repository.DeveloperRepository;
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.ProjectException;
 import com.example.readys7project.global.exception.domain.ProposalException;

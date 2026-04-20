@@ -8,7 +8,7 @@ import com.example.readys7project.domain.user.developer.entity.Developer;
 import com.example.readys7project.domain.user.developer.repository.DeveloperRepository;
 import com.example.readys7project.domain.user.admin.entity.Admin;
 import com.example.readys7project.domain.user.admin.repository.AdminRepository;
-import com.example.readys7project.domain.user.auth.dto.UserDto;
+import com.example.readys7project.domain.user.auth.dto.UserResponseDto;
 import com.example.readys7project.domain.user.auth.dto.request.AdminRegisterRequestDto;
 import com.example.readys7project.domain.user.auth.dto.request.ClientRegisterRequestDto;
 import com.example.readys7project.domain.user.auth.dto.request.DeveloperRegisterRequestDto;
@@ -247,8 +247,8 @@ public class AuthService {
         refreshTokenRepository.deleteByEmail(email);
     }
 
-    private UserDto convertToUserDto(User user) {
-        return UserDto.builder()
+    private UserResponseDto convertToUserDto(User user) {
+        return UserResponseDto.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .name(user.getName())

@@ -29,7 +29,7 @@ public class SearchController {
             @RequestParam(required = false) String keyword,
             @PageableDefault(size = 5) Pageable pageable
     ) {
-        Long userId = customUserDetails.getUser().getId();
+        Long userId = (customUserDetails != null) ? customUserDetails.getUser().getId() : null;
         return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, searchService.searchV1(userId, keyword, pageable)));
     }
 
@@ -42,7 +42,7 @@ public class SearchController {
         return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, searchService.getPopularRanking(limit)));
     }
 
-    // Caffeine 사용
+    // Caffeine 사용 -> Redis로 교체
     @GetMapping("/v2/search")
     public ResponseEntity<ApiResponseDto<GlobalSearchResponseDto>> searchV2(
             @RequestParam(required = false) String keyword,

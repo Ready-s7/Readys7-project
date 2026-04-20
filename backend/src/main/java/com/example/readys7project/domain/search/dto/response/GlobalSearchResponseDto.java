@@ -1,18 +1,20 @@
 package com.example.readys7project.domain.search.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Builder;
 import org.springframework.data.domain.Page;
 
 @Builder
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
 public record GlobalSearchResponseDto(
 
-        Page<ProjectsGlobalSearchResponseDto> projects,
+        SearchPageResponseDto<ProjectsGlobalSearchResponseDto> projects,
 
-        Page<CategoriesGlobalSearchResponseDto> categories,
+        SearchPageResponseDto<CategoriesGlobalSearchResponseDto> categories,
 
-        Page<SkillsGlobalSearchResponseDto> skills,
+        SearchPageResponseDto<SkillsGlobalSearchResponseDto> skills,
 
-        Page<DeveloperGlobalSearchResponseDto> developers
+        SearchPageResponseDto<DeveloperGlobalSearchResponseDto> developers
 
 ) {
     public static GlobalSearchResponseDto of(
@@ -22,10 +24,10 @@ public record GlobalSearchResponseDto(
             Page<DeveloperGlobalSearchResponseDto> developers
     ) {
         return GlobalSearchResponseDto.builder()
-                .projects(projects)
-                .skills(skills)
-                .categories(categories)
-                .developers(developers)
+                .projects(SearchPageResponseDto.from(projects))
+                .skills(SearchPageResponseDto.from(skills))
+                .categories(SearchPageResponseDto.from(categories))
+                .developers(SearchPageResponseDto.from(developers))
                 .build();
     }
 }
