@@ -137,8 +137,8 @@ class ProposalConcurrencyTest {
     }
 
     @Test
-    @DisplayName("Lock 없는 상태 - 100명이 동시에 제안서 제출 시 정합성 깨짐 (실패해야 정상!)")
-    void 동시성_이슈_재현_테스트() throws InterruptedException {
+    @DisplayName("Lock 적용 후 - 100명이 동시에 제안서 제출 시 정합성 보장 (성공해야 정상!)")
+    void 동시성_이슈_해결_테스트() throws InterruptedException {
 
         // ── Given ─────────────────────────────────────────
         // 100명의 개발자가 동시에 제안서를 제출할 준비가 된 상태

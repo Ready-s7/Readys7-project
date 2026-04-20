@@ -1,7 +1,7 @@
 package com.example.readys7project.domain.category.service;
 
-import com.example.readys7project.domain.category.dto.CategoryDto;
-import com.example.readys7project.domain.category.dto.request.CategoryRequestDto;
+import com.example.readys7project.domain.category.dto.CategoryResponseDto;
+import com.example.readys7project.domain.category.dto.request.CategoryCreateRequestDto;
 import com.example.readys7project.domain.category.dto.request.CategoryUpdateRequestDto;
 import com.example.readys7project.domain.category.entity.Category;
 import com.example.readys7project.domain.category.repository.CategoryRepository;
@@ -29,7 +29,7 @@ public class CategoryService {
      * - 카테고리 이름 중복을 허용하지 않음
      */
     @Transactional
-    public CategoryDto createCategory(CategoryRequestDto request, String email) {
+    public CategoryResponseDto createCategory(CategoryCreateRequestDto request, String email) {
 
         // ADMIN 역할의 유저 불러오기 (Aspect에서 검증 완료됨)
         Admin admin = adminRepository.findByUserEmail(email).orElseThrow(
@@ -60,7 +60,9 @@ public class CategoryService {
      * - displayOrder 기준으로 정렬된 목록을 반환
      */
     @Transactional(readOnly = true)
-    public List<CategoryDto> getAllCategories() {
+    public List<CategoryResponseDto> getAllCategories() {
+
+        // displayOrder 기준 오름차순 정렬하여 전체 조회 후 DTO 변환하여 반환
         return categoryRepository.findAllWithAdminOrderByDisplayOrderAsc().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
@@ -72,7 +74,7 @@ public class CategoryService {
      * - 인증 없이 누구나 검색 가능
      */
     @Transactional(readOnly = true)
-    public List<CategoryDto> searchCategories(String name, String description) {
+    public List<CategoryResponseDto> searchCategories(String name, String description) {
         return categoryRepository.searchCategories(name, description).stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
@@ -84,7 +86,7 @@ public class CategoryService {
      * - 수정하려는 이름이 다른 카테고리와 중복되면 예외 발생
      */
     @Transactional
-    public CategoryDto updateCategory(Long categoryId, CategoryUpdateRequestDto request) {
+    public CategoryResponseDto updateCategory(Long categoryId, CategoryUpdateRequestDto request) {
 
         // 수정할 카테고리 존재 여부 검증
         Category category = findCategory(categoryId);
@@ -120,8 +122,8 @@ public class CategoryService {
         categoryRepository.delete(category);
     }
 
-    private CategoryDto convertToDto(Category category) {
-        return CategoryDto.builder()
+    private CategoryResponseDto convertToDto(Category category) {
+        return CategoryResponseDto.builder()
                 .id(category.getId())
                 .adminId(category.getAdmin().getId())
                 .name(category.getName())

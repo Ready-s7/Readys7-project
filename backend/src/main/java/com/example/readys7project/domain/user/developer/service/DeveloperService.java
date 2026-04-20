@@ -1,6 +1,6 @@
 package com.example.readys7project.domain.user.developer.service;
 
-import com.example.readys7project.domain.project.dto.ProjectDto;
+import com.example.readys7project.domain.project.dto.ProjectResponseDto;
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.user.developer.dto.DeveloperDto;
 import com.example.readys7project.domain.user.developer.dto.request.DeveloperProfileRequestDto;
@@ -81,7 +81,7 @@ public class DeveloperService {
     }
 
     // 내 프로젝트 목록 조회
-    public Page<ProjectDto> getMyProjects(String userEmail, Pageable pageable) {
+    public Page<ProjectResponseDto> getMyProjects(String userEmail, Pageable pageable) {
         User user = getUserByEmail(userEmail);
         validateUserRole(user);
         Developer developer = getDeveloperByUser(user);
@@ -146,9 +146,9 @@ public class DeveloperService {
         );
     }
 
-    // Project 엔티티 → ProjectDto 변환 (내 프로젝트 목록 조회 응답용)
-    private ProjectDto convertToProjectDto(Project project) {
-        return new ProjectDto(
+    // Project 엔티티 → ProjectResponseDto 변환 (내 프로젝트 목록 조회 응답용)
+    private ProjectResponseDto convertToProjectDto(Project project) {
+        return new ProjectResponseDto(
                 project.getId(),
                 project.getClient().getId(),
                 project.getClient().getUser().getId(),

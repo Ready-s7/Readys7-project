@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Builder
-public record ProjectDto(
+public record ProjectResponseDto(
     Long id,
     Long clientId,
     Long clientUserId,

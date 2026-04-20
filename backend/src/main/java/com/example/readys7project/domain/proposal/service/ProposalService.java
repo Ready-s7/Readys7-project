@@ -18,6 +18,7 @@ import com.example.readys7project.domain.user.auth.repository.UserRepository;
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.ProjectException;
 import com.example.readys7project.global.exception.domain.ProposalException;
+import com.example.readys7project.global.lock.service.LockService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,37 +33,14 @@ public class ProposalService {
     private final ProjectRepository projectRepository;
     private final DeveloperRepository developerRepository;
     private final UserRepository userRepository;
-    private final ProjectService projectService;
+    private final ProposalTransactionalService proposalTransactionalService;
+    private final LockService lockService;
 
-    @Transactional
-    public ProposalResponseDto createProposal(ProposalRequestDto request, String userEmail) {
-        User user = findUser(userEmail);
-
-        if (user.getUserRole() != UserRole.DEVELOPER) {
-            throw new ProposalException(ErrorCode.USER_FORBIDDEN);
-        }
-
-        Developer developer = findDeveloper(user);
-        Project project = findProject(request.projectId());
-
-        proposalRepository.findByProjectIdAndDeveloperId(project.getId(), developer.getId())
-                .ifPresent(p -> {
-                    throw new ProposalException(ErrorCode.PROPOSAL_ALREADY_EXISTS);
-                });
-
-        Proposal proposal = Proposal.builder()
-                .project(project)
-                .developer(developer)
-                .coverLetter(request.coverLetter())
-                .proposedBudget(request.proposedBudget())
-                .proposedDuration(request.proposedDuration())
-                .status(ProposalStatus.PENDING)
-                .build();
-
-        Proposal savedProposal = proposalRepository.save(proposal);
-        projectService.incrementProposalCount(project.getId());
-
-        return convertToDto(savedProposal);
+    public ProposalDto createProposal(ProposalRequestDto request, String userEmail) {
+        return lockService.executeWithLock(
+                "project:" + request.projectId(), // Lock Key
+                () -> proposalTransactionalService.createProposalInternal(request, userEmail)
+        );
     }
 
     @Transactional(readOnly = true)

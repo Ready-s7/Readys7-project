@@ -1,8 +1,8 @@
 package com.example.readys7project.domain.category.controller;
 
 import com.example.readys7project.global.aop.AdminOnly;
-import com.example.readys7project.domain.category.dto.CategoryDto;
-import com.example.readys7project.domain.category.dto.request.CategoryRequestDto;
+import com.example.readys7project.domain.category.dto.CategoryResponseDto;
+import com.example.readys7project.domain.category.dto.request.CategoryCreateRequestDto;
 import com.example.readys7project.domain.category.dto.request.CategoryUpdateRequestDto;
 import com.example.readys7project.domain.category.service.CategoryService;
 import com.example.readys7project.global.dto.ApiResponseDto;
@@ -25,8 +25,8 @@ public class CategoryController {
     // 카테고리 생성 (ADMIN 만 가능)
     @AdminOnly
     @PostMapping("/v1/categories")
-    public ResponseEntity<ApiResponseDto<CategoryDto>> createCategory(
-            @Valid@RequestBody CategoryRequestDto request,
+    public ResponseEntity<ApiResponseDto<CategoryResponseDto>> createCategory(
+            @Valid@RequestBody CategoryCreateRequestDto request,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
         String email = customUserDetails.getEmail();
@@ -36,13 +36,13 @@ public class CategoryController {
 
     // 카테고리 전체 조회
     @GetMapping("/v1/categories")
-    public ResponseEntity<ApiResponseDto<List<CategoryDto>>> getAllCategories() {
+    public ResponseEntity<ApiResponseDto<List<CategoryResponseDto>>> getAllCategories() {
         return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, categoryService.getAllCategories()));
     }
 
     // 카테고리 검색
     @GetMapping("/v1/categories/search")
-    public ResponseEntity<ApiResponseDto<List<CategoryDto>>> searchCategories(
+    public ResponseEntity<ApiResponseDto<List<CategoryResponseDto>>> searchCategories(
             @RequestParam String name,
             @RequestParam(required = false) String description // optional이므로 required = false
     ) {
@@ -53,7 +53,7 @@ public class CategoryController {
     // 카테고리 수정 (ADMIN 만 가능)
     @AdminOnly
     @PatchMapping("/v1/categories/{categoryId}")
-    public ResponseEntity<ApiResponseDto<CategoryDto>> updateCategory(
+    public ResponseEntity<ApiResponseDto<CategoryResponseDto>> updateCategory(
             @PathVariable Long categoryId,
             @Valid@RequestBody CategoryUpdateRequestDto request
     ) {

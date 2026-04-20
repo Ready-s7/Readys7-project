@@ -8,7 +8,7 @@ import lombok.*;
 import java.util.List;
 
 @Builder
-public record ProjectRequestDto(
+public record ProjectCreateRequestDto(
 
     @NotBlank(message = "제목은 필수입니다.")
     String title,
