@@ -6,6 +6,7 @@ import com.example.readys7project.domain.chat.message.enums.MessageEventType;
 import com.example.readys7project.domain.chat.message.dto.request.SendMessageRequestDto;
 import com.example.readys7project.domain.chat.message.dto.response.MessageCursorResponseDto;
 import com.example.readys7project.domain.chat.message.dto.response.MessageResponseDto;
+import com.example.readys7project.domain.chat.message.event.MessageCreatedEvent;
 import com.example.readys7project.domain.chat.message.entity.Message;
 import com.example.readys7project.domain.chat.message.repository.MessageRepository;
 import com.example.readys7project.domain.user.auth.entity.User;
@@ -13,6 +14,7 @@ import com.example.readys7project.domain.user.auth.repository.UserRepository;
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.MessageException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +29,7 @@ public class MessageService {
     private final ChatRoomRepository chatRoomRepository;
     private final UserRepository userRepository;
     private final UnreadCountService unreadCountService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public MessageResponseDto saveMessage(Long roomId, SendMessageRequestDto request, String email) {
@@ -49,12 +52,13 @@ public class MessageService {
 
         Message savedMessage = messageRepository.save(message);
 
-        // 상대방 unread count 증가
+        // 상대방 unread count 증가 (이벤트 발행으로 전환)
         Long receiverId = chatRoom.getClient().getUser().getId().equals(user.getId())
                 ? chatRoom.getDeveloper().getUser().getId()  // 보낸 사람이 client면 developer가 수신자
                 : chatRoom.getClient().getUser().getId();    // 보낸 사람이 developer면 client가 수신자
 
-        unreadCountService.increment(roomId, receiverId);
+        // 직접 호출 대신 이벤트 발행
+        eventPublisher.publishEvent(new MessageCreatedEvent(roomId, receiverId));
 
         return convertToDto(savedMessage, MessageEventType.SEND);
     }

@@ -14,7 +14,9 @@ import org.hibernate.annotations.SQLRestriction;
 
 @Getter
 @Entity
-@Table(name = "proposals")
+@Table(name = "proposals", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"project_id", "developer_id"})
+})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @SQLDelete(sql = "UPDATE proposals SET is_deleted = true WHERE id = ?") // 삭제 시 실행될 SQL 커스텀
 @SQLRestriction("is_deleted = false")
