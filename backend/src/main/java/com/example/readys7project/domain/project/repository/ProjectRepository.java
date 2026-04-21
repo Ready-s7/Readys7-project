@@ -18,4 +18,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
 
     @EntityGraph(attributePaths = {"category", "client", "client.user"})
     Optional<Project> findById(Long id);
+
+    boolean existsByCategory(Category category);
 }

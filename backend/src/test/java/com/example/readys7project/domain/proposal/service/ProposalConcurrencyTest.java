@@ -157,6 +157,8 @@ class ProposalConcurrencyTest {
         AtomicInteger failCount = new AtomicInteger(0);
 
         // ── When ──────────────────────────────────────────
+        // ⏱ 시작 시간 측정
+        long startTime = System.currentTimeMillis();
         // 100명의 개발자가 동시에 제안서 제출 요청
         for (int i = 0; i < THREAD_COUNT; i++) {
             final String email = developerEmails.get(i);
@@ -189,6 +191,9 @@ class ProposalConcurrencyTest {
         latch.await();
         executor.shutdown();
 
+        // ⏱ 종료 시간 측정
+        long endTime = System.currentTimeMillis();
+
         // ── Then ──────────────────────────────────────────
         // DB에서 최종 상태 조회
         Project result = projectRepository.findById(projectId).orElseThrow();
@@ -199,6 +204,7 @@ class ProposalConcurrencyTest {
         System.out.println("❌ 실패 요청 수 : " + failCount.get());
         System.out.println("📊 최종 제안서 수 : " + result.getCurrentProposalCount());
         System.out.println("📌 프로젝트 상태 : " + result.getStatus());
+        System.out.println("⏱ 실제 소요 시간 : " + (endTime - startTime) + "ms");
         System.out.println("================================");
 
         // 아래 검증은 Lock이 없으므로 실패해야 정상!
