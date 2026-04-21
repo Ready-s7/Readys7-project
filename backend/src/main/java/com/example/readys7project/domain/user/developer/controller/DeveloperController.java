@@ -1,7 +1,7 @@
 package com.example.readys7project.domain.user.developer.controller;
 
 import com.example.readys7project.domain.project.dto.ProjectResponseDto;
-import com.example.readys7project.domain.user.developer.dto.DeveloperDto;
+import com.example.readys7project.domain.user.developer.dto.DeveloperResponseDto;
 import com.example.readys7project.domain.user.developer.dto.request.DeveloperProfileRequestDto;
 import com.example.readys7project.domain.user.developer.service.DeveloperService;
 import com.example.readys7project.global.dto.ApiResponseDto;
@@ -25,7 +25,7 @@ public class DeveloperController {
 
     // 전체 개발자 목록
     @GetMapping("/v1/developers")
-    public ResponseEntity<ApiResponseDto<Page<DeveloperDto>>> getAllDevelopers(Pageable pageable) {
+    public ResponseEntity<ApiResponseDto<Page<DeveloperResponseDto>>> getAllDevelopers(Pageable pageable) {
         return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, developerService.getAllDevelopers(pageable)));
     }
 
@@ -40,13 +40,13 @@ public class DeveloperController {
 
     // 개발자 상세 조회
     @GetMapping("/v1/developers/{developerId}")
-    public ResponseEntity<ApiResponseDto<DeveloperDto>> getDeveloperById(@PathVariable Long developerId) {
+    public ResponseEntity<ApiResponseDto<DeveloperResponseDto>> getDeveloperById(@PathVariable Long developerId) {
         return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, developerService.getDeveloperById(developerId)));
     }
 
     // 개발자 검색 (skill, minRating)
     @GetMapping("/v1/developers/search")
-    public ResponseEntity<ApiResponseDto<Page<DeveloperDto>>> searchDevelopers(
+    public ResponseEntity<ApiResponseDto<Page<DeveloperResponseDto>>> searchDevelopers(
             @RequestParam(required = false) List<String> skills,
             @RequestParam(required = false) Double minRating,
             Pageable pageable) {
@@ -56,7 +56,7 @@ public class DeveloperController {
 
     // 개발자 프로필 수정 (DEVELOPER 전용)
     @PutMapping("/v1/developers/profile")
-    public ResponseEntity<ApiResponseDto<DeveloperDto>> updateProfile(
+    public ResponseEntity<ApiResponseDto<DeveloperResponseDto>> updateProfile(
             @Valid @RequestBody DeveloperProfileRequestDto request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         String email = userDetails.getEmail();

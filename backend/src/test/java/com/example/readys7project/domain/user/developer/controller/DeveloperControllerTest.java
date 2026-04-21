@@ -3,7 +3,7 @@ package com.example.readys7project.domain.user.developer.controller;
 import com.example.readys7project.domain.project.dto.ProjectResponseDto;
 import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.domain.user.auth.enums.UserRole;
-import com.example.readys7project.domain.user.developer.dto.DeveloperDto;
+import com.example.readys7project.domain.user.developer.dto.DeveloperResponseDto;
 import com.example.readys7project.domain.user.developer.dto.request.DeveloperProfileRequestDto;
 import com.example.readys7project.domain.user.developer.service.DeveloperService;
 import com.example.readys7project.domain.user.enums.ParticipateType;
@@ -94,8 +94,8 @@ class DeveloperControllerTest {
     @DisplayName("전체 개발자 목록 조회 성공")
     void getAllDevelopers_Success() throws Exception {
         // given
-        DeveloperDto dto = createDeveloperDto(1L);
-        Page<DeveloperDto> page = new PageImpl<>(List.of(dto), PageRequest.of(0, 10), 1);
+        DeveloperResponseDto dto = createDeveloperDto(1L);
+        Page<DeveloperResponseDto> page = new PageImpl<>(List.of(dto), PageRequest.of(0, 10), 1);
         given(developerService.getAllDevelopers(any(Pageable.class))).willReturn(page);
 
         // when & then
@@ -130,7 +130,7 @@ class DeveloperControllerTest {
     @DisplayName("개발자 상세 조회 성공")
     void getDeveloperById_Success() throws Exception {
         // given
-        DeveloperDto dto = createDeveloperDto(1L);
+        DeveloperResponseDto dto = createDeveloperDto(1L);
         given(developerService.getDeveloperById(1L)).willReturn(dto);
 
         // when & then
@@ -158,8 +158,8 @@ class DeveloperControllerTest {
     @DisplayName("개발자 검색 성공")
     void searchDevelopers_Success() throws Exception {
         // given
-        DeveloperDto dto = createDeveloperDto(1L);
-        Page<DeveloperDto> page = new PageImpl<>(List.of(dto), PageRequest.of(0, 10), 1);
+        DeveloperResponseDto dto = createDeveloperDto(1L);
+        Page<DeveloperResponseDto> page = new PageImpl<>(List.of(dto), PageRequest.of(0, 10), 1);
         given(developerService.searchDevelopers(anyList(), anyDouble(), any(Pageable.class))).willReturn(page);
 
         // when & then
@@ -177,7 +177,7 @@ class DeveloperControllerTest {
     @DisplayName("개발자 검색 결과 없음")
     void searchDevelopers_EmptyResult() throws Exception {
         // given
-        Page<DeveloperDto> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 10), 0);
+        Page<DeveloperResponseDto> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 10), 0);
         given(developerService.searchDevelopers(anyList(), anyDouble(), any(Pageable.class)))
                 .willReturn(emptyPage);
 
@@ -201,7 +201,7 @@ class DeveloperControllerTest {
         DeveloperProfileRequestDto request = new DeveloperProfileRequestDto(
                 "Updated Title", List.of("Java"), 30000, 50000, "1시간", true
         );
-        DeveloperDto response = createDeveloperDto(1L);
+        DeveloperResponseDto response = createDeveloperDto(1L);
         given(developerService.updateProfile(any(DeveloperProfileRequestDto.class), anyString())).willReturn(response);
 
         // when & then
@@ -232,8 +232,8 @@ class DeveloperControllerTest {
                 .andExpect(jsonPath("$.message").value(ErrorCode.SKILL_UPDATE_DATA_NULL.getMessage()));
     }
 
-    private DeveloperDto createDeveloperDto(Long id) {
-        return DeveloperDto.builder()
+    private DeveloperResponseDto createDeveloperDto(Long id) {
+        return DeveloperResponseDto.builder()
                 .id(id)
                 .userId(1L)
                 .name("Test User")

@@ -5,7 +5,7 @@ import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.domain.user.auth.repository.UserRepository;
-import com.example.readys7project.domain.user.developer.dto.DeveloperDto;
+import com.example.readys7project.domain.user.developer.dto.DeveloperResponseDto;
 import com.example.readys7project.domain.user.developer.dto.request.DeveloperProfileRequestDto;
 import com.example.readys7project.domain.user.developer.entity.Developer;
 import com.example.readys7project.domain.user.developer.repository.DeveloperRepository;
@@ -58,7 +58,7 @@ class DeveloperServiceTest {
         given(developerRepository.findAllWithUser(pageable)).willReturn(developerPage);
 
         // when
-        Page<DeveloperDto> result = developerService.getAllDevelopers(pageable);
+        Page<DeveloperResponseDto> result = developerService.getAllDevelopers(pageable);
 
         // then
         assertThat(result.getContent()).hasSize(1);
@@ -75,7 +75,7 @@ class DeveloperServiceTest {
         given(developerRepository.findAllWithUser(pageable)).willReturn(emptyPage);
 
         // when
-        Page<DeveloperDto> result = developerService.getAllDevelopers(pageable);
+        Page<DeveloperResponseDto> result = developerService.getAllDevelopers(pageable);
 
         // then
         assertThat(result.getContent()).isEmpty();
@@ -92,7 +92,7 @@ class DeveloperServiceTest {
         given(developerRepository.findById(1L)).willReturn(Optional.of(developer));
 
         // when
-        DeveloperDto result = developerService.getDeveloperById(1L);
+        DeveloperResponseDto result = developerService.getDeveloperById(1L);
 
         // then
         assertThat(result.id()).isEqualTo(1L);
@@ -125,7 +125,7 @@ class DeveloperServiceTest {
         given(developerRepository.searchDevelopers(skills, minRating, pageable)).willReturn(developerPage);
 
         // when
-        Page<DeveloperDto> result = developerService.searchDevelopers(skills, minRating, pageable);
+        Page<DeveloperResponseDto> result = developerService.searchDevelopers(skills, minRating, pageable);
 
         // then
         assertThat(result.getContent()).hasSize(1);
@@ -146,7 +146,7 @@ class DeveloperServiceTest {
         given(developerRepository.findByUser(user)).willReturn(Optional.of(developer));
 
         // when
-        DeveloperDto result = developerService.updateProfile(request, email);
+        DeveloperResponseDto result = developerService.updateProfile(request, email);
 
         // then
         assertThat(result.title()).isEqualTo("Updated Title");

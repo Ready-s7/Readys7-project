@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Builder
-public record DeveloperDto(
+public record DeveloperResponseDto(
         Long id,
         Long userId,
         String name,

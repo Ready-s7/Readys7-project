@@ -2,7 +2,6 @@ package com.example.readys7project.domain.user.auth.service;
 
 import com.example.readys7project.domain.user.admin.entity.Admin;
 import com.example.readys7project.domain.user.admin.enums.AdminRole;
-import com.example.readys7project.domain.user.admin.enums.AdminStatus;
 import com.example.readys7project.domain.user.admin.repository.AdminRepository;
 import com.example.readys7project.domain.user.auth.dto.request.AdminRegisterRequestDto;
 import com.example.readys7project.domain.user.auth.dto.request.ClientRegisterRequestDto;
@@ -14,10 +13,10 @@ import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.domain.user.auth.repository.UserRepository;
 import com.example.readys7project.domain.user.client.entity.Client;
-import com.example.readys7project.domain.user.enums.ParticipateType;
 import com.example.readys7project.domain.user.client.repository.ClientRepository;
 import com.example.readys7project.domain.user.developer.entity.Developer;
 import com.example.readys7project.domain.user.developer.repository.DeveloperRepository;
+import com.example.readys7project.domain.user.enums.ParticipateType;
 import com.example.readys7project.global.dto.LoginRequestDto;
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.AdminException;
@@ -42,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {

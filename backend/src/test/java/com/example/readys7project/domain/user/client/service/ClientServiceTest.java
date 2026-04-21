@@ -106,6 +106,24 @@ class ClientServiceTest {
         }
 
         @Test
+        @DisplayName("실패: 허용되지 않은 권한의 유저가 목록을 조회하면 예외가 발생한다.")
+        void getClients_fail_invalidRole() {
+            // given
+            User user = User.builder()
+                    .userRole(null)
+                    .build();
+
+            ReflectionTestUtils.setField(user, "id", 1L);
+            CustomUserDetails userDetails = new CustomUserDetails(user);
+            Pageable pageable = PageRequest.of(1, 10);
+
+            // when & then
+            assertThatThrownBy( () -> clientService.getClients(userDetails, pageable))
+                    .isInstanceOf(ClientException.class)
+                    .hasMessage(ErrorCode.USER_FORBIDDEN.getMessage());
+        }
+
+        @Test
         @DisplayName("실패: 유저가 존재하지 않으면 예외가 발생한다")
         void getClients_fail_userNotFound() {
             // given
@@ -119,6 +137,28 @@ class ClientServiceTest {
             assertThatThrownBy(() -> clientService.getClients(userDetails, pageable))
                     .isInstanceOf(ClientException.class)
                     .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        @DisplayName("성공: 페이지 번호가 1일 때 0으로 변환하여 조회한다.")
+        void getClients_convertPageable_success() {
+            // given
+            User user = createClientUser(1L);
+            CustomUserDetails userDetails = new CustomUserDetails(user);
+            Pageable pageable = PageRequest.of(1, 10);
+
+            given(userRepository.existsById(user.getId())).willReturn(true);
+            given(clientRepository.findAllWithPageable(any(Pageable.class)))
+                    .willReturn(new PageImpl<>(Collections.emptyList()));
+
+            // when
+            clientService.getClients(userDetails, pageable);
+
+            // then
+            org.mockito.ArgumentCaptor<Pageable> pageableCaptor = org.mockito.ArgumentCaptor.forClass(Pageable.class);
+            verify(clientRepository).findAllWithPageable(pageableCaptor.capture());
+
+            assertThat(pageableCaptor.getValue().getPageNumber()).isEqualTo(0);
         }
     }
 
@@ -240,6 +280,23 @@ class ClientServiceTest {
             // then
             assertThat(client.getRating()).isEqualTo(4.5);
             assertThat(client.getReviewCount()).isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("성공: 새로운 평점과 리뷰 개수가 객체에 정확히 반영된다")
+        void updateRating_dataIntegrity_success() {
+            // given
+            User user = createClientUser(1L);
+            Client client = createClient(1L, user); // 초기 평점 0.0, 리뷰수 0
+            given(clientRepository.findById(1L)).willReturn(Optional.of(client));
+
+            // when
+            clientService.updateRating(1L, 4.8, 10);
+
+            // then
+            // 단순히 에러가 안 터지는걸 넘어 값이 실제 저장됐는지 검증
+            assertThat(client.getRating()).isEqualTo(4.8);
+            assertThat(client.getReviewCount()).isEqualTo(10);
         }
 
         @Test
