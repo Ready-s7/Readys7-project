@@ -193,13 +193,13 @@ export function Home() {
                         {(project.skills || []).slice(0, 3).map((skill) => (
                           <Badge key={skill} variant="outline">{skill}</Badge>
                         ))}
-                        {project.skills.length > 3 && (
-                          <Badge variant="outline">+{project.skills.length - 3}</Badge>
+                        {(project.skills?.length ?? 0) > 3 && (
+                          <Badge variant="outline">+{(project.skills?.length ?? 0) - 3}</Badge>
                         )}
                       </div>
                       <div className="flex justify-between items-center pt-4 border-t">
                         <span className="text-blue-600 text-sm font-bold">
-                          {project.minBudget.toLocaleString()}~{project.maxBudget.toLocaleString()}원
+                          {(project.minBudget ?? 0).toLocaleString()}~{(project.maxBudget ?? 0).toLocaleString()}원
                         </span>
                         <span className="text-sm text-gray-500">
                           제안 {project.currentProposalCount}개
@@ -254,7 +254,7 @@ export function Home() {
                         ))}
                       </div>
                       <p className="text-blue-600 text-sm font-bold">
-                        {developer.minHourlyPay?.toLocaleString()}~{developer.maxHourlyPay?.toLocaleString()}원/시간
+                        {(developer.minHourlyPay ?? 0).toLocaleString()}~{(developer.maxHourlyPay ?? 0).toLocaleString()}원/시간
                       </p>
                     </CardContent>
                   </Card>

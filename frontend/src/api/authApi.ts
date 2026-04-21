@@ -35,12 +35,17 @@ export const authApi = {
     const authHeader =
         (response.headers["authorization"] as string | undefined) ||
         (response.headers["Authorization"] as string | undefined);
-    const accessToken = authHeader?.replace("Bearer ", "").trim() ?? null;
 
-    if (accessToken) {
+    // Bearer 접두사 제거 및 순수 토큰 추출
+    const accessToken = authHeader?.startsWith("Bearer ") 
+        ? authHeader.substring(7).trim() 
+        : authHeader?.trim() ?? null;
+
+    if (!accessToken) {
+      console.error("[Login] Authorization 헤더를 찾을 수 없습니다.", response.headers);
+    } else {
       localStorage.setItem("accessToken", accessToken);
-    }
-    if (response.data.data.refreshToken) {
+    }    if (response.data.data.refreshToken) {
       localStorage.setItem("refreshToken", response.data.data.refreshToken);
     }
     if (response.data.data.email) {

@@ -99,17 +99,35 @@ export function ChatPage() {
   }), [csRoomId]);
 
   // STOMP 구독 분기 처리
-  const subscribeToRoom = useCallback((id: number, isCs: boolean, client?: StompClient) => {
-    const c = client || stompRef.current;
-    if (!c?.connected) return;
-    
+  const subscribeToRoom = useCallback((id: number, isCs: boolean) => {
+
+    console.log(`[STOMP DEBUG] subscribeToRoom 호출`, {
+      roomId: id,
+      stompConnected: stompRef.current?.connected,
+      stompExists: !!stompRef.current,
+    });
+
+    const c = stompRef.current;
+
+    // ✅ connected 체크를 더 엄격하게
+    if (!c || !c.connected) {
+      console.warn(`[STOMP] subscribeToRoom 호출 시 연결 안됨. room: ${id}`);
+      return;
+    }
+
+    // 이전 구독 해제
     subscriptionRef.current?.unsubscribe();
+    subscriptionRef.current = null;
+
     const dest = isCs ? `/receive/chat/cs/${id}` : `/receive/chat/rooms/${id}`;
-    
+
+    const accessToken = localStorage.getItem("accessToken");
+    const headers = { Authorization: `Bearer ${accessToken}` };
+
     subscriptionRef.current = c.subscribe(dest, (frame) => {
       const msgData = JSON.parse(frame.body);
       const msg = isCs ? mapCsToMsg(msgData) : (msgData as MessageResponseDto);
-      
+
       const type = String(msg.eventType).toUpperCase();
       setMessages((prev) => {
         if (type === "EDIT") return prev.map((m) => m.id === msg.id ? { ...m, content: msg.content } : m);
@@ -121,33 +139,59 @@ export function ChatPage() {
       if (type === "SEND" || type === "ENTER") {
         setTimeout(() => scrollToBottom(true), 50);
       }
-    });
+    }, headers);
 
+    // ✅ subscribe 후 약간 딜레이 두고 enter 발행 (서버 처리 시간 확보)
     const enterDest = isCs ? `/send/chat/cs/${id}/enter` : `/send/chat/rooms/${id}/enter`;
-    c.publish({ destination: enterDest, body: "" });
+    setTimeout(() => {
+      if (stompRef.current?.connected) {
+        stompRef.current.publish({ 
+          destination: enterDest, 
+          body: "",
+          headers: headers
+        });
+      }
+    }, 100);
+
   }, [mapCsToMsg, scrollToBottom]);
 
   const connectStomp = useCallback(() => {
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken || stompRef.current?.connected) return;
+
     setIsConnecting(true);
+
     const client = new StompClient({
       webSocketFactory: () => new SockJS(WS_URL),
       connectHeaders: { Authorization: `Bearer ${accessToken}` },
       onConnect: () => {
+        // ✅ onConnect 진입 시점에 stompRef를 먼저 확정
+        stompRef.current = client;
         setIsConnected(true);
         setIsConnecting(false);
+
         if (pendingRoomIdRef.current) {
-          subscribeToRoom(pendingRoomIdRef.current.id, pendingRoomIdRef.current.isCs, client);
-          pendingRoomIdRef.current = null;
+          const { id, isCs } = pendingRoomIdRef.current;
+          pendingRoomIdRef.current = null; // ✅ null 처리 먼저
+          subscribeToRoom(id, isCs);       // ✅ client 파라미터 불필요 (stompRef 이미 세팅됨)
         }
       },
-      onDisconnect: () => { setIsConnected(false); setIsConnecting(false); },
-      onStompError: () => { setIsConnected(false); setIsConnecting(false); toast.error("채팅 서버 연결에 실패했습니다."); },
+      onDisconnect: () => {
+        setIsConnected(false);
+        setIsConnecting(false);
+      },
+      onStompError: () => {
+        setIsConnected(false);
+        setIsConnecting(false);
+        toast.error("채팅 서버 연결에 실패했습니다.");
+      },
       reconnectDelay: 5000,
     });
-    client.activate();
+
+    // ✅ activate 전에 stompRef 선점 (onConnect보다 먼저 assign)
     stompRef.current = client;
+    client.activate();
+
   }, [subscribeToRoom]);
 
   const disconnectStomp = useCallback(() => {
@@ -201,12 +245,22 @@ export function ChatPage() {
     setSelectedRoom(room);
     setMessages([]);
     setIsLoadingMessages(true);
+
     try {
       const res = await chatApi.getMessages(room.id);
       setMessages([...res.data.data.messages].reverse());
       setTimeout(() => scrollToBottom(false), 50);
-      if (stompRef.current?.connected) subscribeToRoom(room.id, false);
-      else pendingRoomIdRef.current = { id: room.id, isCs: false };
+
+      // ✅ pendingRoomIdRef를 먼저 설정해두고
+      pendingRoomIdRef.current = { id: room.id, isCs: false };
+
+      if (stompRef.current?.connected) {
+        // 연결됨 → 즉시 구독
+        pendingRoomIdRef.current = null;
+        subscribeToRoom(room.id, false);
+      }
+      // 연결 안됨 → onConnect에서 처리됨 (pending이 이미 설정됨)
+
     } catch {
       toast.error("메시지 로드 실패");
     } finally {
@@ -217,9 +271,13 @@ export function ChatPage() {
   const handleSend = () => {
     if (!inputText.trim() || !stompRef.current?.connected) return;
     const dest = isCsMode ? `/send/chat/cs/${csRoomId}` : `/send/chat/rooms/${selectedRoom?.id}`;
+    
+    const accessToken = localStorage.getItem("accessToken");
+    
     stompRef.current.publish({
       destination: dest,
       body: JSON.stringify({ content: inputText.trim() }),
+      headers: { Authorization: `Bearer ${accessToken}` }
     });
     setInputText("");
     isNearBottomRef.current = true;
