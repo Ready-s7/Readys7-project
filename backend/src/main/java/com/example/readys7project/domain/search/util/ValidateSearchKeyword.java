@@ -13,8 +13,8 @@ public class ValidateSearchKeyword {
        이러한 상황을 방지하기 위한 방어코드*/
     private static final int MAX_KEYWORD = 20;
 
-    // 특수 문자 차단 패턴 추가
-    private static final Pattern INVALID_PATTERN = Pattern.compile("[<>\"'%;()&+\\-=]");
+    // 특수 문자 차단 패턴 (SQL Injection 위험이 있는 최소한의 문자만 차단)
+    private static final Pattern INVALID_PATTERN = Pattern.compile("[<>\"'%;()]");
 
     // 키워드 검증 공용 메서드
     public String validateSearchKeyword(String keyword) {
@@ -24,7 +24,7 @@ public class ValidateSearchKeyword {
             return null;
         }
 
-        // 양끝 공백 제거
+        // 양끝 공백 제거 및 소문자 변환
         String trimKeyword = keyword.trim().toLowerCase();
 
         // 최소글자 2글자로 제한 (의미없는 검색 방지)
@@ -32,16 +32,17 @@ public class ValidateSearchKeyword {
             return null;
         }
 
-        // 최대 글자수 제한 (악의적 검색 방지)
+        // 최대 글자수 제한
         if (trimKeyword.length() > MAX_KEYWORD) {
             throw new SearchException(ErrorCode.SEARCH_LENGTH_TOO_LONG);
         }
 
-        // 특수 문자 차단
+        // 특수 문자 차단 (Injection 방지)
         if (INVALID_PATTERN.matcher(trimKeyword).find()) {
             throw new SearchException(ErrorCode.SEARCH_INVALID_CHARACTER);
         }
 
+        // 검색 성능을 위해 불필요한 특수문자는 공백으로 치환하거나 제거
         return trimKeyword;
     }
 }

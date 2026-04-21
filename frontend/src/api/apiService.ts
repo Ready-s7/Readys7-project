@@ -384,7 +384,7 @@ export const adminApi = {
 // ─────────────────────────────────────────────────────────────
 export const searchApi = {
     getTotalSearch: (keyword?: string, page = 0, size = 5) =>
-        apiClient.get<SuccessResponse<TotalSearchResponseDto>>("/v1/search", {
+        apiClient.get<SuccessResponse<TotalSearchResponseDto>>("/v2/search", {
             params: { keyword, page, size },
         }),
 

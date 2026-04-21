@@ -67,6 +67,9 @@ public class Project extends BaseEntity {
     @Column(nullable = false, name = "max_proposal_count")
     private Integer maxProposalCount;     // 최대 제안서 수
 
+    @Column(columnDefinition = "TEXT", name = "skills_text")
+    private String skillsText; // 검색 성능 향상을 위한 섀도우 컬럼
+
     private boolean isDeleted = false;
 
     @Builder
@@ -85,7 +88,19 @@ public class Project extends BaseEntity {
         // 초기화 세팅
         this.status = ProjectStatus.OPEN;
         this.currentProposalCount = 0;
+        
+        // skillsText 초기화
+        this.syncSkillsText();
+    }
 
+    @PrePersist
+    @PreUpdate
+    public void syncSkillsText() {
+        if (this.skills != null && !this.skills.isEmpty()) {
+            this.skillsText = String.join(" ", this.skills);
+        } else {
+            this.skillsText = "";
+        }
     }
 
     public void updateProject(
@@ -101,7 +116,10 @@ public class Project extends BaseEntity {
         if (title != null && !title.isBlank()) this.title = title;
         if (description != null && !description.isBlank()) this.description = description;
         if (category != null) this.category = category;
-        if (skills != null) this.skills = skills;
+        if (skills != null) {
+            this.skills = skills;
+            this.syncSkillsText(); // skills 변경 시 skillsText 동기화
+        }
         if (minBudget != null) this.minBudget = minBudget;
         if (maxBudget != null) this.maxBudget = maxBudget;
         if (duration != null) this.duration = duration;

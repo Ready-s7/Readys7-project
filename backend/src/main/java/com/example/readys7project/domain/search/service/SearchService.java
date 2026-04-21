@@ -56,12 +56,12 @@ public class SearchService {
         return result;
     }
 
-    // V2 카페인 적용
-    @Transactional(readOnly = true)
+    // V2 레디스 적용
+    // 랭킹 업데이트를 위해 readOnly 제거
+    @Transactional
     @Cacheable(value = "globalSearch",
             key = "T(com.example.readys7project.domain.search.util.SearchCacheKeyGenerator).generate(#keyword, #pageable)")
-
-    public GlobalSearchResponseDto searchV2(String keyword, Pageable pageable) {
+    public GlobalSearchResponseDto searchV2(Long userId, String keyword, Pageable pageable) {
 
         String trimKeyword = validate.validateSearchKeyword(keyword);
 
@@ -69,7 +69,14 @@ public class SearchService {
             return empty(pageable);
         }
 
-        return GlobalSearch(trimKeyword, pageable);
+        GlobalSearchResponseDto result = GlobalSearch(trimKeyword, pageable);
+
+        // 검색 결과가 존재한다면, 랭킹 카운트 업데이트
+        if (hasAnyResult(result)) {
+            searchRankingService.updateRankingCount(trimKeyword, userId);
+        }
+
+        return result;
     }
 
     // 인기 검색어 조회

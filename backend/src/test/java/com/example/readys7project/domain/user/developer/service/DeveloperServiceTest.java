@@ -31,8 +31,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class DeveloperServiceTest {
@@ -63,6 +63,23 @@ class DeveloperServiceTest {
         // then
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).id()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("전체 개발자 목록 조회 - 빈 목록")
+    void getAllDevelopers_EmptyResult() {
+        // given
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Developer> emptyPage = new PageImpl<>(Collections.emptyList());
+
+        given(developerRepository.findAllWithUser(pageable)).willReturn(emptyPage);
+
+        // when
+        Page<DeveloperDto> result = developerService.getAllDevelopers(pageable);
+
+        // then
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isEqualTo(0);
     }
 
     @Test
@@ -164,6 +181,9 @@ class DeveloperServiceTest {
         // then
         assertThat(developer.getRating()).isEqualTo(4.5);
         assertThat(developer.getReviewCount()).isEqualTo(10);
+
+        // 행위 검증
+        verify(developerRepository).findById(1L);
     }
 
     @Test
@@ -197,6 +217,20 @@ class DeveloperServiceTest {
         // then
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).title()).isEqualTo("Test Project");
+    }
+
+    @Test
+    @DisplayName("내 프로젝트 목록 조회 실패 - 존재하지 않는 유저")
+    void getMyProjects_UserNotFound() {
+        // given
+        String email = "notexist@test.com";
+        Pageable pageable = PageRequest.of(0, 10);
+
+        given(userRepository.findByEmail(email)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> developerService.getMyProjects(email, pageable))
+                .isInstanceOf(DeveloperException.class);
     }
 
     private User createUser(Long id, String email, UserRole role) {
