@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.List;
 
@@ -15,6 +16,7 @@ import java.util.List;
 @Getter
 @Entity
 @Table(name = "developers")
+@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @SQLDelete(sql = "UPDATE developers SET is_deleted = true WHERE id = ?") // 삭제 시 실행될 SQL 커스텀
 @SQLRestriction("is_deleted = false")
@@ -50,6 +52,9 @@ public class Developer extends BaseEntity {
     @Column(columnDefinition = "json")
     private List<String> skills;   // 개발자 보유 스킬
 
+    @Column(columnDefinition = "TEXT", name = "skills_text")
+    private String skillsText; // 검색 성능 향상을 위한 섀도우 컬럼
+
     @Column(name = "response_time")
     private String responseTime;   // 응답 시간 (예: "1시간 이내")
 
@@ -79,6 +84,18 @@ public class Developer extends BaseEntity {
         this.responseTime = responseTime;
         this.availableForWork = availableForWork;
         this.participateType = participateType;
+
+        this.syncSkillsText();
+    }
+
+    @PrePersist
+    @PreUpdate
+    public void syncSkillsText() {
+        if (this.skills != null && !this.skills.isEmpty()) {
+            this.skillsText = String.join(" ", this.skills);
+        } else {
+            this.skillsText = "";
+        }
     }
 
 
@@ -91,6 +108,7 @@ public class Developer extends BaseEntity {
         }
         if (skills != null && !skills.isEmpty()) {
             this.skills = skills;
+            this.syncSkillsText();
         }
         if (minHourlyPay != null) {
             this.minHourlyPay = minHourlyPay;

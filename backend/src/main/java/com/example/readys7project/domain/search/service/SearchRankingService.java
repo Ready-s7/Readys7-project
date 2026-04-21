@@ -23,7 +23,22 @@ public class SearchRankingService {
     // 상위 10개 인기 검색어 순위 조회
     @Transactional(readOnly = true)
     public List<PopularRankingResponseDto> getPopularRanking(int limit) {
+        // 1. 먼저 레디스에서 조회
         Set<ZSetOperations.TypedTuple<Object>> rankingList = searchRedisService.getTopRanking(limit);
+
+        // 2. 레디스가 비어있다면 DB에서 조회 후 레디스에 채우기
+        if (rankingList == null || rankingList.isEmpty()) {
+            List<SearchRanking> dbTopRanking = searchRankingRepository.findTop10ByIsDeletedFalseOrderBySearchCountDesc();
+            if (dbTopRanking.isEmpty()) {
+                return Collections.emptyList();
+            }
+            // DB 데이터를 레디스에 복구 (비동기 권장이나 여기선 정합성을 위해 즉시 반영 고려)
+            for (SearchRanking ranking : dbTopRanking) {
+                searchRedisService.incrementRankingScore(ranking.getKeyword());
+            }
+            // 다시 레디스에서 정렬된 상태로 조회
+            rankingList = searchRedisService.getTopRanking(limit);
+        }
 
         if (rankingList == null || rankingList.isEmpty()) {
             return Collections.emptyList();
@@ -34,9 +49,10 @@ public class SearchRankingService {
         return rankingList.stream()
                 .map(tuple -> {
                     String rawValue = String.valueOf(tuple.getValue());
-                    String cleanKeyword = rawValue.replace("\"", "");
+                    // JSON 직렬화 과정에서 생긴 따옴표 등 제거
+                    String cleanKeyword = rawValue.replaceAll("^\"|\"$", ""); 
                     return PopularRankingResponseDto.builder()
-                            .ranking(rank.getAndIncrement()) // 순위만 할당
+                            .ranking(rank.getAndIncrement())
                             .keyword(cleanKeyword)
                             .build();
                 }).toList();
