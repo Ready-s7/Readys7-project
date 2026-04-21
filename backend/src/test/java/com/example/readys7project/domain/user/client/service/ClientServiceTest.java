@@ -1,6 +1,5 @@
 package com.example.readys7project.domain.user.client.service;
 
-import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.project.repository.ProjectRepository;
 import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.domain.user.auth.enums.UserRole;
@@ -8,7 +7,7 @@ import com.example.readys7project.domain.user.auth.repository.UserRepository;
 import com.example.readys7project.domain.user.client.dto.request.UpdateClientProfileRequestDto;
 import com.example.readys7project.domain.user.client.dto.response.ClientProjectsListResponseDto;
 import com.example.readys7project.domain.user.client.dto.response.ClientsResponseDto;
-import com.example.readys7project.domain.user.client.dto.response.PageResponseDto;
+import com.example.readys7project.global.dto.PageResponseDto;
 import com.example.readys7project.domain.user.client.dto.response.UpdateClientProfileResponseDto;
 import com.example.readys7project.domain.user.client.entity.Client;
 import com.example.readys7project.domain.user.client.repository.ClientRepository;

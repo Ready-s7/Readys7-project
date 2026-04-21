@@ -110,7 +110,7 @@ class ProjectServiceTest {
             given(clientRepository.findByUser(clientUser)).willReturn(Optional.of(client));
             given(categoryRepository.findById(1L)).willReturn(Optional.of(category));
 
-            assertThatThrownBy(() -> projectService.createProject(request, email)).isInstanceOf(CategoryException.class);
+            assertThatThrownBy(() -> projectService.createProject(request, email)).isInstanceOf(ProjectException.class);
         }
     }
 

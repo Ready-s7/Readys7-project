@@ -27,9 +27,14 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.springframework.boot:spring-boot-starter-security'
 
+    // Lock 관련 의존성
+//    implementation 'org.springframework.boot:spring-boot-starter-data-redis' // Lettuce
+    implementation 'org.redisson:redisson-spring-boot-starter:3.27.2'  //Redisson
+
+
+    // Caffeine 의존성 추가
     implementation 'org.springframework.boot:spring-boot-starter-cache'
 //    implementation 'com.github.ben-manes.caffeine:caffeine'
 

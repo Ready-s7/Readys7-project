@@ -3,6 +3,7 @@ package com.example.readys7project.domain.proposal.service;
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.project.enums.ProjectStatus;
 import com.example.readys7project.domain.project.repository.ProjectRepository;
+import com.example.readys7project.domain.proposal.dto.response.ProposalResponseDto;
 import com.example.readys7project.domain.proposal.dto.request.ProposalRequestDto;
 import com.example.readys7project.domain.proposal.dto.request.UpdateProposalRequestDto;
 import com.example.readys7project.domain.proposal.dto.response.ProposalResponseDto;

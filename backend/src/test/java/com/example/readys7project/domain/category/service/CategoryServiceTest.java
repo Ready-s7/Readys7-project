@@ -5,6 +5,7 @@ import com.example.readys7project.domain.category.dto.request.CategoryCreateRequ
 import com.example.readys7project.domain.category.dto.request.CategoryUpdateRequestDto;
 import com.example.readys7project.domain.category.entity.Category;
 import com.example.readys7project.domain.category.repository.CategoryRepository;
+import com.example.readys7project.domain.project.repository.ProjectRepository;
 import com.example.readys7project.domain.user.admin.entity.Admin;
 import com.example.readys7project.domain.user.admin.repository.AdminRepository;
 import com.example.readys7project.global.exception.common.ErrorCode;
@@ -38,6 +39,9 @@ class CategoryServiceTest {
 
     @Mock
     private AdminRepository adminRepository;
+
+    @Mock
+    private ProjectRepository projectRepository;
 
     @Nested
     @DisplayName("카테고리 생성 테스트")
@@ -233,6 +237,7 @@ class CategoryServiceTest {
             Long categoryId = 1L;
             Category category = Category.builder().name("삭제할거").build();
             given(categoryRepository.findById(categoryId)).willReturn(Optional.of(category));
+            given(projectRepository.existsByCategory(category)).willReturn(false);
 
             // when
             categoryService.deleteCategory(categoryId);
@@ -252,6 +257,27 @@ class CategoryServiceTest {
             assertThatThrownBy(() -> categoryService.deleteCategory(categoryId))
                     .isInstanceOf(CategoryException.class)
                     .hasMessage(ErrorCode.CATEGORY_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        @DisplayName("실패: 프로젝트에서 사용 중인 카테고리 삭제 시도 → 409 CATEGORY_IN_USE")
+        void deleteCategory_CategoryInUse_Fail() {
+            // given
+            Long categoryId = 1L;
+            Category category = Category.builder().name("사용중인카테고리").build();
+            ReflectionTestUtils.setField(category, "id", categoryId);
+
+            given(categoryRepository.findById(categoryId)).willReturn(Optional.of(category));
+            // 이 카테고리를 참조하는 프로젝트가 존재하는 상황을 모킹
+            given(projectRepository.existsByCategory(category)).willReturn(true);
+
+            // when & then
+            assertThatThrownBy(() -> categoryService.deleteCategory(categoryId))
+                    .isInstanceOf(CategoryException.class)
+                    .hasMessage(ErrorCode.CATEGORY_IN_USE.getMessage());
+
+            // 참조 중인 카테고리이므로 delete()가 절대 호출되지 않아야 합니다
+            verify(categoryRepository, never()).delete(any());
         }
     }
 }

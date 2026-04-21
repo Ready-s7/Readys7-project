@@ -5,6 +5,7 @@ import com.example.readys7project.domain.category.dto.request.CategoryCreateRequ
 import com.example.readys7project.domain.category.dto.request.CategoryUpdateRequestDto;
 import com.example.readys7project.domain.category.entity.Category;
 import com.example.readys7project.domain.category.repository.CategoryRepository;
+import com.example.readys7project.domain.project.repository.ProjectRepository;
 import com.example.readys7project.domain.user.admin.entity.Admin;
 import com.example.readys7project.domain.user.admin.repository.AdminRepository;
 import com.example.readys7project.global.exception.common.ErrorCode;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final ProjectRepository projectRepository;
     private final AdminRepository adminRepository;
 
     /**
@@ -117,6 +119,11 @@ public class CategoryService {
 
         // 삭제할 카테고리 존재 여부 검증
         Category category = findCategory(categoryId);
+
+        if (projectRepository.existsByCategory(category)) {
+            throw new CategoryException(ErrorCode.CATEGORY_IN_USE);
+        }
+
 
         // 카테고리 삭제
         categoryRepository.delete(category);

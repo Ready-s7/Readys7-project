@@ -14,6 +14,7 @@ import com.example.readys7project.domain.user.auth.repository.UserRepository;
 import com.example.readys7project.domain.user.client.entity.Client;
 import com.example.readys7project.domain.user.client.repository.ClientRepository;
 import com.example.readys7project.global.exception.common.ErrorCode;
+import com.example.readys7project.global.exception.domain.CategoryException;
 import com.example.readys7project.global.exception.domain.ProjectException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -193,8 +194,14 @@ public class ProjectService {
     }
 
     private Category findCategory(Long categoryId) {
-        return categoryRepository.findById(categoryId)
+        Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ProjectException(ErrorCode.CATEGORY_NOT_FOUND));
+
+        if (category.isDeleted()) {
+            throw new ProjectException(ErrorCode.CATEGORY_NOT_FOUND);
+        }
+
+        return category;
     }
 
     private Client validateClient(User user) {

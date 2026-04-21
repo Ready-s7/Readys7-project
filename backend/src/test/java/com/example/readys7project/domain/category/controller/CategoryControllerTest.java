@@ -191,6 +191,25 @@ class CategoryControllerTest {
                     .andExpect(jsonPath("$.success").doesNotExist())
                     .andExpect(jsonPath("$.code").value("CATEGORY_NOT_FOUND"));
         }
+
+        @Test
+        @DisplayName("실패: CLIENT가 카테고리 수정 시도 → 403 Forbidden")
+        void updateCategory_Failure_Forbidden() throws Exception {
+            // given
+            // @AdminOnly AOP가 던질 예외를 Service Mock에서 재현
+            Long categoryId = 1L;
+            CategoryUpdateRequestDto request = CategoryUpdateRequestDto.builder().name("수정").build();
+            given(categoryService.updateCategory(eq(categoryId), any()))
+                    .willThrow(new CategoryException(ErrorCode.USER_FORBIDDEN));
+
+            // when & then
+            mockMvc.perform(patch("/v1/categories/{categoryId}", categoryId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.success").doesNotExist())
+                    .andExpect(jsonPath("$.code").value("USER_FORBIDDEN"));
+        }
     }
 
     @Nested
@@ -221,6 +240,36 @@ class CategoryControllerTest {
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").doesNotExist())
                     .andExpect(jsonPath("$.code").value("CATEGORY_NOT_FOUND"));
+        }
+
+        @Test
+        @DisplayName("실패: CLIENT가 카테고리 삭제 시도 → 403 Forbidden")
+        void deleteCategory_Failure_Forbidden() throws Exception {
+            // given
+            Long categoryId = 1L;
+            doThrow(new CategoryException(ErrorCode.USER_FORBIDDEN))
+                    .when(categoryService).deleteCategory(categoryId);
+
+            // when & then
+            mockMvc.perform(delete("/v1/categories/{categoryId}", categoryId))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.success").doesNotExist())
+                    .andExpect(jsonPath("$.code").value("USER_FORBIDDEN"));
+        }
+
+        @Test
+        @DisplayName("실패: 프로젝트에서 사용 중인 카테고리 삭제 시도 → 409 Conflict")
+        void deleteCategory_Failure_CategoryInUse() throws Exception {
+            // given
+            Long categoryId = 1L;
+            doThrow(new CategoryException(ErrorCode.CATEGORY_IN_USE))
+                    .when(categoryService).deleteCategory(categoryId);
+
+            // when & then
+            mockMvc.perform(delete("/v1/categories/{categoryId}", categoryId))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.success").doesNotExist())
+                    .andExpect(jsonPath("$.code").value("CATEGORY_IN_USE"));
         }
     }
 }
