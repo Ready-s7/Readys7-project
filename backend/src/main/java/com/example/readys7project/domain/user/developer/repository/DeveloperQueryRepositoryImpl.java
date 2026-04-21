@@ -145,7 +145,7 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
     }
 
 
-    // 하이브리드 검색 핵심 시작.
+    // 통합검색에서 개발자 검색 시 N-gram Full-text 인덱스를 사용하여 초고속 검색 수행
     @Override
     public SearchPageResponseDto<DeveloperGlobalSearchResponseDto> developerGlobalSearch(String keyword, Pageable pageable) {
         if (keyword == null || keyword.trim().isBlank()) {
@@ -153,69 +153,10 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
         }
 
         String trimmedKeyword = keyword.trim();
-
-        // 검색어 안에 공백이 있으면 FULLTEXT로 간다.
-        if (hasWhitespace(trimmedKeyword)) {
-            return developerGlobalSearchByFullText(trimmedKeyword, pageable);
-        }
-
-        // 검색어 안에 공백이 없으면 LIKE기반으로 간다.
-        return developerGlobalSearchByLike(trimmedKeyword, pageable);
+        return developerGlobalSearchByFullText(trimmedKeyword, pageable);
     }
 
-
-    // LIKE 기반으로 간다.
-    private SearchPageResponseDto<DeveloperGlobalSearchResponseDto> developerGlobalSearchByLike(String keyword, Pageable pageable) {
-
-        QUser qUser = QUser.user;
-
-        List<DeveloperGlobalSearchResponseDto> content = queryFactory
-                .select(Projections.constructor(DeveloperGlobalSearchResponseDto.class,
-                        qDeveloper.id,
-                        qUser.id,
-                        qUser.name,
-                        qDeveloper.title,
-                        qDeveloper.rating,
-                        qDeveloper.reviewCount,
-                        qDeveloper.completedProjects,
-                        qDeveloper.skills,
-                        qDeveloper.minHourlyPay,
-                        qDeveloper.maxHourlyPay,
-                        qDeveloper.responseTime,
-                        qUser.description,
-                        qDeveloper.availableForWork,
-                        qDeveloper.participateType,
-                        qDeveloper.createdAt,
-                        qDeveloper.updatedAt
-                ))
-                .from(qDeveloper)
-                .leftJoin(qDeveloper.user, qUser)
-                // 이름, 직함, 기술 스택 통합 검색
-                .where(
-                    nameLike(keyword)
-                    .or(titleLike(keyword))
-                    .or(skillsLike(keyword))
-                )
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .orderBy(qDeveloper.createdAt.desc())
-                .fetch();
-
-        JPAQuery<Long> countQuery = queryFactory
-                .select(qDeveloper.count())
-                .from(qDeveloper)
-                .leftJoin(qDeveloper.user, qUser)
-                .where(
-                    nameLike(keyword)
-                    .or(titleLike(keyword))
-                    .or(skillsLike(keyword))
-                );
-
-        Page<DeveloperGlobalSearchResponseDto> page = PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
-        return SearchPageResponseDto.from(page);
-    }
-
-    // 공백 포함 복합 검색어를 처리하는 FULLTEXT.
+    // N-gram Full-text 기반 개발자 검색
     private SearchPageResponseDto<DeveloperGlobalSearchResponseDto> developerGlobalSearchByFullText(String keyword, Pageable pageable) {
 
         QUser qUser = QUser.user;
@@ -226,8 +167,7 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
             return SearchPageResponseDto.from(Page.empty(pageable));
         }
 
-        // FULLTEXT로 찾은 id 목록을 기준으로
-        // 최종 응답 DTO를 조회
+        // FULLTEXT로 찾은 id 목록을 기준으로 최종 응답 DTO를 조회
         List<DeveloperGlobalSearchResponseDto> content = queryFactory
                 .select(Projections.constructor(DeveloperGlobalSearchResponseDto.class,
                         qDeveloper.id,
@@ -259,7 +199,7 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
         return SearchPageResponseDto.from(page);
     }
 
-    // FULLTEXT 검색으로 개발자 id 목록을 반환하는 메서드
+    // FULLTEXT 검색으로 개발자 id 목록을 반환하는 메서드 (title, name, description은 전문검색, skills는 정확한 매칭)
     private List<Long> findDeveloperIdsByFullText(String keyword, Pageable pageable) {
         String sql = """
                 SELECT d.id
@@ -269,23 +209,16 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
                   AND u.is_deleted = false
                   AND (
                     MATCH(d.title) AGAINST (:keyword IN BOOLEAN MODE)
-                    OR MATCH(u.description) AGAINST (:keyword IN BOOLEAN MODE)
-                    OR d.skills LIKE CONCAT('%', :keyword, '%')
-                    OR u.name LIKE CONCAT('%', :keyword, '%')
+                    OR MATCH(u.name, u.description) AGAINST (:keyword IN BOOLEAN MODE)
+                    OR JSON_CONTAINS(d.skills, JSON_QUOTE(:keyword))
                   )
                 ORDER BY d.created_at DESC
                 LIMIT :limit OFFSET :offset
                 """;
 
-        // WHERE d.is_deleted = false AND u.is_deleted = false -> 삭제되지 않은 데이터만 검색
-        //  MATCH(d.title) AGAINST (:keyword IN BOOLEAN MODE) -> 개발자 title에 대해 FULLTEXT 검색
-        // OR MATCH(u.description) AGAINST (:keyword IN BOOLEAN MODE) -> 사용자 description에 대해 FULLTEXT 검색
-
-        // 컴파일러 경고를 잠깐 무시하겠다는 뜻.
-        // 자바가 형변환을 안전한거 맞냐라고 경고할 수 있기 때문.
         @SuppressWarnings("unchecked")
         List<Number> result = entityManager.createNativeQuery(sql)
-                .setParameter("keyword", keyword)
+                .setParameter("keyword", keyword) // + 제거
                 .setParameter("limit", pageable.getPageSize())
                 .setParameter("offset", pageable.getOffset())
                 .getResultList();
@@ -305,50 +238,18 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
                   AND u.is_deleted = false
                   AND (
                     MATCH(d.title) AGAINST (:keyword IN BOOLEAN MODE)
-                    OR MATCH(u.description) AGAINST (:keyword IN BOOLEAN MODE)
-                    OR d.skills LIKE CONCAT('%', :keyword, '%')
-                    OR u.name LIKE CONCAT('%', :keyword, '%')
+                    OR MATCH(u.name, u.description) AGAINST (:keyword IN BOOLEAN MODE)
+                    OR JSON_CONTAINS(d.skills, JSON_QUOTE(:keyword))
                   )
                 """;
 
         Number count = (Number) entityManager.createNativeQuery(sql)
-                .setParameter("keyword", keyword)
+                .setParameter("keyword", keyword) // + 제거
                 .getSingleResult();
 
         return count.longValue();
     }
 
-    // 이름 검색용 LIKE 조건.
-    // 이름으로 검색은 FULLTEXT로 처리가 불가능하기 때문이다.
-    private BooleanExpression nameLike(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return null;
-        }
-        return QUser.user.name.containsIgnoreCase(keyword);
-    }
-
-    // 직함 검색용 LIKE 조건 추가
-    private BooleanExpression titleLike(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return null;
-        }
-        return qDeveloper.title.containsIgnoreCase(keyword);
-    }
-
-    // 기술 스택 검색용 LIKE 조건 추가
-    private BooleanExpression skillsLike(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return null;
-        }
-        // JSON 컬럼을 문자열로 변환하여 검색
-        return Expressions.stringTemplate("CAST({0} AS char)", qDeveloper.skills).containsIgnoreCase(keyword);
-    }
-
-    // 하이브리드 분기 기준.
-    // 검색어 안에 공백이 포함되어 있는지 확인.
-    private boolean hasWhitespace(String keyword) {
-        return keyword != null && keyword.contains(" ");
-    }
 }
 
 

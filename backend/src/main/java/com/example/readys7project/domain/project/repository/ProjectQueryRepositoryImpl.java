@@ -135,86 +135,25 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
         return new PageImpl<>(content, pageable, total != null ? total : 0);
     }
 
-    // 하이브리드 전략의 핵심.
-    // 통합검색에서 프로젝트 검색읋 할 때 검색어에 공백이 있으면 FULLTEXT
-    // 없으면 LIKE
-    // 왜냐면 FULLTEXT는 단일 키워드를 제대로 조회 못할 확률이 높다.
-
+    // 통합검색에서 프로젝트 검색 시 N-gram Full-text 인덱스를 사용하여 초고속 검색 수행
     @Override
     public SearchPageResponseDto<ProjectsGlobalSearchResponseDto> projectsGlobalSearch(String keyword, Pageable pageable) {
         if (keyword == null || keyword.trim().isBlank()) {
             return null;
         }
 
-        // 검색어 양끝 공백을 제거한 새 문자열을 변수에 담는 코드
-        // " 백엔드 개발 " -> "백엔드 개발"
         String trimmedKeyword = keyword.trim();
-
-        if (hasWhitespace(trimmedKeyword)) {
-            return projectsGlobalSearchByFullText(keyword, pageable);
-        }
-
-        return projectsGlobalSearchByLike(trimmedKeyword, pageable);
+        return projectsGlobalSearchByFullText(trimmedKeyword, pageable);
     }
 
     /**
-     하이브리드에서는 LIKE 로직, FULLTEXT 로직을 분리.
+     * N-gram Full-text 기반 프로젝트 검색
      */
-    // LIKE 전용 프로젝트 검색
-    // 공백 없는 검색어를 처리하는 메서드
-    private SearchPageResponseDto<ProjectsGlobalSearchResponseDto> projectsGlobalSearchByLike(String keyword, Pageable pageable) {
-
-        QCategory qCategory = QCategory.category;
-        QClient qClient = QClient.client;
-        QUser qUser = QUser.user;
-
-        List<ProjectsGlobalSearchResponseDto> content = jpaQueryFactory
-                .select(Projections.constructor(ProjectsGlobalSearchResponseDto.class,
-                        qProject.id,
-                        qProject.title,
-                        qProject.description,
-                        qCategory.name,
-                        qProject.minBudget,
-                        qProject.maxBudget,
-                        qProject.duration,
-                        qProject.skills,
-                        qProject.status.stringValue(),
-                        qProject.currentProposalCount,
-                        qProject.maxProposalCount,
-                        qUser.name,
-                        qClient.rating,
-                        qProject.createdAt,
-                        qProject.updatedAt
-                ))
-                .from(qProject)
-                .leftJoin(qProject.category, qCategory)
-                .leftJoin(qProject.client, qClient)
-                .leftJoin(qClient.user, qUser)
-                .where(searchAllCondition(keyword))
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .orderBy(qProject.createdAt.desc())
-                .fetch();
-
-        JPAQuery<Long> countQuery = jpaQueryFactory
-                .select(qProject.count())
-                .from(qProject)
-                .leftJoin(qProject.category, QCategory.category)
-                .where(searchAllCondition(keyword));
-
-        Page<ProjectsGlobalSearchResponseDto> page = PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
-
-        return SearchPageResponseDto.from(page);
-    }
-
-    // FULLTEXT 전용 프로젝트 검색
-    // 공백 있는 복합 검색어를 처리하는 메서드
     private SearchPageResponseDto<ProjectsGlobalSearchResponseDto> projectsGlobalSearchByFullText(String keyword, Pageable pageable) {
 
         QCategory qCategory = QCategory.category;
         QClient qClient = QClient.client;
         QUser qUser = QUser.user;
-
 
         List<Long> projectIds = findProjectIdsByFullText(keyword, pageable);
 
@@ -254,93 +193,25 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
         return SearchPageResponseDto.from(page);
     }
 
-    // 프로젝트 LIKE 검색에서 “검색 조건 전체를 만드는 함수”.
-    // 즉 사용자가 검색어를 넣었을 때,
-    // 그 검색어를 기준으로 제목, 설명, 스킬, 카테고리 중 하나라도 맞으면 검색되도록 만든다.
-    // Predicate는 함수가 아니라 QueryDSL에서 “검색 조건”을 표현하는 공통 타입(인터페이스)이다.
-    // 즉:BooleanExpression도 조건, BooleanBuilder도 조건. 이 둘을 모두 받아줄 상위 타입이 Predicate이다.
-    private Predicate searchAllCondition(String keyword) {
-        if (keyword == null || keyword.trim().isBlank()) {
-            return null;
-        }
-
-        String trimmedKeyword = keyword.trim();
-
-        BooleanBuilder builder = new BooleanBuilder();
-        builder.or(titleLike(trimmedKeyword));
-        builder.or(descriptionLike(trimmedKeyword));
-        builder.or(skillsLike(trimmedKeyword));
-        builder.or(categoryNameLike(trimmedKeyword));
-
-        return builder.getValue();
-    }
-
-    // 제목 Like 검색
-    private BooleanExpression titleLike(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return null;
-        }
-        return qProject.title.containsIgnoreCase(keyword);
-    }
-
-    // 설명 Like 검색
-    private BooleanExpression descriptionLike(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return null;
-        }
-        return qProject.description.containsIgnoreCase(keyword);
-    }
-
-    private BooleanExpression skillsLike(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return null;
-        }
-        return Expressions.booleanTemplate(
-                "CAST(JSON_CONTAINS({0}, JSON_QUOTE({1})) AS integer) = 1",
-                qProject.skills,
-                keyword
-        );
-    }
-
-    // 카테고리 이름도 검색
-    private BooleanExpression categoryNameLike(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return null;
-        }
-        return qProject.category.name.containsIgnoreCase(keyword);
-    }
-
     // MATCH ... AGAINST 같은 MySQL FULLTEXT 문법은
     // QueryDSL/JPQL에서 깔끔하게 처리하기 어렵기 때문에, native SQL로 분리
-    // FULLTEXT 검색으로 프로젝트 ID 목록을 찾는 함수
+    // FULLTEXT 검색으로 프로젝트 ID 목록을 찾는 함수 (title, description은 전문검색, skills는 정확한 매칭)
     private List<Long> findProjectIdsByFullText(String keyword, Pageable pageable) {
-        // 실제로 DB에 보낼 native SQL.
-        // native SQL은 JPA나 QueryDSL 문법이 아니라, DB에 직접 보내는 “진짜 SQL 문장”을 뜻한다.
         String sql = """
                 SELECT p.id
                 FROM projects p
                 WHERE p.is_deleted = false
-                  AND MATCH(p.title, p.description) AGAINST (:keyword IN BOOLEAN MODE)
+                  AND (
+                    MATCH(p.title, p.description) AGAINST (:keyword IN BOOLEAN MODE)
+                    OR JSON_CONTAINS(p.skills, JSON_QUOTE(:keyword))
+                  )
                 ORDER BY p.created_at DESC
                 LIMIT :limit OFFSET :offset
                 """;
-        // AND MATCH(p.title, p.description) AGAINST (:keyword IN BOOLEAN MODE)
-        // 핵심
-        // MATCH(p.title, p.description)
-        // title, description 컬럼을 검색 대상으로 지정
-        // AGAINST(:keyword IN BOOLEAN MODE)
-        // keyword를 검색어로 해서 FULLTEXT 검색 수행
 
-
-        // 컴파일러 경고를 잠깐 무시하겠다는 뜻.
-        // 자바가 형변환을 안전한거 맞냐라고 경고할 수 있기 때문.
         @SuppressWarnings("unchecked")
-        // EntityManager는 DB 작업을 실제로 실행해주는 관리자. 직접 DB에 대화하는 객체이다.
-        // List<Number> 이유. DB에서 id를 가져오면 JPA가 보통 숫자 타입으로 받기 때문.
-        // 직접 Long으로 오늘게 아니라 Number로 받아서 나중에 변환. 589줄에서 변환
-        // .setParameter()는 SQL 안에 있는 변수 자리에 실제 값을 넣는 것
         List<Number> result = entityManager.createNativeQuery(sql)
-                .setParameter("keyword", keyword)
+                .setParameter("keyword", keyword) // + 제거
                 .setParameter("limit", pageable.getPageSize())
                 .setParameter("offset", pageable.getOffset())
                 .getResultList();
@@ -351,28 +222,22 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
     }
 
     // 이 메서드는 FULLTEXT 검색 결과가 총 몇 개인지 세는 함수
-    // 즉, 프로젝트를 실제로 조회할 때는 현재 페이지에 보여줄 데이터만 가져오고,
-    // 이 메서드는 전체 검색 결과 개수를 구해서 페이징에 쓰는 역할
     private long countProjectsByFullText(String keyword) {
         String sql = """
                 SELECT COUNT(*)
                 FROM projects p
                 WHERE p.is_deleted = false
-                  AND MATCH(p.title, p.description) AGAINST (:keyword IN BOOLEAN MODE)
+                  AND (
+                    MATCH(p.title, p.description) AGAINST (:keyword IN BOOLEAN MODE)
+                    OR JSON_CONTAINS(p.skills, JSON_QUOTE(:keyword))
+                  )
                 """;
 
         Number count = (Number) entityManager.createNativeQuery(sql)
-                .setParameter("keyword", keyword)
+                .setParameter("keyword", keyword) // + 제거
                 .getSingleResult();
 
         return count.longValue();
-    }
-
-    // 중요한 분기 기준.
-    // 검색어에 공백이 있는지 확인.
-    // 왜냐면 검색어에 공백이 있어야. LIKE문과 FULLTEXT 분기 기준이다.
-    private boolean hasWhitespace(String keyword) {
-        return keyword != null && keyword.contains(" ");
     }
 
 }
