@@ -35,6 +35,7 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -173,6 +174,27 @@ class DeveloperControllerTest {
     }
 
     @Test
+    @DisplayName("개발자 검색 결과 없음")
+    void searchDevelopers_EmptyResult() throws Exception {
+        // given
+        Page<DeveloperDto> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 10), 0);
+        given(developerService.searchDevelopers(anyList(), anyDouble(), any(Pageable.class)))
+                .willReturn(emptyPage);
+
+        // when & then
+        mockMvc.perform(get("/v1/developers/search")
+                        .param("skills", "Java")
+                        .param("minRating", "4.0")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.content").isEmpty())
+                .andExpect(jsonPath("$.data.totalElements").value(0));
+    }
+
+
+    @Test
     @DisplayName("개발자 프로필 수정 성공")
     void updateProfile_Success() throws Exception {
         // given
@@ -189,6 +211,25 @@ class DeveloperControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(1));
+    }
+
+    @Test
+    @DisplayName("개발자 프로필 수정 실패 - 데이터 모두 Null")
+    void updateProfile_AllDataNull() throws Exception {
+        // given
+        DeveloperProfileRequestDto request = new DeveloperProfileRequestDto(
+                null, null, null, null, null, null
+        );
+        given(developerService.updateProfile(any(DeveloperProfileRequestDto.class), anyString()))
+                .willThrow(new DeveloperException(ErrorCode.SKILL_UPDATE_DATA_NULL));
+
+        // when & then
+        mockMvc.perform(put("/v1/developers/profile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("SKILL_UPDATE_DATA_NULL"))
+                .andExpect(jsonPath("$.message").value(ErrorCode.SKILL_UPDATE_DATA_NULL.getMessage()));
     }
 
     private DeveloperDto createDeveloperDto(Long id) {
