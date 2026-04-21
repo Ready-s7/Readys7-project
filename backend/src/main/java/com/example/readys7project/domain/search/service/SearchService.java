@@ -56,7 +56,7 @@ public class SearchService {
         return result;
     }
 
-    // V2 카페인 적용
+    // V2 레디스 적용
     @Transactional(readOnly = true)
     @Cacheable(value = "globalSearch",
             key = "T(com.example.readys7project.domain.search.util.SearchCacheKeyGenerator).generate(#keyword, #pageable)")

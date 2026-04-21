@@ -10,6 +10,7 @@ import com.example.readys7project.domain.user.admin.repository.AdminRepository;
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.CategoryException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -86,6 +87,7 @@ public class CategoryService {
      * - 수정하려는 이름이 다른 카테고리와 중복되면 예외 발생
      */
     @Transactional
+    @CacheEvict(value = "globalSearch", allEntries = true)
     public CategoryResponseDto updateCategory(Long categoryId, CategoryUpdateRequestDto request) {
 
         // 수정할 카테고리 존재 여부 검증
@@ -113,6 +115,7 @@ public class CategoryService {
      * - ADMIN 역할을 가진 사용자만 카테고리 삭제 가능 (Aspect에서 검증)
      */
     @Transactional
+    @CacheEvict(value = "globalSearch", allEntries = true)
     public void deleteCategory(Long categoryId) {
 
         // 삭제할 카테고리 존재 여부 검증

@@ -11,6 +11,7 @@ import com.example.readys7project.domain.user.admin.repository.AdminRepository;
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.SkillException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -53,6 +54,7 @@ public class SkillService {
     }
 
     @Transactional
+    @CacheEvict(value = "globalSearch", allEntries = true)
     public SkillResponseDto updateSkill(Long skillId, UpdateSkillRequestDto request) {
 
         // request 필드가 둘 다 널이면 에러 처리
@@ -72,6 +74,7 @@ public class SkillService {
     }
 
     @Transactional
+    @CacheEvict(value = "globalSearch", allEntries = true)
     public void deleteSkill(Long skillId) {
 
         // skill 존재하는지 검증
