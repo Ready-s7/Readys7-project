@@ -2,7 +2,7 @@ package com.example.readys7project.domain.user.developer.service;
 
 import com.example.readys7project.domain.project.dto.ProjectResponseDto;
 import com.example.readys7project.domain.project.entity.Project;
-import com.example.readys7project.domain.user.developer.dto.DeveloperDto;
+import com.example.readys7project.domain.user.developer.dto.DeveloperResponseDto;
 import com.example.readys7project.domain.user.developer.dto.request.DeveloperProfileRequestDto;
 import com.example.readys7project.domain.user.developer.entity.Developer;
 import com.example.readys7project.domain.user.developer.repository.DeveloperRepository;
@@ -30,20 +30,20 @@ public class DeveloperService {
     private final UserRepository userRepository;
 
     // 전체 개발자 목록
-    public Page<DeveloperDto> getAllDevelopers(Pageable pageable) {
+    public Page<DeveloperResponseDto> getAllDevelopers(Pageable pageable) {
         return developerRepository.findAllWithUser(pageable)
                 .map(this::convertToDto);
     }
 
     // 개발자 상세 조회
-    public DeveloperDto getDeveloperById(Long developerId) {
+    public DeveloperResponseDto getDeveloperById(Long developerId) {
         Developer developer = developerRepository.findById(developerId)
                 .orElseThrow(() -> new DeveloperException(ErrorCode.DEVELOPER_NOT_FOUND));
         return convertToDto(developer);
     }
 
     // 개발자 검색 (skill, minRating)
-    public Page<DeveloperDto> searchDevelopers(List<String> skills, Double minRating, Pageable pageable) {
+    public Page<DeveloperResponseDto> searchDevelopers(List<String> skills, Double minRating, Pageable pageable) {
         return developerRepository.searchDevelopers(skills, minRating, pageable)
                 .map(this::convertToDto);
     }
@@ -51,7 +51,7 @@ public class DeveloperService {
     // 개발자 프로필 수정 (DEVELOPER 전용)
     @Transactional
     @CacheEvict(value = "globalSearch", allEntries = true)
-    public DeveloperDto updateProfile(DeveloperProfileRequestDto request, String userEmail) {
+    public DeveloperResponseDto updateProfile(DeveloperProfileRequestDto request, String userEmail) {
         // 모든 필드가 Null(또는 빈값)인지 검증 -> 공통 메서드 4번
         validateUpdateData(request);
 
@@ -126,9 +126,9 @@ public class DeveloperService {
     }
 
     // Developer 엔티티 → DeveloperDto 변환 (개발자 프로필 조회 응답용)
-    private DeveloperDto convertToDto(Developer developer) {
+    private DeveloperResponseDto convertToDto(Developer developer) {
         User user = developer.getUser();
-        return new DeveloperDto(
+        return new DeveloperResponseDto(
                 developer.getId(),
                 user.getId(),
                 user.getName(),
