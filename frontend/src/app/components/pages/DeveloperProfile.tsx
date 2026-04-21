@@ -301,7 +301,7 @@ export function DeveloperProfile() {
               <CardHeader><CardTitle>시간당 요금</CardTitle></CardHeader>
               <CardContent>
                 <div className="text-2xl text-blue-600 mb-2">
-                  {developer.minHourlyPay?.toLocaleString()}~{developer.maxHourlyPay?.toLocaleString()}원/시간
+                  {(developer.minHourlyPay ?? 0).toLocaleString()}~{(developer.maxHourlyPay ?? 0).toLocaleString()}원/시간
                 </div>
                 <p className="text-sm text-gray-600">프로젝트 규모에 따라 협의 가능합니다</p>
               </CardContent>

@@ -20,8 +20,6 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
-
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -34,109 +32,51 @@ public class StompAuthInterceptor implements ChannelInterceptor {
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(
-                message, StompHeaderAccessor.class
-        );
-
-        if (accessor == null) {
-            return message;
-        }
+        StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+        if (accessor == null) return message;
 
         StompCommand command = accessor.getCommand();
-
-        if (StompCommand.CONNECT.equals(command)) {
-            String token = accessor.getFirstNativeHeader("Authorization");
-
-            if (token != null && token.startsWith("Bearer ")) {
-                token = token.substring(7);
-                jwtTokenProvider.validateToken(token);
-                String email = jwtTokenProvider.getEmail(token);
-
-                User user = userRepository.findByEmail(email)
-                        .orElseThrow(() -> new MessageException(ErrorCode.USER_NOT_FOUND));
-
+        String token = accessor.getFirstNativeHeader("Authorization");
+        
+        // 모든 프레임에 대해 토큰이 있다면 인증 주입
+        if (token != null && token.startsWith("Bearer ")) {
+            try {
+                String pureToken = token.substring(7);
+                jwtTokenProvider.validateToken(pureToken);
+                String email = jwtTokenProvider.getEmail(pureToken);
+                User user = userRepository.findByEmail(email).orElseThrow(() -> new MessageException(ErrorCode.USER_NOT_FOUND));
+                
                 CustomUserDetails userDetails = new CustomUserDetails(user);
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails, null, userDetails.getAuthorities()
-                        );
-
-                accessor.setUser(authentication);
-            }
-        } else if (StompCommand.SUBSCRIBE.equals(command)) {
-            String destination = accessor.getDestination();
-            if (destination != null) {
-                // 일반 채팅방 권한 검증
-                if (destination.startsWith("/receive/chat/rooms/")) {
-                    validateChatRoomSubscription(accessor, destination);
-                }
-                // CS 채팅방 권한 검증
-                else if (destination.startsWith("/receive/chat/cs/")) {
-                    validateCsChatRoomSubscription(accessor, destination);
-                }
+                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                accessor.setUser(auth);
+            } catch (Exception e) {
+                log.error("[STOMP] Auth Fail [{}]: {}", command, e.getMessage());
             }
         }
 
-        // 비정상 종료 처리
-        if (StompCommand.DISCONNECT.equals(command)) {
-            // Principal이 있을 때만 처리 (정상 연결 후 끊긴 경우)
-            if (accessor.getUser() != null) {
-                log.warn("STOMP DISCONNECT 감지: {}", accessor.getUser().getName());
-            }
+        if (StompCommand.SUBSCRIBE.equals(command)) {
+            validateSubscription(accessor);
         }
 
         return message;
     }
 
-    private void validateChatRoomSubscription(StompHeaderAccessor accessor, String destination) {
-        Long roomId = extractRoomId(destination, "/receive/chat/rooms/");
+    private void validateSubscription(StompHeaderAccessor accessor) {
+        String dest = accessor.getDestination();
+        if (dest == null) return;
+        
         UsernamePasswordAuthenticationToken auth = (UsernamePasswordAuthenticationToken) accessor.getUser();
-
-        if (auth == null) {
-            throw new MessageException(ErrorCode.USER_UNAUTHORIZED);
-        }
+        if (auth == null) throw new MessageException(ErrorCode.USER_UNAUTHORIZED);
 
         CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
         User user = userDetails.getUser();
 
-        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new MessageException(ErrorCode.CHATROOM_NOT_FOUND));
-
-        boolean isClient = chatRoom.getClient().getUser().getId().equals(user.getId());
-        boolean isDeveloper = chatRoom.getDeveloper().getUser().getId().equals(user.getId());
-
-        if (!isClient && !isDeveloper) {
-            throw new MessageException(ErrorCode.USER_FORBIDDEN);
-        }
-    }
-
-    private void validateCsChatRoomSubscription(StompHeaderAccessor accessor, String destination) {
-        Long roomId = extractRoomId(destination, "/receive/chat/cs/");
-        UsernamePasswordAuthenticationToken auth = (UsernamePasswordAuthenticationToken) accessor.getUser();
-
-        if (auth == null) {
-            throw new MessageException(ErrorCode.USER_UNAUTHORIZED);
-        }
-
-        CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
-        User user = userDetails.getUser();
-
-        CsChatRoom room = csChatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new MessageException(ErrorCode.CHATROOM_NOT_FOUND));
-
-        boolean isInquirer = room.getInquirer().getId().equals(user.getId());
-        boolean isAdmin = user.getUserRole() == UserRole.ADMIN;
-
-        if (!isInquirer && !isAdmin) {
-            throw new MessageException(ErrorCode.USER_FORBIDDEN);
-        }
-    }
-
-    private Long extractRoomId(String destination, String prefix) {
-        try {
-            return Long.parseLong(destination.substring(prefix.length()));
-        } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
-            throw new MessageException(ErrorCode.INVALID_INPUT);
+        if (dest.startsWith("/receive/chat/rooms/")) {
+            Long roomId = Long.parseLong(dest.substring("/receive/chat/rooms/".length()));
+            ChatRoom room = chatRoomRepository.findById(roomId).orElseThrow(() -> new MessageException(ErrorCode.CHATROOM_NOT_FOUND));
+            if (!room.getClient().getUser().getId().equals(user.getId()) && !room.getDeveloper().getUser().getId().equals(user.getId())) {
+                throw new MessageException(ErrorCode.USER_FORBIDDEN);
+            }
         }
     }
 }

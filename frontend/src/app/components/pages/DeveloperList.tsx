@@ -176,7 +176,7 @@ export function DeveloperList() {
                           <Badge key={skill} variant="outline" className="text-xs bg-gray-50">{skill}</Badge>
                         ))}
                         {(dev.skills?.length || 0) > 4 && (
-                          <Badge variant="outline" className="text-xs">+{dev.skills.length - 4}</Badge>
+                          <Badge variant="outline" className="text-xs">+{(dev.skills?.length || 0) - 4}</Badge>
                         )}
                       </div>
 
