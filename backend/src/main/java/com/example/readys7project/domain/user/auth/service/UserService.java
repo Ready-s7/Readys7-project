@@ -20,6 +20,7 @@ import com.example.readys7project.global.exception.domain.UserException;
 import com.example.readys7project.global.security.CustomUserDetails;
 import com.example.readys7project.global.security.refreshtoken.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,6 +67,7 @@ public class UserService {
 
     // 유저 정보 수정 (내 정보 수정)
     @Transactional
+    @CacheEvict(value = "globalSearch", allEntries = true)
     public UpdateUserInformationResponseDto updateUserInformation(
             CustomUserDetails customUserDetails,
             UpdateUserInformationRequestDto updateUserInformationRequestDto
@@ -101,6 +103,7 @@ public class UserService {
 
     // 회원 탈퇴
     @Transactional
+    @CacheEvict(value = "globalSearch", allEntries = true)
     public void deleteUser(CustomUserDetails customUserDetails) {
 
         // 로그인한 유저 정보 가져오기

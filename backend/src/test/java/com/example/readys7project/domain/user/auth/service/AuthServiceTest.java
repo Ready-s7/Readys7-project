@@ -241,7 +241,7 @@ class AuthServiceTest {
             // given
             LoginRequestDto request = new LoginRequestDto("admin@email.com", "password");
             User user = User.builder().email(request.email()).password("encoded").userRole(UserRole.ADMIN).build();
-            Admin admin = Admin.builder().user(user).status(AdminStatus.PENDING).build();
+            Admin admin = Admin.builder().user(user).adminRole(AdminRole.CS_ADMIN).build();
 
             given(userRepository.findByEmail(request.email())).willReturn(Optional.of(user));
             given(adminRepository.findByUser(user)).willReturn(Optional.of(admin));

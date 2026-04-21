@@ -16,6 +16,9 @@ import com.example.readys7project.domain.user.client.repository.ClientRepository
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.ProjectException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -93,6 +96,7 @@ public class ProjectService {
      * 프로젝트 수정 (본인 Client만 가능 - AOP에서 검증)
      */
     @Transactional
+    @CacheEvict(value = "globalSearch", allEntries = true)
     public ProjectResponseDto updateProject(Long id, ProjectUpdateRequestDto request) {
         Project project = findProject(id);
 
@@ -118,6 +122,7 @@ public class ProjectService {
      * 프로젝트 삭제 (본인 Client만 가능 - AOP에서 검증)
      */
     @Transactional
+    @CacheEvict(value = "globalSearch", allEntries = true)
     public void deleteProject(Long id) {
         Project project = findProject(id);
         projectRepository.delete(project);
