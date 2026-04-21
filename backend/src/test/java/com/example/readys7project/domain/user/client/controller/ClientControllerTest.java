@@ -8,6 +8,7 @@ import com.example.readys7project.global.dto.PageResponseDto;
 import com.example.readys7project.domain.user.client.dto.response.UpdateClientProfileResponseDto;
 import com.example.readys7project.domain.user.client.service.ClientService;
 import com.example.readys7project.domain.user.enums.ParticipateType;
+import com.example.readys7project.global.dto.PageResponseDto;
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.common.GlobalExceptionHandler;
 import com.example.readys7project.global.exception.domain.ClientException;

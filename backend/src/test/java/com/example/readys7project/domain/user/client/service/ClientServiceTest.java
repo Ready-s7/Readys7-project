@@ -12,6 +12,7 @@ import com.example.readys7project.domain.user.client.dto.response.UpdateClientPr
 import com.example.readys7project.domain.user.client.entity.Client;
 import com.example.readys7project.domain.user.client.repository.ClientRepository;
 import com.example.readys7project.domain.user.enums.ParticipateType;
+import com.example.readys7project.global.dto.PageResponseDto;
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.ClientException;
 import com.example.readys7project.global.security.CustomUserDetails;

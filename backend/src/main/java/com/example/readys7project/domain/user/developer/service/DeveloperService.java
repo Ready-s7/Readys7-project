@@ -12,6 +12,7 @@ import com.example.readys7project.domain.user.auth.repository.UserRepository;
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.DeveloperException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -49,6 +50,7 @@ public class DeveloperService {
 
     // 개발자 프로필 수정 (DEVELOPER 전용)
     @Transactional
+    @CacheEvict(value = "globalSearch", allEntries = true)
     public DeveloperDto updateProfile(DeveloperProfileRequestDto request, String userEmail) {
         // 모든 필드가 Null(또는 빈값)인지 검증 -> 공통 메서드 4번
         validateUpdateData(request);

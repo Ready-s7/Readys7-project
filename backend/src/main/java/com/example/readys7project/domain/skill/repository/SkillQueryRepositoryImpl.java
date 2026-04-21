@@ -29,6 +29,9 @@ public class SkillQueryRepositoryImpl implements SkillQueryRepository{
 
     private final JPAQueryFactory jpaQueryFactory;
 
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
+
     QSkill qSkill = QSkill.skill;
 
     @Override
@@ -87,12 +90,22 @@ public class SkillQueryRepositoryImpl implements SkillQueryRepository{
         return new PageImpl<>(content, pageable, total == null ? 0 : total);
     }
 
-    // 통합 검색 페이징
+    // 통합 검색 페이징 (N-gram Full-text 적용)
     @Override
     public SearchPageResponseDto<SkillsGlobalSearchResponseDto> skillsGlobalSearch(String keyword, Pageable pageable) {
+        if (keyword == null || keyword.trim().isBlank()) {
+            return null;
+        }
 
+        String trimmedKeyword = keyword.trim();
         QAdmin qAdmin = QAdmin.admin;
         QUser qUser = QUser.user;
+
+        List<Long> skillIds = findSkillIdsByFullText(trimmedKeyword, pageable);
+
+        if (skillIds.isEmpty()) {
+            return SearchPageResponseDto.from(Page.empty(pageable));
+        }
 
         // 데이터 조회
         List<SkillsGlobalSearchResponseDto> content = jpaQueryFactory
@@ -107,60 +120,49 @@ public class SkillQueryRepositoryImpl implements SkillQueryRepository{
                 .from(qSkill)
                 .leftJoin(qSkill.admin, qAdmin)
                 .leftJoin(qAdmin.user, qUser)
-                .where(searchCondition(keyword))
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
+                .where(qSkill.id.in(skillIds))
                 .orderBy(qSkill.name.asc()) // 가,나,다 순 알파벳 정렬
                 .fetch();
 
-        // 카운트 쿼리 분리 (지연 로딩)
-        JPAQuery<Long> contQuery = jpaQueryFactory
-                .select(qSkill.count())
-                .from(qSkill)
-                .leftJoin(qSkill.admin, qAdmin)
-                .leftJoin(qAdmin.user, qUser)
-                .where(searchCondition(keyword));
-
-        Page<SkillsGlobalSearchResponseDto> page = PageableExecutionUtils.getPage(content, pageable, contQuery::fetchOne);
+        long total = countSkillsByFullText(trimmedKeyword);
+        Page<SkillsGlobalSearchResponseDto> page = new org.springframework.data.domain.PageImpl<>(content, pageable, total);
 
         return SearchPageResponseDto.from(page);
     }
 
-    private Predicate searchCondition(String keyword) {
-        if (keyword == null || keyword.isBlank()) {
-            return null;
-        }
+    private List<Long> findSkillIdsByFullText(String keyword, Pageable pageable) {
+        String sql = """
+                SELECT s.id
+                FROM skills s
+                WHERE (
+                    MATCH(s.name) AGAINST (:keyword IN BOOLEAN MODE)
+                    OR s.name LIKE CONCAT('%', :keyword, '%')
+                )
+                ORDER BY s.name ASC
+                LIMIT :limit OFFSET :offset
+                """;
 
-        // 미리 trim처리
-        String trimmedKeyword = keyword.trim();
+        @SuppressWarnings("unchecked")
+        List<Number> result = entityManager.createNativeQuery(sql)
+                .setParameter("keyword", keyword) // + 제거
+                .setParameter("limit", pageable.getPageSize())
+                .setParameter("offset", pageable.getOffset())
+                .getResultList();
 
-        BooleanBuilder builder = new BooleanBuilder();
-
-        // 기술 이름 검색 (Java, React 등등)
-        builder.or(nameLike(trimmedKeyword));
-        // 카테고리 이름 검색 (Backend, Frontend 등등)
-        builder.or(categoryNameLike(trimmedKeyword));
-
-        return builder.getValue();
-
+        return result.stream().map(Number::longValue).toList();
     }
 
-    // Skill 이름 검색 조건
-    private BooleanExpression nameLike(String keyword) {
-        // 검색 키워드가 없으면 그냥 리턴해주고, 포함되어있으면 해당 키워드 리턴해줌
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return null;
-        }
-        return qSkill.name.containsIgnoreCase(keyword);
-    }
-
-    // SkillCategory 검색 조건
-    private BooleanExpression categoryNameLike(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return null;
-        }
-        // stringValue -> Enum 타입을 String으로 변환환해줌
-        // Enum 타입의 SkillCategory를 검색 조건에 포함시키기 위해 stringValue()로 변환
-        return qSkill.skillCategory.stringValue().containsIgnoreCase(keyword);
+    private long countSkillsByFullText(String keyword) {
+        String sql = """
+                SELECT COUNT(*) FROM skills s 
+                WHERE (
+                    MATCH(s.name) AGAINST (:keyword IN BOOLEAN MODE)
+                    OR s.name LIKE CONCAT('%', :keyword, '%')
+                )
+                """;
+        Number count = (Number) entityManager.createNativeQuery(sql)
+                .setParameter("keyword", keyword) // + 제거
+                .getSingleResult();
+        return count.longValue();
     }
 }
