@@ -63,6 +63,9 @@ dependencies {
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
     // 가짜 데이터 생성 라이브러리 의존성 주입 (부하 테스트 더미 데이터를 위해)
 //    implementation 'com.github.javafaker:javafaker:1.0.2'
+
+
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 def querydslDir = "build/generated/sources/annotationProcessor/java/main"

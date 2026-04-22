@@ -61,7 +61,8 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/v1/developers/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/v1/skills/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/v1/search", "/v2/search").permitAll()
-                    
+
+                    .requestMatchers("/actuator/**").permitAll()
                     // 관리자 전용 경로 설정 추가
                     .requestMatchers("/v1/admin/**").hasRole("ADMIN")
                     
