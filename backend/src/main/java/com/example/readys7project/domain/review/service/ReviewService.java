@@ -180,19 +180,19 @@ public class ReviewService {
      */
     @Transactional
     public void deleteReview(Long reviewId, String email) {
-        User user = findUserByEmail(email);
+        findUserByEmail(email);
         Review review = findReview(reviewId);
 
         Long developerId = review.getDeveloper().getId();
         Long clientId = review.getClient().getId();
-        UserRole targetUser = user.getUserRole();
+        ReviewRole writerRole = review.getWriterRole();
 
         reviewRepository.delete(review);
         reviewRepository.flush();
 
-        if (targetUser == UserRole.CLIENT) {
+        if (writerRole == ReviewRole.CLIENT) {
             updateDeveloperRating(developerId);
-        } else if (targetUser == UserRole.DEVELOPER) {
+        } else if (writerRole == ReviewRole.DEVELOPER) {
             updateClientRating(clientId);
         }
     }
