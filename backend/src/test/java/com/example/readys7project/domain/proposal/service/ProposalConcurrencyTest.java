@@ -14,10 +14,7 @@ import com.example.readys7project.domain.user.client.repository.ClientRepository
 import com.example.readys7project.domain.user.developer.entity.Developer;
 import com.example.readys7project.domain.user.developer.repository.DeveloperRepository;
 import com.example.readys7project.domain.user.enums.ParticipateType;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -34,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Tag("bulk")
 @SpringBootTest
 @ActiveProfiles("test")
 class ProposalConcurrencyTest {

@@ -264,7 +264,7 @@ class UserServiceTest {
         @DisplayName("성공: Developer 회원 탈퇴 및 토큰 삭제 확인")
         void deleteUser_developer_success_withToken() {
             // given
-            User user = User.builder().email("dev@eamil.com").userRole(UserRole.DEVELOPER).build();
+            User user = User.builder().email("dev@email.com").userRole(UserRole.DEVELOPER).build();
             ReflectionUtils.setField(user, "id", 2L);
             CustomUserDetails customUserDetails = new CustomUserDetails(user);
             Developer developer = Developer.builder().user(user).build();
