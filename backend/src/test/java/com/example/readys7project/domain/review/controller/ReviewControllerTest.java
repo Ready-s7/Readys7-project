@@ -231,4 +231,45 @@ class ReviewControllerTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("REVIEW_ALREADY_EXISTS"));
     }
+
+    // controller에서 @Valid 검증. 100자를 초과하면 controller에 진입전에 validation 실패
+    @Test
+    @DisplayName("리뷰 생성 실패 - comment 길이가 100자를 초과하면 400 Bad Request를 반환한다")
+    void createReview_comment길이초과_400응답() throws Exception {
+        // given
+        String longComment = "a".repeat(101);
+        ReviewRequestDto request = new ReviewRequestDto(1L, 5, longComment);
+
+        // when & then
+        mockMvc.perform(post("/v1/reviews")
+                        .param("targetUserId", "10")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_INPUT"))
+                .andExpect(jsonPath("$.data.comment").exists());
+    }
+
+
+
+    @Test
+    @DisplayName("개발자 기준 리뷰 조회 성공 - 검색 결과가 없으면 빈 페이지를 반환한다")
+    void getReviewsByDeveloper_검색결과없음_빈페이지반환() throws Exception {
+        // given
+        PageRequest pageRequest = PageRequest.of(0, 5);
+        PageImpl<ReviewDto> emptyPage = new PageImpl<>(List.of(), pageRequest, 0);
+
+        given(reviewService.getReviewsByDeveloper(eq(10L), any(), any(), any(), anyInt(), anyInt(), anyString()))
+                .willReturn(emptyPage);
+
+        // when & then
+        mockMvc.perform(get("/v1/reviews")
+                        .param("developerId", "10")
+                        .param("page", "1")
+                        .param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.content.length()").value(0));
+    }
+
 }

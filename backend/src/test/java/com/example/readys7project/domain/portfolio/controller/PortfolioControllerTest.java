@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -34,6 +36,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
@@ -198,4 +201,73 @@ class PortfolioControllerTest {
                 .andExpect(jsonPath("$.message").value(ErrorCode.PORTFOLIO_NOT_FOUND.getMessage()))
                 .andExpect(jsonPath("$.success").doesNotExist());
     }
+
+
+    // 실패 시나리오.
+    @Nested
+    @DisplayName("포트폴리오 생성 API 추가 테스트")
+    class CreatePortfolioAdditionalApiTest {
+
+        @Test
+        @DisplayName("실패: description이 비어 있으면 400 Bad Request를 반환한다")
+        void createPortfolio_description누락_400응답() throws Exception {
+            // given
+            Map<String, Object> request = Map.of(
+                    "title", "포트폴리오 제목",
+                    "description", "",
+                    "skills", List.of("Java")
+            );
+            // when
+            ResultActions result = mockMvc.perform(post("/v1/portfolios")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)));
+
+            // then
+            result.andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value("INVALID_INPUT"))
+                    .andExpect(jsonPath("$.data.description").exists());
+        }
+
+        @Test
+        @DisplayName("실패: skills 필드가 누락되면 400 Bad Request를 반환한다")
+        void createPortfolio_skills누락_400응답() throws Exception {
+            // given
+            Map<String, Object> request = Map.of(
+                    "title", "포트폴리오 제목",
+                    "description", "포트폴리오 설명"
+            );
+            // when
+            ResultActions result = mockMvc.perform(post("/v1/portfolios")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)));
+            // then
+            result.andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value("INVALID_INPUT"))
+                    .andExpect(jsonPath("$.data.skills").exists());
+        }
+
+        @Test
+        @DisplayName("실패: 클라이언트 권한 사용자가 생성 시도하면 403 Forbidden을 반환한다")
+        void createPortfolio_클라이언트권한_403응답() throws Exception {
+            // given
+            given(portfolioService.createPortfolio(any(PortfolioRequestDto.class), eq("developer@example.com")))
+                    .willThrow(new PortfolioException(ErrorCode.USER_FORBIDDEN));
+
+            Map<String, Object> request = Map.of(
+                    "title", "포트폴리오 제목",
+                    "description", "포트폴리오 설명",
+                    "skills", List.of("Java")
+            );
+
+            // when
+            ResultActions result = mockMvc.perform(post("/v1/portfolios")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)));
+
+            // then
+            result.andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.code").value("USER_FORBIDDEN"));
+        }
+    }
+
 }

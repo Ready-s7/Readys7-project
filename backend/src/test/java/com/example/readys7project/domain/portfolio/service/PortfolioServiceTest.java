@@ -236,4 +236,38 @@ class PortfolioServiceTest {
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).title()).isEqualTo(portfolio.getTitle());
     }
+
+    @Test
+    @DisplayName("실패: 포트폴리오 삭제 - 본인 소유가 아니면 예외 발생")
+    void deletePortfolio_NotOwner() {
+        // given
+        Developer otherDeveloper = Developer.builder().build();
+        ReflectionTestUtils.setField(otherDeveloper, "id", 2L);
+
+        given(userRepository.findByEmail(email)).willReturn(Optional.of(user));
+        given(portfolioRepository.findById(1L)).willReturn(Optional.of(portfolio));
+        given(developerRepository.findByUser(user)).willReturn(Optional.of(otherDeveloper));
+
+        // when & then
+        assertThatThrownBy(() -> portfolioService.deletePortfolio(1L, email))
+                .isInstanceOf(PortfolioException.class)
+                .hasMessage(ErrorCode.USER_FORBIDDEN.getMessage());
+    }
+
+    @Test
+    @DisplayName("성공: 포트폴리오 전체 검색 - 검색 결과가 없으면 빈 페이지 반환")
+    void searchPortfolios_EmptyResult() {
+        // given
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        Page<Portfolio> emptyPage = new PageImpl<>(List.of(), pageRequest, 0);
+
+        given(portfolioRepository.searchAllPortfolios(anyString(), any(Pageable.class))).willReturn(emptyPage);
+
+        // when
+        Page<PortfolioDto> result = portfolioService.searchPortfolios("Python", 1, 10);
+
+        // then
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isZero();
+    }
 }
