@@ -69,6 +69,11 @@ apiClient.interceptors.response.use(
           (res.headers["authorization"] as string | undefined) ||
           (res.headers["Authorization"] as string | undefined);
         const newAccessToken = authHeader?.replace("Bearer ", "").trim();
+        const newRefreshToken = res.data.data.refreshToken;
+
+        if (newRefreshToken) {
+          localStorage.setItem("refreshToken", newRefreshToken);
+        }
 
         if (newAccessToken) {
           localStorage.setItem("accessToken", newAccessToken);
