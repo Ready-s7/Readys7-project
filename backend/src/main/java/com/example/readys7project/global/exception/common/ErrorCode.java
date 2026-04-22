@@ -56,6 +56,8 @@ public enum ErrorCode {
     REVIEW_INVALID_RATING_RANGE(HttpStatus.BAD_REQUEST, "평점은 0.0에서 5.0 사이여야 합니다."),
     REVIEW_INVALID_COUNT(HttpStatus.BAD_REQUEST, "리뷰 개수가 올바르지 않습니다."),
     REVIEW_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 해당 프로젝트에 리뷰를 작성했습니다."),
+    REVIEW_RATING_UPDATE_FAILED_DEVELOPER(HttpStatus.CONFLICT, "개발자 평점 갱신에 실패했습니다. 잠시 후 다시 시도해주세요."),
+    REVIEW_RATING_UPDATE_FAILED_CLIENT(HttpStatus.CONFLICT, "클라이언트 평점 갱신에 실패했습니다. 잠시 후 다시 시도해주세요."),
 
     // ChatRoom
     CHATROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "채팅방을 찾을 수 없습니다."),

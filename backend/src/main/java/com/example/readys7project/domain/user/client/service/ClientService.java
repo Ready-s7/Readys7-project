@@ -2,6 +2,7 @@ package com.example.readys7project.domain.user.client.service;
 
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.project.repository.ProjectRepository;
+import com.example.readys7project.domain.review.repository.ReviewQueryRepository;
 import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.domain.user.auth.repository.UserRepository;
@@ -15,10 +16,14 @@ import com.example.readys7project.domain.user.client.repository.ClientRepository
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.ClientException;
 import com.example.readys7project.global.security.CustomUserDetails;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,12 +31,25 @@ import java.util.List;
 
 
 @Service
-@RequiredArgsConstructor
 public class ClientService {
 
     private final ClientRepository clientRepository;
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
+    private final ReviewQueryRepository reviewQueryRepository;
+
+    // ✅ 생성자 직접 작성 + @Qualifier 파라미터 레벨 적용
+    public ClientService(
+            ClientRepository clientRepository,
+            UserRepository userRepository,
+            ProjectRepository projectRepository,
+            @Qualifier("reviewQueryRepositoryImpl") ReviewQueryRepository reviewQueryRepository
+    ) {
+        this.clientRepository = clientRepository;
+        this.userRepository = userRepository;
+        this.projectRepository = projectRepository;
+        this.reviewQueryRepository = reviewQueryRepository;
+    }
 
     @Transactional(readOnly = true)
 
@@ -170,20 +188,26 @@ public class ClientService {
 
     // 평점 업데이트 (ReviewService 같은 내부 클래스에서만 호출가능)
     @Transactional
-    public void updateRating(Long clientId, Double newRating, Integer newReviewCount) {
-
-        // 1. 평점 범위 무결성 검증 (0~5점 사이인지 확인) -> 방어적 프로그램을 위해서 추가
-        if (newRating < 0 || newRating > 5.0) {
-            throw new ClientException(ErrorCode.REVIEW_INVALID_RATING_RANGE);
-        }
-        // 2. 클라이언트 조회
+    @Retryable(
+            retryFor = OptimisticLockingFailureException.class,
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 100, multiplier = 2.0)
+    )
+    public void updateRating(Long clientId) {
         Client client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new ClientException(ErrorCode.CLIENT_NOT_FOUND));
-        // 3. 리뷰 개수 무결성 검증 (새 리뷰 개수가 현재 저장된 개수보다 작으면 에러)
-        if (newReviewCount == null) {
-            throw new ClientException(ErrorCode.REVIEW_INVALID_COUNT);
-        }
-        client.updateRating(newRating, newReviewCount);
+
+        double avg = reviewQueryRepository.findAvgRatingByClientId(clientId)
+                .orElse(0.0);
+        int count = reviewQueryRepository.countReviewsByClientId(clientId);
+
+        double rounded = Math.round(avg * 10) / 10.0;
+        client.updateRating(rounded, count);
+    }
+
+    @Recover
+    public void recoverUpdateClientRating(OptimisticLockingFailureException e, Long clientId) {
+        throw new ClientException(ErrorCode.REVIEW_RATING_UPDATE_FAILED_CLIENT);
     }
 
     // 공통 페이징

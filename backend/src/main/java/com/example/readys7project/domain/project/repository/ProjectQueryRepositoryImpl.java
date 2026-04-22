@@ -10,11 +10,8 @@ import com.example.readys7project.domain.search.dto.response.SearchPageResponseD
 import com.example.readys7project.domain.user.auth.entity.QUser;
 import com.example.readys7project.domain.user.client.entity.QClient;
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -22,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

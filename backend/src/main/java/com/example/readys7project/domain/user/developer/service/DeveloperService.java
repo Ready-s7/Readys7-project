@@ -2,6 +2,7 @@ package com.example.readys7project.domain.user.developer.service;
 
 import com.example.readys7project.domain.project.dto.ProjectResponseDto;
 import com.example.readys7project.domain.project.entity.Project;
+import com.example.readys7project.domain.review.repository.ReviewQueryRepository;
 import com.example.readys7project.domain.user.developer.dto.DeveloperResponseDto;
 import com.example.readys7project.domain.user.developer.dto.request.DeveloperProfileRequestDto;
 import com.example.readys7project.domain.user.developer.entity.Developer;
@@ -11,10 +12,14 @@ import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.domain.user.auth.repository.UserRepository;
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.DeveloperException;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,12 +27,22 @@ import java.util.List;
 
 
 @Service
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class DeveloperService {
 
     private final DeveloperRepository developerRepository;
     private final UserRepository userRepository;
+    private final ReviewQueryRepository reviewQueryRepository;
+    public DeveloperService(
+            DeveloperRepository developerRepository,
+            UserRepository userRepository,
+            @Qualifier("reviewQueryRepositoryImpl") ReviewQueryRepository reviewQueryRepository
+    ) {
+        this.developerRepository = developerRepository;
+        this.userRepository = userRepository;
+        this.reviewQueryRepository = reviewQueryRepository;
+    }
+
 
     // 전체 개발자 목록
     public Page<DeveloperResponseDto> getAllDevelopers(Pageable pageable) {
@@ -66,20 +81,27 @@ public class DeveloperService {
 
     // 평점 업데이트 (ReviewService 같은 내부 클래스에서만 호출가능)
     @Transactional
-    public void updateRating(Long developerId, Double newRating, Integer newReviewCount) {
+    @Retryable(
+            retryFor = OptimisticLockingFailureException.class,  // 이 예외 발생 시 재시도
+            maxAttempts = 3,                                      // 최대 3회 시도
+            backoff = @Backoff(delay = 100, multiplier = 2.0)    // 100ms → 200ms → 400ms 간격
+    )
+    public void updateRating(Long developerId) {
 
-        // 1. 평점 범위 무결성 검증 (0~5점 사이인지 확인) -> 방어적 프로그램을 위해서 추가
-        if (newRating < 0 || newRating > 5.0) {
-            throw new DeveloperException(ErrorCode.REVIEW_INVALID_RATING_RANGE);
-        }
-        // 2. 개발자 조회
         Developer developer = developerRepository.findById(developerId)
                 .orElseThrow(() -> new DeveloperException(ErrorCode.DEVELOPER_NOT_FOUND));
-        // 3. 리뷰 개수 무결성 검증 (새 리뷰 개수가 현재 저장된 개수보다 작으면 에러)
-        if (newReviewCount == null) {
-            throw new DeveloperException(ErrorCode.REVIEW_INVALID_COUNT);
-        }
-        developer.updateRating(newRating, newReviewCount);
+
+        double avg = reviewQueryRepository.findAvgRatingByDeveloperId(developerId)
+                .orElse(0.0);  // ✅ 리뷰 0건 = 0.0 (팀 정책 확정)
+        int count = reviewQueryRepository.countReviewsByDeveloperId(developerId);
+
+        double rounded = Math.round(avg * 10) / 10.0;
+        developer.updateRating(rounded, count);
+    }
+
+    @Recover
+    public void recoverUpdateDeveloperRating(OptimisticLockingFailureException e, Long developerId) {
+        throw new DeveloperException(ErrorCode.REVIEW_RATING_UPDATE_FAILED_DEVELOPER);
     }
 
     // 내 프로젝트 목록 조회

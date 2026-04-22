@@ -34,7 +34,6 @@ import org.mockito.quality.Strictness;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
@@ -106,11 +105,10 @@ class ReviewServiceTest {
         Review review = Review.builder().developer(developer).client(client).project(project).writerRole(ReviewRole.CLIENT).rating(5).build();
         ReflectionTestUtils.setField(review, "id", 100L);
         given(reviewRepository.save(any(Review.class))).willReturn(review);
-        given(reviewRepository.findByDeveloperId(20L)).willReturn(List.of(review));
 
         ReviewDto result = reviewService.createReview(request, targetUserId, email);
         assertThat(result.id()).isEqualTo(100L);
-        verify(developerService).updateRating(eq(20L), anyDouble(), eq(1));
+        verify(developerService).updateRating(eq(20L));
     }
 
     @Test
@@ -150,11 +148,10 @@ class ReviewServiceTest {
         Review review = Review.builder().developer(dev).client(client).project(project).writerRole(ReviewRole.DEVELOPER).rating(4).build();
         ReflectionTestUtils.setField(review, "id", 101L);
         given(reviewRepository.save(any(Review.class))).willReturn(review);
-        given(reviewRepository.findByClientId(10L)).willReturn(List.of(review));
 
         ReviewDto result = reviewService.createReview(request, targetUserId, email);
         assertThat(result.id()).isEqualTo(101L);
-        verify(clientService).updateRating(eq(10L), anyDouble(), eq(1));
+        verify(clientService).updateRating(eq(10L));
     }
 
     @Test
@@ -205,10 +202,9 @@ class ReviewServiceTest {
 
         given(userRepository.findByEmail(email)).willReturn(Optional.of(user));
         given(reviewRepository.findById(1L)).willReturn(Optional.of(review));
-        given(reviewRepository.findByDeveloperId(20L)).willReturn(List.of(review));
 
         reviewService.updateReview(1L, new ReviewUpdateRequestDto(3, "New"), email);
-        verify(developerService).updateRating(eq(20L), eq(3.0), eq(1));
+        verify(developerService).updateRating(eq(20L));
     }
 
     @Test
@@ -233,10 +229,9 @@ class ReviewServiceTest {
 
         given(userRepository.findByEmail(email)).willReturn(Optional.of(user));
         given(reviewRepository.findById(1L)).willReturn(Optional.of(r1));
-        given(reviewRepository.findByDeveloperId(20L)).willReturn(List.of(r2)); // r1 deleted
 
         reviewService.deleteReview(1L, email);
-        verify(developerService).updateRating(eq(20L), eq(1.0), eq(1));
+        verify(developerService).updateRating(eq(20L));
     }
 
     @Test
@@ -338,7 +333,6 @@ class ReviewServiceTest {
 
         given(userRepository.findByEmail(email)).willReturn(Optional.of(adminUser));
         given(reviewRepository.findById(1L)).willReturn(Optional.of(review));
-        given(reviewRepository.findByDeveloperId(20L)).willReturn(List.of());
 
         // when
         reviewService.deleteReview(1L, email);
@@ -346,7 +340,7 @@ class ReviewServiceTest {
         // then
         verify(reviewRepository).delete(review);
         verify(reviewRepository).flush();
-        verify(developerService).updateRating(20L, 0.0, 0);
+        verify(developerService).updateRating(20L);
     }
 
 
@@ -439,13 +433,12 @@ class ReviewServiceTest {
 
         given(userRepository.findByEmail(email)).willReturn(Optional.of(user));
         given(reviewRepository.findById(1L)).willReturn(Optional.of(review));
-        given(reviewRepository.findByClientId(10L)).willReturn(List.of(review));
 
         // when
         reviewService.updateReview(1L, new ReviewUpdateRequestDto(3, "New"), email);
 
         // then
-        verify(clientService).updateRating(eq(10L), eq(3.0), eq(1));
+        verify(clientService).updateRating(eq(10L));
     }
 
     @Test
@@ -495,14 +488,13 @@ class ReviewServiceTest {
         ReflectionTestUtils.setField(review, "id", 200L);
 
         given(reviewRepository.save(any(Review.class))).willReturn(review);
-        given(reviewRepository.findByClientId(10L)).willReturn(List.of(review));
 
         // when
         ReviewDto result = reviewService.createReview(request, targetUserId, email);
 
         // then
         assertThat(result.id()).isEqualTo(200L);
-        verify(clientService).updateRating(eq(10L), anyDouble(), eq(1));
+        verify(clientService).updateRating(eq(10L));
     }
 
     @Test
@@ -552,14 +544,13 @@ class ReviewServiceTest {
         ReflectionTestUtils.setField(review, "id", 201L);
 
         given(reviewRepository.save(any(Review.class))).willReturn(review);
-        given(reviewRepository.findByClientId(10L)).willReturn(List.of(review));
 
         // when
         ReviewDto result = reviewService.createReview(request, targetUserId, email);
 
         // then
         assertThat(result.id()).isEqualTo(201L);
-        verify(clientService).updateRating(eq(10L), anyDouble(), eq(1));
+        verify(clientService).updateRating(eq(10L));
     }
 
     @Test
@@ -609,7 +600,6 @@ class ReviewServiceTest {
 
         given(userRepository.findByEmail(email)).willReturn(Optional.of(adminUser));
         given(reviewRepository.findById(1L)).willReturn(Optional.of(deletedReview));
-        given(reviewRepository.findByDeveloperId(20L)).willReturn(List.of(remainReview));
 
         // when
         reviewService.deleteReview(1L, email);
@@ -617,7 +607,7 @@ class ReviewServiceTest {
         // then
         verify(reviewRepository).delete(deletedReview);
         verify(reviewRepository).flush();
-        verify(developerService).updateRating(20L, 4.0, 1);
+        verify(developerService).updateRating(20L);
         verifyNoInteractions(clientService);
     }
 
@@ -645,7 +635,6 @@ class ReviewServiceTest {
 
         given(userRepository.findByEmail(email)).willReturn(Optional.of(adminUser));
         given(reviewRepository.findById(1L)).willReturn(Optional.of(deletedReview));
-        given(reviewRepository.findByClientId(10L)).willReturn(List.of(remainReview));
 
         // when
         reviewService.deleteReview(1L, email);
@@ -653,7 +642,7 @@ class ReviewServiceTest {
         // then
         verify(reviewRepository).delete(deletedReview);
         verify(reviewRepository).flush();
-        verify(clientService).updateRating(10L, 5.0, 1);
+        verify(clientService).updateRating(10L);
         verifyNoInteractions(developerService);
     }
 

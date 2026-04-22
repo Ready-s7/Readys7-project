@@ -41,13 +41,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class ReviewConcurrencyTest {
 
-    @Autowired ReviewService reviewService;
     @Autowired UserRepository userRepository;
     @Autowired DeveloperRepository developerRepository;
     @Autowired ClientRepository clientRepository;
     @Autowired ProjectRepository projectRepository;
     @Autowired ProposalRepository proposalRepository;
     @Autowired ReviewRepository reviewRepository;
+    @Autowired ReviewTransactionService reviewTransactionService;
     @Autowired CategoryRepository categoryRepository;
 
     private Developer targetDeveloper;
@@ -213,8 +213,8 @@ class ReviewConcurrencyTest {
     // [시나리오 1] 클라이언트 2명이 동시에 개발자 1명에게 평점
     // ══════════════════════════════════════════════════════════════
     @Test
-    @DisplayName("[실패 예상] 클라이언트 2명이 동시에 개발자 1명에게 리뷰 작성 → Lost Update 발생")
-    void 클라이언트2명_동시_개발자평점_갱신손실_재현() throws InterruptedException {
+    @DisplayName("[성공] 낙관적 락 적용 후 - 클라이언트 2명이 동시에 개발자 1명에게 리뷰 작성 → Lost Update 없이 정확히 반영")
+    void 클라이언트2명_동시_개발자평점_낙관적락_적용후_정합성_보장() throws InterruptedException {
 
         // Given : 동시 출발을 보장하는 CyclicBarrier
         int threadCount = 2;
@@ -226,11 +226,11 @@ class ReviewConcurrencyTest {
         // Given : clientB → targetDeveloper rating 2점
         ReviewRequestDto requestB = new ReviewRequestDto(projectForClientB.getId(), 2, "별로에요");
 
-        // When : 두 스레드 동시 출발 → createReview 동시 호출
+        // When : 두 스레드 동시 출발 → createReviewWithRatingUpdate 동시 호출
         executorService.submit(() -> {
             try {
                 barrier.await();
-                reviewService.createReview(requestA, targetDeveloper.getUser().getId(), clientUserA.getEmail());
+                reviewTransactionService.createReviewWithRatingUpdate(requestA, targetDeveloper.getUser().getId(), clientUserA.getEmail());
             } catch (Exception e) {
                 System.out.println("[시나리오1 - 스레드A 예외] " + e.getClass().getSimpleName() + " : " + e.getMessage());
             }
@@ -239,7 +239,7 @@ class ReviewConcurrencyTest {
         executorService.submit(() -> {
             try {
                 barrier.await();
-                reviewService.createReview(requestB, targetDeveloper.getUser().getId(), clientUserB.getEmail());
+                reviewTransactionService.createReviewWithRatingUpdate(requestB, targetDeveloper.getUser().getId(), clientUserB.getEmail());
             } catch (Exception e) {
                 System.out.println("[시나리오1 - 스레드B 예외] " + e.getClass().getSimpleName() + " : " + e.getMessage());
             }
@@ -248,7 +248,7 @@ class ReviewConcurrencyTest {
         executorService.shutdown();
         executorService.awaitTermination(10, TimeUnit.SECONDS);
 
-        // Then : rating, reviewCount 가 정확히 반영되어야 한다
+        // Then : 낙관적 락 + @Retryable 적용 후 rating, reviewCount 가 정확히 반영되어야 한다
         Developer result = developerRepository.findById(targetDeveloper.getId()).orElseThrow();
 
         double expectedRating = 3.0;    // (4 + 2) / 2
@@ -258,14 +258,14 @@ class ReviewConcurrencyTest {
         System.out.println("실제 rating     : " + result.getRating()      + " (기대: " + expectedRating + ")");
         System.out.println("실제 reviewCount: " + result.getReviewCount() + " (기대: " + expectedReviewCount + ")");
         System.out.println("DB 저장된 리뷰 수: " + reviewRepository.findByDeveloperId(targetDeveloper.getId()).size());
-        System.out.println("→ reviewCount 가 1 이면 Lost Update 발생 확인!");
+        System.out.println("→ reviewCount 가 2 이면 Lost Update 방어 성공!");
 
-        // Then : Lost Update 로 인해 실패 ← 의도된 실패!
+        // 낙관적 락 적용 후 → Lost Update 없이 정확한 값이 반영되어야 성공
         assertThat(result.getReviewCount())
-                .as("Lost Update 발생 시 reviewCount 가 2 가 아닌 1 로 저장됨")
+                .as("낙관적 락 적용 후 reviewCount 가 정확히 2로 저장되어야 함")
                 .isEqualTo(expectedReviewCount);
         assertThat(result.getRating())
-                .as("Lost Update 발생 시 rating 이 3.0 이 아닌 한 쪽 값만 반영됨")
+                .as("낙관적 락 적용 후 rating 이 정확히 3.0으로 저장되어야 함")
                 .isEqualTo(expectedRating);
     }
 
@@ -273,8 +273,8 @@ class ReviewConcurrencyTest {
     // [시나리오 2] 개발자 2명이 동시에 클라이언트 1명에게 평점
     // ══════════════════════════════════════════════════════════════
     @Test
-    @DisplayName("[실패 예상] 개발자 2명이 동시에 클라이언트 1명에게 리뷰 작성 → Lost Update 발생")
-    void 개발자2명_동시_클라이언트평점_갱신손실_재현() throws InterruptedException {
+    @DisplayName("[성공] 낙관적 락 적용 후 - 개발자 2명이 동시에 클라이언트 1명에게 리뷰 작성 → Lost Update 없이 정확히 반영")
+    void 개발자2명_동시_클라이언트평점_낙관적락_적용후_정합성_보장() throws InterruptedException {
 
         // Given : 동시 출발을 보장하는 CyclicBarrier
         int threadCount = 2;
@@ -286,11 +286,11 @@ class ReviewConcurrencyTest {
         // Given : devB → targetClient rating 3점
         ReviewRequestDto requestB = new ReviewRequestDto(projectForDevB.getId(), 3, "보통 클라이언트");
 
-        // When : 두 스레드 동시 출발 → createReview 동시 호출
+        // When : 두 스레드 동시 출발 → createReviewWithRatingUpdate 동시 호출
         executorService.submit(() -> {
             try {
                 barrier.await();
-                reviewService.createReview(requestA, targetClient.getUser().getId(), developerUserA.getEmail());
+                reviewTransactionService.createReviewWithRatingUpdate(requestA, targetClient.getUser().getId(), developerUserA.getEmail());
             } catch (Exception e) {
                 System.out.println("[시나리오2 - 스레드A 예외] " + e.getClass().getSimpleName() + " : " + e.getMessage());
             }
@@ -299,7 +299,7 @@ class ReviewConcurrencyTest {
         executorService.submit(() -> {
             try {
                 barrier.await();
-                reviewService.createReview(requestB, targetClient.getUser().getId(), developerUserB.getEmail());
+                reviewTransactionService.createReviewWithRatingUpdate(requestB, targetClient.getUser().getId(), developerUserB.getEmail());
             } catch (Exception e) {
                 System.out.println("[시나리오2 - 스레드B 예외] " + e.getClass().getSimpleName() + " : " + e.getMessage());
             }
@@ -308,24 +308,24 @@ class ReviewConcurrencyTest {
         executorService.shutdown();
         executorService.awaitTermination(10, TimeUnit.SECONDS);
 
-        // Then : rating, reviewCount 가 정확히 반영되어야 한다
+        // Then :  낙관적 락 + @Retryable 적용 후 rating, reviewCount 가 정확히 반영되어야 한다
         Client result = clientRepository.findById(targetClient.getId()).orElseThrow();
 
         double expectedRating = 4.0;    // (5 + 3) / 2
         int expectedReviewCount = 2;
 
-        System.out.println("\n=== [시나리오2] 개발자2명 → 클라이언트1명 결과 ===");
+        System.out.println("\n=== [시나리오2] 낙관적 락 적용 후 - 개발자2명 → 클라이언트1명 결과 ===");
         System.out.println("실제 rating     : " + result.getRating()      + " (기대: " + expectedRating + ")");
         System.out.println("실제 reviewCount: " + result.getReviewCount() + " (기대: " + expectedReviewCount + ")");
         System.out.println("DB 저장된 리뷰 수: " + reviewRepository.findByClientId(targetClient.getId()).size());
         System.out.println("→ reviewCount 가 1 이면 Lost Update 발생 확인!");
 
-        // Then : Lost Update 로 인해 실패 ← 의도된 실패!
+        // 낙관적 락 적용 후 → Lost Update 없이 정확한 값이 반영되어야 성공
         assertThat(result.getReviewCount())
-                .as("Lost Update 발생 시 reviewCount 가 2 가 아닌 1 로 저장됨")
+                .as("낙관적 락 적용 후 reviewCount 가 정확히 2로 저장되어야 함")
                 .isEqualTo(expectedReviewCount);
         assertThat(result.getRating())
-                .as("Lost Update 발생 시 rating 이 4.0 이 아닌 한 쪽 값만 반영됨")
+                .as("낙관적 락 적용 후 rating 이 정확히 4.0으로 저장되어야 함")
                 .isEqualTo(expectedRating);
     }
 }

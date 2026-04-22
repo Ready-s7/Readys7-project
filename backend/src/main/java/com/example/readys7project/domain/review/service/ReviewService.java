@@ -32,7 +32,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -99,7 +98,6 @@ public class ReviewService {
                     .writerRole(ReviewRole.CLIENT).rating(request.rating()).comment(request.comment()).build();
 
             Review savedReview = reviewRepository.save(review);
-            updateDeveloperRating(developer.getId());
             return convertToDto(savedReview);
         }
 
@@ -134,7 +132,6 @@ public class ReviewService {
                     .writerRole(ReviewRole.DEVELOPER).rating(request.rating()).comment(request.comment()).build();
 
             Review savedReview = reviewRepository.save(review);
-            updateClientRating(client.getId());
             return convertToDto(savedReview);
         }
 
@@ -236,24 +233,10 @@ public class ReviewService {
     }
 
     private void updateDeveloperRating(Long developerId) {
-        List<Review> reviews = reviewRepository.findByDeveloperId(developerId);
-        if (reviews.isEmpty()) {
-            developerService.updateRating(developerId, 0.0, 0);
-            return;
-        }
-        double avg = reviews.stream().mapToInt(Review::getRating).average().orElse(0.0);
-        avg = Math.round(avg * 10.0) / 10.0;
-        developerService.updateRating(developerId, avg, reviews.size());
+        developerService.updateRating(developerId);  // DB 집계는 내부에서 처리
     }
 
     private void updateClientRating(Long clientId) {
-        List<Review> reviews = reviewRepository.findByClientId(clientId);
-        if (reviews.isEmpty()) {
-            clientService.updateRating(clientId, 0.0, 0);
-            return;
-        }
-        double avg = reviews.stream().mapToInt(Review::getRating).average().orElse(0.0);
-        avg = Math.round(avg * 10.0) / 10.0;
-        clientService.updateRating(clientId, avg, reviews.size());
+        clientService.updateRating(clientId);  // DB 집계는 내부에서 처리
     }
 }
