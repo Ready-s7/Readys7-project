@@ -154,14 +154,8 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
             return null;
         }
 
-        // 키워드 전처리: "Java Spring" -> "+Java +Spring" (Boolean Mode AND 검색 효과)
         String trimmedKeyword = keyword.trim();
-        String processedKeyword = Arrays.stream(trimmedKeyword.split("\\s+"))
-                .filter(word -> !word.isBlank())
-                .map(word -> "+" + word)
-                .collect(Collectors.joining(" "));
-
-        return developerGlobalSearchByFullText(processedKeyword, pageable);
+        return developerGlobalSearchByFullText(trimmedKeyword, pageable);
     }
 
     // N-gram Full-text 기반 개발자 검색
