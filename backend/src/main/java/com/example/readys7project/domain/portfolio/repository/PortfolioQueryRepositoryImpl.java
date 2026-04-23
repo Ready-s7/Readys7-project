@@ -3,6 +3,7 @@ package com.example.readys7project.domain.portfolio.repository;
 
 import com.example.readys7project.domain.portfolio.entity.Portfolio;
 import com.example.readys7project.domain.portfolio.entity.QPortfolio;
+import com.example.readys7project.domain.user.developer.entity.QDeveloper;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -84,6 +85,7 @@ public class PortfolioQueryRepositoryImpl implements PortfolioQueryRepository  {
 
         List<Portfolio> content = queryFactory
                 .selectFrom(portfolio)
+                .join(portfolio.developer, QDeveloper.developer).fetchJoin()
                 .where(builder)
                 .orderBy(portfolio.createdAt.desc(), portfolio.id.desc())
                 .offset(pageable.getOffset())

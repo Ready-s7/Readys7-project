@@ -2,7 +2,7 @@ package com.example.readys7project.domain.user.developer.service;
 
 import com.example.readys7project.domain.project.dto.ProjectResponseDto;
 import com.example.readys7project.domain.project.entity.Project;
-import com.example.readys7project.domain.review.repository.ReviewQueryRepository;
+import com.example.readys7project.domain.review.repository.ReviewRepository;
 import com.example.readys7project.domain.user.developer.dto.DeveloperResponseDto;
 import com.example.readys7project.domain.user.developer.dto.request.DeveloperProfileRequestDto;
 import com.example.readys7project.domain.user.developer.entity.Developer;
@@ -12,7 +12,6 @@ import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.domain.user.auth.repository.UserRepository;
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.DeveloperException;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
@@ -32,15 +31,16 @@ public class DeveloperService {
 
     private final DeveloperRepository developerRepository;
     private final UserRepository userRepository;
-    private final ReviewQueryRepository reviewQueryRepository;
+    private final ReviewRepository reviewRepository;
+    
     public DeveloperService(
             DeveloperRepository developerRepository,
             UserRepository userRepository,
-            @Qualifier("reviewQueryRepositoryImpl") ReviewQueryRepository reviewQueryRepository
+            ReviewRepository reviewRepository
     ) {
         this.developerRepository = developerRepository;
         this.userRepository = userRepository;
-        this.reviewQueryRepository = reviewQueryRepository;
+        this.reviewRepository = reviewRepository;
     }
 
 
@@ -91,12 +91,16 @@ public class DeveloperService {
         Developer developer = developerRepository.findById(developerId)
                 .orElseThrow(() -> new DeveloperException(ErrorCode.DEVELOPER_NOT_FOUND));
 
-        double avg = reviewQueryRepository.findAvgRatingByDeveloperId(developerId)
-                .orElse(0.0);  // ✅ 리뷰 0건 = 0.0 (팀 정책 확정)
-        int count = reviewQueryRepository.countReviewsByDeveloperId(developerId);
+        Object[] summary = (Object[]) reviewRepository.getDeveloperRatingSummary(developerId);
 
-        double rounded = Math.round(avg * 10) / 10.0;
-        developer.updateRating(rounded, count);
+        Double avg = (Double) summary[0];
+        Long count = (Long) summary[1];
+
+        double avgVal = (avg != null) ? avg : 0.0;
+        int countVal = (count != null) ? count.intValue() : 0;
+
+        double rounded = Math.round(avgVal * 10) / 10.0;
+        developer.updateRating(rounded, countVal);
     }
 
     @Recover

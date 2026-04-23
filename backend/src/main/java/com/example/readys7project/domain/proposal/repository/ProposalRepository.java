@@ -13,9 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ProposalRepository extends JpaRepository<Proposal, Long> {
-    Page<Proposal> findByProjectId(Long projectId, Pageable pageable);
-    Page<Proposal> findByDeveloperId(Long developerId, Pageable pageable);
+public interface ProposalRepository extends JpaRepository<Proposal, Long>, ProposalQueryRepository {
     Optional<Proposal> findByProjectIdAndDeveloperId(Long projectId, Long developerId);
     boolean existsByProjectIdAndStatus(Long projectId, ProposalStatus status);
 

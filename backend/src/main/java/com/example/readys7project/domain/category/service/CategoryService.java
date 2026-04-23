@@ -32,6 +32,7 @@ public class CategoryService {
      * - 카테고리 이름 중복을 허용하지 않음
      */
     @Transactional
+    @CacheEvict(value = "globalSearch", allEntries = true)
     public CategoryResponseDto createCategory(CategoryCreateRequestDto request, String email) {
 
         // ADMIN 역할의 유저 불러오기 (Aspect에서 검증 완료됨)

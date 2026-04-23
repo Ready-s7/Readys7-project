@@ -141,8 +141,11 @@ public class ProjectService {
      * 프로젝트 상태 변경 (AOP에서 소유권/관리자 검증)
      */
     @Transactional
-    public ProjectResponseDto changeProjectStatus(Long projectId, String statusStr, String email) {
+    public ProjectResponseDto changeProjectStatus(Long projectId, String statusStr) {
         Project project = findProject(projectId);
+        if (!(statusStr.equalsIgnoreCase("COMPLETED") || statusStr.equalsIgnoreCase("CANCELLED"))) {
+            throw new ProjectException(ErrorCode.INVALID_INPUT);
+        }
         ProjectStatus newStatus = ProjectStatus.valueOf(statusStr.toUpperCase());
 
         validateStatusTransition(project.getStatus(), newStatus);

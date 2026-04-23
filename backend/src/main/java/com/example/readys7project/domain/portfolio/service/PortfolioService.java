@@ -204,7 +204,7 @@ public class PortfolioService {
                 (request.projectUrl() == null || request.projectUrl().isBlank()) &&
                 request.skills() == null )
         {
-            throw new PortfolioException(ErrorCode.PORTFOLIO_NOT_FOUND);
+            throw new PortfolioException(ErrorCode.INVALID_INPUT);
         }
 
     }

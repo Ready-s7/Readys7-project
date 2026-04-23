@@ -1,8 +1,12 @@
 package com.example.readys7project.domain.review.repository;
 
+import com.example.readys7project.domain.project.entity.QProject;
 import com.example.readys7project.domain.review.entity.QReview;
 import com.example.readys7project.domain.review.entity.Review;
 import com.example.readys7project.domain.review.enums.ReviewRole;
+import com.example.readys7project.domain.user.auth.entity.QUser;
+import com.example.readys7project.domain.user.client.entity.QClient;
+import com.example.readys7project.domain.user.developer.entity.QDeveloper;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +25,13 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 
     private final JPAQueryFactory queryFactory;
     private final QReview review = QReview.review;
+    private final QDeveloper developer = QDeveloper.developer;
+    private final QClient client = QClient.client;
+    private final QProject project = QProject.project;
+
+    // Alias conflict prevention
+    private final QUser developerUser = new QUser("developerUser");
+    private final QUser clientUser = new QUser("clientUser");
 
     // 클라이언트 목록 조회
     /**
@@ -65,6 +76,11 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 
         List<Review> content = queryFactory
                 .selectFrom(review)
+                .join(review.developer, developer).fetchJoin()
+                .join(developer.user, developerUser).fetchJoin()
+                .join(review.client, client).fetchJoin()
+                .join(client.user, clientUser).fetchJoin()
+                .join(review.project, project).fetchJoin()
                 .where(builder)
                 .orderBy(review.createdAt.desc(), review.id.desc())
                 .offset(pageable.getOffset()) // 스탠다드 반..
@@ -123,6 +139,11 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 
         List<Review> content = queryFactory
                 .selectFrom(review)
+                .join(review.developer, developer).fetchJoin()
+                .join(developer.user, developerUser).fetchJoin()
+                .join(review.client, client).fetchJoin()
+                .join(client.user, clientUser).fetchJoin()
+                .join(review.project, project).fetchJoin()
                 .where(builder)
                 .orderBy(review.createdAt.desc(), review.id.desc())
                 .offset(pageable.getOffset())
@@ -136,65 +157,5 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total == null ? 0 : total);
-    }
-
-    // 개발자 평균 평점 (CLIENT가 남긴 리뷰만)
-    @Override
-    public Optional<Double> findAvgRatingByDeveloperId(Long developerId) {
-        Double avg = queryFactory
-                .select(review.rating.avg())
-                .from(review)
-                .where(
-                        review.developer.id.eq(developerId),
-                        review.writerRole.eq(ReviewRole.CLIENT)
-                )
-                .fetchOne();
-
-        return Optional.ofNullable(avg);
-    }
-
-    // 개발자 리뷰 개수 (CLIENT가 남긴 리뷰만)
-    @Override
-    public int countReviewsByDeveloperId(Long developerId) {
-        Long count = queryFactory
-                .select(review.count())
-                .from(review)
-                .where(
-                        review.developer.id.eq(developerId),
-                        review.writerRole.eq(ReviewRole.CLIENT)
-                )
-                .fetchOne();
-
-        return count == null ? 0 : count.intValue();
-    }
-
-    // 클라이언트 평균 평점 (DEVELOPER가 남긴 리뷰만)
-    @Override
-    public Optional<Double> findAvgRatingByClientId(Long clientId) {
-        Double avg = queryFactory
-                .select(review.rating.avg())
-                .from(review)
-                .where(
-                        review.client.id.eq(clientId),
-                        review.writerRole.eq(ReviewRole.DEVELOPER)
-                )
-                .fetchOne();
-
-        return Optional.ofNullable(avg);
-    }
-
-    // 클라이언트 리뷰 개수 (DEVELOPER가 남긴 리뷰만)
-    @Override
-    public int countReviewsByClientId(Long clientId) {
-        Long count = queryFactory
-                .select(review.count())
-                .from(review)
-                .where(
-                        review.client.id.eq(clientId),
-                        review.writerRole.eq(ReviewRole.DEVELOPER)
-                )
-                .fetchOne();
-
-        return count == null ? 0 : count.intValue();
     }
 }

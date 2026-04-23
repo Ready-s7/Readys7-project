@@ -189,7 +189,7 @@ class ProjectServiceTest {
         @DisplayName("성공: 상태 변경(IN_PROGRESS)")
         void changeStatus_Success() {
             given(projectRepository.findById(1L)).willReturn(Optional.of(project));
-            ProjectResponseDto result = projectService.changeProjectStatus(1L, "IN_PROGRESS", email);
+            ProjectResponseDto result = projectService.changeProjectStatus(1L, "IN_PROGRESS");
             assertThat(result.status()).isEqualTo("IN_PROGRESS");
         }
 
@@ -200,7 +200,7 @@ class ProjectServiceTest {
             given(userRepository.findByEmail("admin@test.com")).willReturn(Optional.of(admin));
             given(projectRepository.findById(1L)).willReturn(Optional.of(project));
 
-            ProjectResponseDto result = projectService.changeProjectStatus(1L, "CANCELLED", "admin@test.com");
+            ProjectResponseDto result = projectService.changeProjectStatus(1L, "CANCELLED");
             assertThat(result.status()).isEqualTo("CANCELLED");
         }
     }

@@ -79,11 +79,10 @@ public class ProjectController {
     @CheckOwnerOrAdmin(type = EntityType.PROJECT, idParam = "projectId")
     public ResponseEntity<ApiResponseDto<ProjectResponseDto>> changeProjectStatus(
             @PathVariable Long projectId,
-            @RequestBody ProjectStatusUpdateRequestDto request,
-            @AuthenticationPrincipal CustomUserDetails customUserDetails
+            @RequestBody ProjectStatusUpdateRequestDto request
     ) {
         return ResponseEntity.ok(ApiResponseDto
-                .success(HttpStatus.OK, projectService.changeProjectStatus(projectId, request.status(), customUserDetails.getEmail())));
+                .success(HttpStatus.OK, projectService.changeProjectStatus(projectId, request.status())));
     }
 
     // 프로젝트 삭제 (본인 Client만 가능)

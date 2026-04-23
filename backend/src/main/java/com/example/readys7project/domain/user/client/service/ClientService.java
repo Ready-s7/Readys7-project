@@ -2,7 +2,7 @@ package com.example.readys7project.domain.user.client.service;
 
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.project.repository.ProjectRepository;
-import com.example.readys7project.domain.review.repository.ReviewQueryRepository;
+import com.example.readys7project.domain.review.repository.ReviewRepository;
 import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.domain.user.auth.repository.UserRepository;
@@ -16,7 +16,6 @@ import com.example.readys7project.domain.user.client.repository.ClientRepository
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.ClientException;
 import com.example.readys7project.global.security.CustomUserDetails;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -36,19 +35,18 @@ public class ClientService {
     private final ClientRepository clientRepository;
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
-    private final ReviewQueryRepository reviewQueryRepository;
+    private final ReviewRepository reviewRepository;
 
-    // ✅ 생성자 직접 작성 + @Qualifier 파라미터 레벨 적용
     public ClientService(
             ClientRepository clientRepository,
             UserRepository userRepository,
             ProjectRepository projectRepository,
-            @Qualifier("reviewQueryRepositoryImpl") ReviewQueryRepository reviewQueryRepository
+            ReviewRepository reviewRepository
     ) {
         this.clientRepository = clientRepository;
         this.userRepository = userRepository;
         this.projectRepository = projectRepository;
-        this.reviewQueryRepository = reviewQueryRepository;
+        this.reviewRepository = reviewRepository;
     }
 
     @Transactional(readOnly = true)
@@ -197,12 +195,18 @@ public class ClientService {
         Client client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new ClientException(ErrorCode.CLIENT_NOT_FOUND));
 
-        double avg = reviewQueryRepository.findAvgRatingByClientId(clientId)
-                .orElse(0.0);
-        int count = reviewQueryRepository.countReviewsByClientId(clientId);
+        Object[] summary = (Object[]) reviewRepository.getClientRatingSummary(clientId);
+        
+        // summary 자체가 [avg, count] 배열입니다.
+        Double avg = (Double) summary[0];
+        Long count = (Long) summary[1];
 
-        double rounded = Math.round(avg * 10) / 10.0;
-        client.updateRating(rounded, count);
+        // ✅ 리뷰가 0개면 avg는 null이 오며, 이때 0.0으로 처리합니다.
+        double avgVal = (avg != null) ? avg : 0.0;
+        int countVal = (count != null) ? count.intValue() : 0;
+
+        double rounded = Math.round(avgVal * 10) / 10.0;
+        client.updateRating(rounded, countVal);
     }
 
     @Recover

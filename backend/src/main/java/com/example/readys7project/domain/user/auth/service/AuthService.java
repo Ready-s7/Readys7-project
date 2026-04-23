@@ -171,7 +171,7 @@ public class AuthService {
     public AuthTokenDto login(LoginRequestDto request) {
         // email로 User 조회
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new UserException(ErrorCode.USER_INFO_MISMATCH));
 
         if(user.getUserRole() == UserRole.ADMIN) {
             Admin admin = adminRepository.findByUser(user)

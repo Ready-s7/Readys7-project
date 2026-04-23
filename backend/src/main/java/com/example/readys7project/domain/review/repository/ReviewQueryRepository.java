@@ -26,10 +26,4 @@ public interface ReviewQueryRepository {
             Integer maxRating,
             Pageable pageable
     );
-
-    Optional<Double> findAvgRatingByDeveloperId(Long developerId);
-    int countReviewsByDeveloperId(Long developerId);
-
-    Optional<Double> findAvgRatingByClientId(Long clientId);
-    int countReviewsByClientId(Long clientId);
 }
