@@ -1,7 +1,7 @@
 package com.example.readys7project.domain.user.client.service;
 
 import com.example.readys7project.domain.project.repository.ProjectRepository;
-import com.example.readys7project.domain.review.repository.ReviewQueryRepository;
+import com.example.readys7project.domain.review.repository.ReviewRepository;
 import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.domain.user.auth.repository.UserRepository;
@@ -55,7 +55,7 @@ class ClientServiceTest {
     private ProjectRepository projectRepository;
 
     @Mock
-    private ReviewQueryRepository reviewQueryRepository;
+    private ReviewRepository reviewRepository;
 
     private User createClientUser(Long id) {
         User user = User.builder()
@@ -278,8 +278,7 @@ class ClientServiceTest {
             Client client = createClient(1L, user);
 
             given(clientRepository.findById(1L)).willReturn(Optional.of(client));
-            given(reviewQueryRepository.findAvgRatingByClientId(1L)).willReturn(Optional.of(4.5));
-            given(reviewQueryRepository.countReviewsByClientId(1L)).willReturn(1);
+            given(reviewRepository.getClientRatingSummary(1L)).willReturn(new Object[]{4.5, 1L});
 
             //when
             clientService.updateRating(1L);
@@ -297,8 +296,7 @@ class ClientServiceTest {
             Client client = createClient(1L, user);
 
             given(clientRepository.findById(1L)).willReturn(Optional.of(client));
-            given(reviewQueryRepository.findAvgRatingByClientId(1L)).willReturn(Optional.of(4.8));
-            given(reviewQueryRepository.countReviewsByClientId(1L)).willReturn(10);
+            given(reviewRepository.getClientRatingSummary(1L)).willReturn(new Object[]{4.8, 10L});
 
             // when
             clientService.updateRating(1L);

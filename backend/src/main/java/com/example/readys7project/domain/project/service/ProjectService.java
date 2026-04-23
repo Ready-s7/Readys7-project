@@ -143,7 +143,8 @@ public class ProjectService {
     @Transactional
     public ProjectResponseDto changeProjectStatus(Long projectId, String statusStr) {
         Project project = findProject(projectId);
-        if (!(statusStr.equalsIgnoreCase("COMPLETED") || statusStr.equalsIgnoreCase("CANCELLED"))) {
+        if (!(statusStr.equalsIgnoreCase("COMPLETED")
+                || statusStr.equalsIgnoreCase("CANCELLED"))) {
             throw new ProjectException(ErrorCode.INVALID_INPUT);
         }
         ProjectStatus newStatus = ProjectStatus.valueOf(statusStr.toUpperCase());

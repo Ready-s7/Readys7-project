@@ -3,6 +3,7 @@ package com.example.readys7project.domain.user.developer.service;
 import com.example.readys7project.domain.project.dto.ProjectResponseDto;
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.review.repository.ReviewQueryRepository;
+import com.example.readys7project.domain.review.repository.ReviewRepository;
 import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.domain.user.auth.repository.UserRepository;
@@ -48,7 +49,7 @@ class DeveloperServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private ReviewQueryRepository reviewQueryRepository;
+    private ReviewRepository reviewRepository;
 
     @Test
     @DisplayName("전체 개발자 목록 조회 성공")
@@ -179,8 +180,7 @@ class DeveloperServiceTest {
         Developer developer = createDeveloper(1L, user);
 
         given(developerRepository.findById(1L)).willReturn(Optional.of(developer));
-        given(reviewQueryRepository.findAvgRatingByDeveloperId(1L)).willReturn(Optional.of(4.5));
-        given(reviewQueryRepository.countReviewsByDeveloperId(1L)).willReturn(10);
+        given(reviewRepository.getDeveloperRatingSummary(1L)).willReturn(new Object[]{4.5, 10L});
 
         // when
         developerService.updateRating(1L);

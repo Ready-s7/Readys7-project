@@ -186,11 +186,12 @@ class ProjectServiceTest {
         }
 
         @Test
-        @DisplayName("성공: 상태 변경(IN_PROGRESS)")
-        void changeStatus_Success() {
+        @DisplayName("실패: 상태 변경(IN_PROGRESS)은 수동으로 허용되지 않는다")
+        void changeStatus_InProgress_Forbidden() {
             given(projectRepository.findById(1L)).willReturn(Optional.of(project));
-            ProjectResponseDto result = projectService.changeProjectStatus(1L, "IN_PROGRESS");
-            assertThat(result.status()).isEqualTo("IN_PROGRESS");
+
+            assertThatThrownBy(() -> projectService.changeProjectStatus(1L, "IN_PROGRESS"))
+                    .isInstanceOf(ProjectException.class);
         }
 
         @Test
