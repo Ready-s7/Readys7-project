@@ -1,7 +1,7 @@
 spring:
   jpa:
     hibernate:
-      ddl-auto: create  # 운영은 절대 자동 변경 금지
+      ddl-auto: update
 
 logging:
   level:

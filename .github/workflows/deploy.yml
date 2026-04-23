@@ -71,9 +71,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: QEMU 설정
-        uses: docker/setup-qemu-action@v3
-
       - name: Docker Buildx 설정
         uses: docker/setup-buildx-action@v3
 
@@ -82,7 +79,7 @@ jobs:
         with:
           context: backend
           push: true
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           tags: |
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
             ${{ env.IMAGE_NAME }}:latest
@@ -102,7 +99,7 @@ jobs:
               \"sudo docker stop app || true\",
               \"sudo docker rm app || true\",
               \"sudo docker pull $IMAGE_NAME:latest\", 
-              \"sudo docker run -d --name app -p $APP_PORT:$APP_PORT --restart unless-stopped -e SPRING_PROFILES_ACTIVE=prod -e SPRING_DATASOURCE_URL=jdbc:mysql://${{ secrets.RDS_ENDPOINT }}:3306/${{ secrets.DB_NAME }} -e SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME }} -e SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }} -e SPRING_DATA_REDIS_HOST=${{ secrets.REDIS_HOST }} -e SPRING_DATA_REDIS_PORT=${{ secrets.REDIS_PORT }} -e JWT_SECRET=${{ secrets.JWT_SECRET }} $IMAGE_NAME:latest\"
+              \"sudo docker run -d --name app -p $APP_PORT:$APP_PORT --restart unless-stopped -e SPRING_PROFILES_ACTIVE=prod -e SPRING_DATASOURCE_URL=jdbc:mysql://${{ secrets.RDS_ENDPOINT }}:3306/${{ secrets.DB_NAME }} -e SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME }} -e SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }} -e SPRING_DATA_REDIS_HOST=${{ secrets.REDIS_HOST }} -e SPRING_DATA_REDIS_PORT=${{ secrets.REDIS_PORT }} -e JWT_SECRET=${{ secrets.JWT_SECRET }} -e CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }} $IMAGE_NAME:latest\"
             ]" \
             --query "Command.CommandId" \
             --output text)
@@ -151,7 +148,7 @@ jobs:
               \"sudo docker stop app || true\",
               \"sudo docker rm app || true\",
               \"sudo docker pull $IMAGE_NAME:latest\",
-              \"sudo docker run -d --name app -p $APP_PORT:$APP_PORT --restart unless-stopped -e SPRING_PROFILES_ACTIVE=prod -e SPRING_DATASOURCE_URL=jdbc:mysql://${{ secrets.RDS_ENDPOINT }}:3306/${{ secrets.DB_NAME }} -e SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME }} -e SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }} -e SPRING_DATA_REDIS_HOST=${{ secrets.REDIS_HOST }} -e SPRING_DATA_REDIS_PORT=${{ secrets.REDIS_PORT }} -e JWT_SECRET=${{ secrets.JWT_SECRET }} $IMAGE_NAME:latest\"
+              \"sudo docker run -d --name app -p $APP_PORT:$APP_PORT --restart unless-stopped -e SPRING_PROFILES_ACTIVE=prod -e SPRING_DATASOURCE_URL=jdbc:mysql://${{ secrets.RDS_ENDPOINT }}:3306/${{ secrets.DB_NAME }} -e SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME }} -e SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }} -e SPRING_DATA_REDIS_HOST=${{ secrets.REDIS_HOST }} -e SPRING_DATA_REDIS_PORT=${{ secrets.REDIS_PORT }} -e JWT_SECRET=${{ secrets.JWT_SECRET }} -e CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }} $IMAGE_NAME:latest\"
             ]" \
             --query "Command.CommandId" \
             --output text)

@@ -18,6 +18,13 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -41,6 +48,7 @@ import { toast } from "sonner";
 import { portfolioApi, developerApi } from "../../../api/apiService";
 import type { PortfolioDto } from "../../../api/types";
 import { useAuth } from "../../../context/AuthContext";
+import { apiClient } from "../../../api/client";
 
 interface PortfolioForm {
   title: string;
@@ -64,13 +72,13 @@ export function MyPortfolio() {
 
   const [portfolios, setPortfolios] = useState<PortfolioDto[]>([]);
   const [myDeveloperId, setMyDeveloperId] = useState<number | null>(null);
+  const [skillOptions, setSkillOptions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // 모달 상태
   const [showModal, setShowModal] = useState(false);
   const [editTarget, setEditTarget] = useState<PortfolioDto | null>(null);
   const [form, setForm] = useState<PortfolioForm>(EMPTY_FORM);
-  const [skillInput, setSkillInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 삭제 확인 다이얼로그
@@ -81,15 +89,23 @@ export function MyPortfolio() {
     if (!isLoggedIn) { navigate("/login"); return; }
     if (userRole !== "DEVELOPER") { navigate("/"); return; }
     fetchMyPortfolios();
+    fetchSkills();
   }, [isLoggedIn, userRole]);
+
+  const fetchSkills = async () => {
+    try {
+      const res = await apiClient.get("/v1/skills", { params: { page: 0, size: 200 } });
+      setSkillOptions((res.data?.data?.content ?? []).map((s: any) => s.name));
+    } catch (err) {
+      console.error("스킬 목록 조회 실패:", err);
+    }
+  };
 
   const fetchMyPortfolios = async () => {
     setIsLoading(true);
     try {
       // 내 개발자 ID 찾기 (이름 기반)
-      const meRes = await import("../../../api/client").then((m) =>
-        m.apiClient.get("/v1/users/me")
-      );
+      const meRes = await apiClient.get("/v1/users/me");
       const myName = meRes.data.data.name;
 
       const devRes = await developerApi.getAll(0, 200);
@@ -114,7 +130,6 @@ export function MyPortfolio() {
   const openCreateModal = () => {
     setEditTarget(null);
     setForm(EMPTY_FORM);
-    setSkillInput("");
     setShowModal(true);
   };
 
@@ -127,7 +142,6 @@ export function MyPortfolio() {
       projectUrl: portfolio.projectUrl || "",
       skills: [...portfolio.skills],
     });
-    setSkillInput("");
     setShowModal(true);
   };
 
@@ -186,11 +200,9 @@ export function MyPortfolio() {
     }
   };
 
-  const addSkill = () => {
-    const trimmed = skillInput.trim();
-    if (trimmed && !form.skills.includes(trimmed)) {
-      setForm((prev) => ({ ...prev, skills: [...prev.skills, trimmed] }));
-      setSkillInput("");
+  const addSkill = (skill: string) => {
+    if (skill && !form.skills.includes(skill)) {
+      setForm((prev) => ({ ...prev, skills: [...prev.skills, skill] }));
     }
   };
 
@@ -363,22 +375,18 @@ export function MyPortfolio() {
             </div>
             <div className="space-y-2">
               <Label>기술 스택 * (최소 1개)</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={skillInput}
-                  onChange={(e) => setSkillInput(e.target.value)}
-                  placeholder="기술 입력 후 Enter"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      addSkill();
-                    }
-                  }}
-                />
-                <Button type="button" variant="outline" onClick={addSkill}>
-                  추가
-                </Button>
-              </div>
+              <Select onValueChange={(val) => addSkill(val)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="기술 스택 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  {skillOptions.map((skill) => (
+                    <SelectItem key={skill} value={skill}>
+                      {skill}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {form.skills.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {form.skills.map((skill) => (

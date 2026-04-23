@@ -384,6 +384,24 @@ export function MyPage() {
                         </div>
                       </div>
                       <div className="space-y-2">
+                        <Label className="text-sm font-semibold">평균 응답 시간</Label>
+                        <Select
+                            value={devForm.responseTime}
+                            onValueChange={(val) => setDevForm({ ...devForm, responseTime: val })}
+                        >
+                          <SelectTrigger className="h-11">
+                            <SelectValue placeholder="응답 시간 선택" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1시간 이내">1시간 이내</SelectItem>
+                            <SelectItem value="4시간 이내">4시간 이내</SelectItem>
+                            <SelectItem value="12시간 이내">12시간 이내</SelectItem>
+                            <SelectItem value="24시간 이내">24시간 이내</SelectItem>
+                            <SelectItem value="협의 후 결정">협의 후 결정</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
                         <Label className="text-sm font-semibold">보유 기술 스택</Label>
                         <div className="flex gap-2">
                           <Select onValueChange={(val) => addSkill(val)}>
