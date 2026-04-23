@@ -177,7 +177,7 @@ export function SearchPage() {
                                   ))}
                                 </div>
                                 <div className="flex items-center gap-6 text-xs text-gray-500 font-bold">
-                                  <div className="flex items-center gap-1.5"><Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" /><span className="text-gray-900">{typeof dev.rating === 'number' ? dev.rating.toFixed(1) : "0.0"}</span><span className="text-gray-400">({dev.reviewCount || 0})</span></div>
+                                  <div className="flex items-center gap-1.5"><Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" /><span className="text-gray-900">{Number(dev.rating ?? 0).toFixed(1)}</span><span className="text-gray-400">({dev.reviewCount || 0})</span></div>
                                   <div className="flex items-center gap-1"><span className="text-gray-400 font-medium">완료 프로젝트</span><span className="text-gray-900">{dev.completedProjects || 0}건</span></div>
                                   <div className="flex items-center gap-1"><span className="text-gray-400 font-medium">응답 시간</span><span className="text-gray-900">{dev.responseTime || "-"}</span></div>
                                 </div>

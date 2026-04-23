@@ -36,7 +36,9 @@ import { useAuth } from "../../../context/AuthContext";
 
 const getWsUrl = () => {
   const apiBase = import.meta.env.VITE_API_BASE_URL || "/api";
-  return apiBase.replace(/\/api$/, "") + "/api/ws";
+  // Vercel(HTTPS) 환경에서 상대경로가 http로 해석되는 것을 방지하기 위해 origin을 붙임
+  const base = apiBase.startsWith("http") ? apiBase : window.location.origin + apiBase;
+  return base.replace(/\/api$/, "") + "/api/ws";
 };
 
 const WS_URL = getWsUrl();

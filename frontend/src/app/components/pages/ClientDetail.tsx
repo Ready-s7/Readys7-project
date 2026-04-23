@@ -144,7 +144,7 @@ export function ClientDetail() {
               <div className="bg-yellow-50 p-3 rounded-xl"><Star className="text-yellow-500 w-6 h-6 fill-current" /></div>
               <div>
                 <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">평점</p>
-                <p className="text-2xl font-black text-gray-900">{client.rating.toFixed(1)} / 5.0</p>
+                <p className="text-2xl font-black text-gray-900">{Number(client.rating ?? 0).toFixed(1)} / 5.0</p>
               </div>
             </CardContent>
           </Card>

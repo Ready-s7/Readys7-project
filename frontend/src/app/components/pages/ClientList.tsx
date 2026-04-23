@@ -119,7 +119,7 @@ export function ClientList() {
                           <div className="text-center">
                             <div className="flex items-center justify-center gap-1 text-yellow-500 mb-1">
                               <Star className="w-4 h-4 fill-current" />
-                              <span className="font-bold text-sm text-gray-900">{client.rating.toFixed(1)}</span>
+                              <span className="font-bold text-sm text-gray-900">{Number(client.rating ?? 0).toFixed(1)}</span>
                             </div>
                             <p className="text-[10px] text-gray-400 font-bold uppercase">평점</p>
                           </div>

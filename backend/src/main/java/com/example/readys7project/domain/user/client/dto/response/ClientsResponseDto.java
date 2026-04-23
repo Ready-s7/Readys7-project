@@ -11,7 +11,6 @@ public record ClientsResponseDto(
         String name,
         String title,
         Integer completedProject,
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "0.0")
         Double rating,
         Integer reviewCount,
         ParticipateType participateType,
