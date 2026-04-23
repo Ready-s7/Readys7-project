@@ -96,10 +96,10 @@ jobs:
             --instance-ids "${{ secrets.APP1_INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
             --parameters commands="[
-              \"sudo docker image prune -af || true\",
-              \"sudo docker pull ${{ env.IMAGE_NAME }}:${{ github.sha }}\",
               \"sudo docker stop app || true\",
               \"sudo docker rm app || true\",
+              \"sudo docker image prune -af || true\",
+              \"sudo docker pull ${{ env.IMAGE_NAME }}:${{ github.sha }}\",
               \"sudo docker run -d --name app -p ${{ env.APP_PORT }}:${{ env.APP_PORT }} --restart unless-stopped -e SPRING_PROFILES_ACTIVE=prod -e SPRING_DATASOURCE_URL=jdbc:mysql://${{ secrets.RDS_ENDPOINT }}:3306/${{ secrets.DB_NAME }} -e SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME }} -e SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }} -e SPRING_DATA_REDIS_HOST=${{ secrets.REDIS_HOST }} -e SPRING_DATA_REDIS_PORT=${{ secrets.REDIS_PORT }} -e JWT_SECRET=${{ secrets.JWT_SECRET }} -e CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }} ${{ env.IMAGE_NAME }}:${{ github.sha }}\"
             ]" \
             --query "Command.CommandId" \
@@ -146,10 +146,10 @@ jobs:
             --instance-ids "${{ secrets.APP2_INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
             --parameters commands="[
-              \"sudo docker image prune -af || true\",
-              \"sudo docker pull ${{ env.IMAGE_NAME }}:${{ github.sha }}\",
               \"sudo docker stop app || true\",
               \"sudo docker rm app || true\",
+              \"sudo docker image prune -af || true\",
+              \"sudo docker pull ${{ env.IMAGE_NAME }}:${{ github.sha }}\",
               \"sudo docker run -d --name app -p ${{ env.APP_PORT }}:${{ env.APP_PORT }} --restart unless-stopped -e SPRING_PROFILES_ACTIVE=prod -e SPRING_DATASOURCE_URL=jdbc:mysql://${{ secrets.RDS_ENDPOINT }}:3306/${{ secrets.DB_NAME }} -e SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME }} -e SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }} -e SPRING_DATA_REDIS_HOST=${{ secrets.REDIS_HOST }} -e SPRING_DATA_REDIS_PORT=${{ secrets.REDIS_PORT }} -e JWT_SECRET=${{ secrets.JWT_SECRET }} -e CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }} ${{ env.IMAGE_NAME }}:${{ github.sha }}\"
             ]" \
             --query "Command.CommandId" \
