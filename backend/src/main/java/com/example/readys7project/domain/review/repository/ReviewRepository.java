@@ -5,8 +5,6 @@ import com.example.readys7project.domain.review.entity.Review;
 import com.example.readys7project.domain.review.enums.ReviewRole;
 import com.example.readys7project.domain.user.client.entity.Client;
 import com.example.readys7project.domain.user.developer.entity.Developer;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

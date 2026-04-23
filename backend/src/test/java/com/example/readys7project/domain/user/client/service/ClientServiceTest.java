@@ -1,7 +1,7 @@
 package com.example.readys7project.domain.user.client.service;
 
-import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.project.repository.ProjectRepository;
+import com.example.readys7project.domain.review.repository.ReviewQueryRepository;
 import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.domain.user.auth.repository.UserRepository;
@@ -53,6 +53,9 @@ class ClientServiceTest {
 
     @Mock
     private ProjectRepository projectRepository;
+
+    @Mock
+    private ReviewQueryRepository reviewQueryRepository;
 
     private User createClientUser(Long id) {
         User user = User.builder()
@@ -273,10 +276,13 @@ class ClientServiceTest {
             // given
             User user = createClientUser(1L);
             Client client = createClient(1L, user);
-            given(clientRepository.findById(1L)).willReturn(Optional.of(client));
 
-            // when
-            clientService.updateRating(1L, 4.5, 1);
+            given(clientRepository.findById(1L)).willReturn(Optional.of(client));
+            given(reviewQueryRepository.findAvgRatingByClientId(1L)).willReturn(Optional.of(4.5));
+            given(reviewQueryRepository.countReviewsByClientId(1L)).willReturn(1);
+
+            //when
+            clientService.updateRating(1L);
 
             // then
             assertThat(client.getRating()).isEqualTo(4.5);
@@ -288,39 +294,18 @@ class ClientServiceTest {
         void updateRating_dataIntegrity_success() {
             // given
             User user = createClientUser(1L);
-            Client client = createClient(1L, user); // 초기 평점 0.0, 리뷰수 0
+            Client client = createClient(1L, user);
+
             given(clientRepository.findById(1L)).willReturn(Optional.of(client));
+            given(reviewQueryRepository.findAvgRatingByClientId(1L)).willReturn(Optional.of(4.8));
+            given(reviewQueryRepository.countReviewsByClientId(1L)).willReturn(10);
 
             // when
-            clientService.updateRating(1L, 4.8, 10);
+            clientService.updateRating(1L);
 
             // then
-            // 단순히 에러가 안 터지는걸 넘어 값이 실제 저장됐는지 검증
             assertThat(client.getRating()).isEqualTo(4.8);
             assertThat(client.getReviewCount()).isEqualTo(10);
-        }
-
-        @Test
-        @DisplayName("실패: 평점 범위가 0~5를 벗어나면 예외가 발생한다")
-        void updateRating_fail_invalidRating() {
-            // when & then
-            assertThatThrownBy(() -> clientService.updateRating(1L, 6.0, 1))
-                    .isInstanceOf(ClientException.class)
-                    .hasMessage(ErrorCode.REVIEW_INVALID_RATING_RANGE.getMessage());
-        }
-
-        @Test
-        @DisplayName("실패: 리뷰 개수가 null이면 예외가 발생한다")
-        void updateRating_fail_nullReviewCount() {
-            // given
-            User user = createClientUser(1L);
-            Client client = createClient(1L, user);
-            given(clientRepository.findById(1L)).willReturn(Optional.of(client));
-
-            // when & then
-            assertThatThrownBy(() -> clientService.updateRating(1L, 4.5, null))
-                    .isInstanceOf(ClientException.class)
-                    .hasMessage(ErrorCode.REVIEW_INVALID_COUNT.getMessage());
         }
     }
 }

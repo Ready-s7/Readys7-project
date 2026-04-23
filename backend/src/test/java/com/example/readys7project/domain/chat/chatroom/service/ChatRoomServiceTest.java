@@ -4,7 +4,6 @@ import com.example.readys7project.domain.chat.chatroom.dto.request.CreateChatRoo
 import com.example.readys7project.domain.chat.chatroom.dto.response.ChatRoomResponseDto;
 import com.example.readys7project.domain.chat.chatroom.entity.ChatRoom;
 import com.example.readys7project.domain.chat.chatroom.repository.ChatRoomRepository;
-import com.example.readys7project.domain.chat.message.service.UnreadCountService;
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.project.repository.ProjectRepository;
 import com.example.readys7project.domain.proposal.entity.Proposal;
@@ -54,7 +53,6 @@ class ChatRoomServiceTest {
     @Mock private ProjectRepository projectRepository;
     @Mock private DeveloperRepository developerRepository;
     @Mock private ProposalRepository proposalRepository;
-    @Mock private UnreadCountService unreadCountService;
 
     private User createTestUser(Long id, String email, UserRole role) {
         User u = User.builder().email(email).name("User"+id).userRole(role).build();

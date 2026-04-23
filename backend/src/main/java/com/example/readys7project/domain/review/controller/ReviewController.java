@@ -4,6 +4,7 @@ import com.example.readys7project.domain.review.dto.ReviewDto;
 import com.example.readys7project.domain.review.dto.request.ReviewRequestDto;
 import com.example.readys7project.domain.review.dto.request.ReviewUpdateRequestDto;
 import com.example.readys7project.domain.review.service.ReviewService;
+import com.example.readys7project.domain.review.service.ReviewTransactionService;
 import com.example.readys7project.global.dto.ApiResponseDto;
 import com.example.readys7project.global.security.CustomUserDetails;
 import com.example.readys7project.global.aop.CheckOwnerOrAdmin;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ReviewController {
 
+    private final ReviewTransactionService reviewTransactionService;
     private final ReviewService reviewService;
 
     // 리뷰 생성
@@ -30,7 +32,9 @@ public class ReviewController {
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
         String email = customUserDetails.getEmail();
-        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.CREATED, reviewService.createReview(request,targetUserId,email)));
+        ReviewDto result = reviewTransactionService.createReviewWithRatingUpdate(
+                request, targetUserId, email);
+        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, result));
     }
 
     // 개발자 조회

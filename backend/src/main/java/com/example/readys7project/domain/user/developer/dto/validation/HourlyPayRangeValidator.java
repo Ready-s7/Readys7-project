@@ -1,6 +1,5 @@
 package com.example.readys7project.domain.user.developer.dto.validation;
 
-import com.example.readys7project.domain.user.developer.dto.request.DeveloperProfileRequestDto;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 

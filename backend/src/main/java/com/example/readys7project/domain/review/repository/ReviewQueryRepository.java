@@ -4,6 +4,8 @@ import com.example.readys7project.domain.review.entity.Review;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Optional;
+
 public interface ReviewQueryRepository {
 
     // 클라이언트 조회
@@ -16,7 +18,7 @@ public interface ReviewQueryRepository {
     );
 
 
-// 개발자 조회
+    // 개발자 조회
     Page<Review> searchReviewsByDeveloper(
             Long developerId,
             Integer rating,
@@ -24,4 +26,10 @@ public interface ReviewQueryRepository {
             Integer maxRating,
             Pageable pageable
     );
+
+    Optional<Double> findAvgRatingByDeveloperId(Long developerId);
+    int countReviewsByDeveloperId(Long developerId);
+
+    Optional<Double> findAvgRatingByClientId(Long clientId);
+    int countReviewsByClientId(Long clientId);
 }

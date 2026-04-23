@@ -33,6 +33,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis' // Lettuce
     implementation 'org.redisson:redisson-spring-boot-starter:3.27.2'  //Redisson
 
+    // Spring Retry - @Retryable 사용을 위해 필요
+    implementation 'org.springframework.retry:spring-retry'
+    implementation 'org.springframework:spring-aspects'
 
     // Caffeine 의존성 추가
     implementation 'org.springframework.boot:spring-boot-starter-cache'

@@ -6,7 +6,6 @@ import com.example.readys7project.domain.chat.message.dto.request.SendMessageReq
 import com.example.readys7project.domain.chat.message.dto.response.MessageCursorResponseDto;
 import com.example.readys7project.domain.chat.message.dto.response.MessageResponseDto;
 import com.example.readys7project.domain.chat.message.entity.Message;
-import com.example.readys7project.domain.chat.message.enums.MessageEventType;
 import com.example.readys7project.domain.chat.message.event.MessageCreatedEvent;
 import com.example.readys7project.domain.chat.message.repository.MessageRepository;
 import com.example.readys7project.domain.user.auth.entity.User;

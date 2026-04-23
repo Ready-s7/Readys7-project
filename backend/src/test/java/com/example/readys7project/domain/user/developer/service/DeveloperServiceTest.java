@@ -2,6 +2,7 @@ package com.example.readys7project.domain.user.developer.service;
 
 import com.example.readys7project.domain.project.dto.ProjectResponseDto;
 import com.example.readys7project.domain.project.entity.Project;
+import com.example.readys7project.domain.review.repository.ReviewQueryRepository;
 import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.domain.user.auth.repository.UserRepository;
@@ -45,6 +46,9 @@ class DeveloperServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private ReviewQueryRepository reviewQueryRepository;
 
     @Test
     @DisplayName("전체 개발자 목록 조회 성공")
@@ -173,26 +177,18 @@ class DeveloperServiceTest {
         // given
         User user = createUser(1L, "dev@test.com", UserRole.DEVELOPER);
         Developer developer = createDeveloper(1L, user);
+
         given(developerRepository.findById(1L)).willReturn(Optional.of(developer));
+        given(reviewQueryRepository.findAvgRatingByDeveloperId(1L)).willReturn(Optional.of(4.5));
+        given(reviewQueryRepository.countReviewsByDeveloperId(1L)).willReturn(10);
 
         // when
-        developerService.updateRating(1L, 4.5, 10);
+        developerService.updateRating(1L);
 
         // then
         assertThat(developer.getRating()).isEqualTo(4.5);
         assertThat(developer.getReviewCount()).isEqualTo(10);
-
-        // 행위 검증
         verify(developerRepository).findById(1L);
-    }
-
-    @Test
-    @DisplayName("평점 업데이트 실패 - 잘못된 평점 범위")
-    void updateRating_InvalidRatingRange() {
-        // when & then
-        assertThatThrownBy(() -> developerService.updateRating(1L, 6.0, 10))
-                .isInstanceOf(DeveloperException.class)
-                .hasMessage(ErrorCode.REVIEW_INVALID_RATING_RANGE.getMessage());
     }
 
     @Test
