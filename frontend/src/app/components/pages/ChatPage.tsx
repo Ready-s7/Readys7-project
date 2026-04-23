@@ -35,7 +35,7 @@ import type { ChatRoomDto, MessageResponseDto, CsChatRoomDto, CsMessageDto } fro
 import { useAuth } from "../../../context/AuthContext";
 
 const getWsUrl = () => {
-  const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
+  const apiBase = import.meta.env.VITE_API_BASE_URL || "/api";
   return apiBase.replace(/\/api$/, "") + "/api/ws";
 };
 
