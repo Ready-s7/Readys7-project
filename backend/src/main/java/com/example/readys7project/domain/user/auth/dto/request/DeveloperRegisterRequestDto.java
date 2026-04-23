@@ -48,7 +48,7 @@ public record DeveloperRegisterRequestDto(
         List<String> skills,
 
         @NotBlank(message = "응답시간 입력은 필수입니다.")
-        @Pattern(regexp = "^\\d+(시간|분)$", message = "형식이 올바르지 않습니다. (예: 10시간, 30분)")
+        @Pattern(regexp = "^(\\d+\\s*시간)?\\s*(\\d+\\s*분)?$", message = "형식이 올바르지 않습니다. (예: 1시간, 30분, 1시간 30분)")
         String responseTime,
 
         @NotNull(message = "일 시작 여부는 필수입니다.")

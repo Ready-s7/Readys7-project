@@ -17,6 +17,9 @@ import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.ClientException;
 import com.example.readys7project.global.security.CustomUserDetails;
 import org.springframework.dao.OptimisticLockingFailureException;
+
+import java.math.BigDecimal;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,11 +29,9 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
-
 @Service
 public class ClientService {
+
 
     private final ClientRepository clientRepository;
     private final UserRepository userRepository;
@@ -168,8 +169,8 @@ public class ClientService {
                         .title(project.getTitle())
                         .description(project.getDescription())
                         .category(project.getCategory().getName())
-                        .minBudget(project.getMinBudget())
-                        .maxBudget(project.getMaxBudget())
+                        .minBudget(BigDecimal.valueOf(project.getMinBudget()))
+                        .maxBudget(BigDecimal.valueOf(project.getMaxBudget()))
                         .duration(project.getDuration())
                         .status(project.getStatus())
                         .currentProposalCount(project.getCurrentProposalCount())

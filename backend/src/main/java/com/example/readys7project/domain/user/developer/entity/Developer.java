@@ -4,6 +4,8 @@ import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.domain.user.enums.ParticipateType;
 import com.example.readys7project.global.converter.StringListConverter;
 import com.example.readys7project.global.entity.BaseEntity;
+import com.example.readys7project.global.exception.common.ErrorCode;
+import com.example.readys7project.global.exception.domain.DeveloperException;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -88,6 +90,11 @@ public class Developer extends BaseEntity {
         this.availableForWork = availableForWork;
         this.participateType = participateType;
 
+        // 시급 범위 검증: 생성 시에도 정합성 체크
+        if (this.minHourlyPay != null && this.maxHourlyPay != null && this.minHourlyPay > this.maxHourlyPay) {
+            throw new DeveloperException(ErrorCode.DEVELOPER_PAY_RANGE_INVALID);
+        }
+
         this.syncSkillsText();
     }
 
@@ -124,6 +131,11 @@ public class Developer extends BaseEntity {
         }
         if (availableForWork != null) {
             this.availableForWork = availableForWork;
+        }
+
+        // 시급 범위 검증: 최소 시급이 최대 시급보다 크면 예외 발생
+        if (this.minHourlyPay != null && this.maxHourlyPay != null && this.minHourlyPay > this.maxHourlyPay) {
+            throw new DeveloperException(ErrorCode.DEVELOPER_PAY_RANGE_INVALID);
         }
     }
 

@@ -1,16 +1,10 @@
 package com.example.readys7project.domain.search.service;
 
-import com.example.readys7project.domain.category.repository.CategoryRepository;
-import com.example.readys7project.domain.project.repository.ProjectRepository;
-import com.example.readys7project.domain.search.dto.response.*;
+import com.example.readys7project.domain.search.dto.response.GlobalSearchResponseDto;
+import com.example.readys7project.domain.search.dto.response.PopularRankingResponseDto;
 import com.example.readys7project.domain.search.util.ValidateSearchKeyword;
-import com.example.readys7project.domain.skill.repository.SkillRepository;
-import com.example.readys7project.domain.user.developer.repository.DeveloperRepository;
-import com.example.readys7project.global.exception.common.ErrorCode;
-import com.example.readys7project.global.exception.domain.SearchException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,60 +17,37 @@ import java.util.List;
 @Slf4j
 public class SearchService {
 
-    private final ProjectRepository projectRepository;
-    private final CategoryRepository categoryRepository;
-    private final SkillRepository skillRepository;
-    private final DeveloperRepository developerRepository;
+    private final SearchQueryService searchQueryService;
     private final SearchRankingService searchRankingService;
     private final ValidateSearchKeyword validate;
 
 
     // V1 캐시 사용 X
-    // 랭킹 업데이트를 위해서 readOnly 제거
     @Transactional
     public GlobalSearchResponseDto searchV1(Long userId, String keyword, Pageable pageable) {
-
-        // 양 끝 공백 제거
-        String trimKeyword = validate.validateSearchKeyword(keyword);
-
-        // 한번 더 null 체크
-        if (trimKeyword == null) {
-            // NPE 방지를 위해 빈 객체를 리턴
-            return empty(pageable);
-        }
-
-        // 미리 담아주고
-        GlobalSearchResponseDto result = GlobalSearch(trimKeyword, pageable);
-
-        // 검색 결과가 존재한다면, 업데이트 로직에게 넘기기
-        if (hasAnyResult(result)) {
-            searchRankingService.updateRankingCount(trimKeyword, userId);
-        }
-
-        return result;
+        return validate.validateSearchKeyword(keyword)
+                .map(trimKeyword -> {
+                    GlobalSearchResponseDto result = searchQueryService.fetchGlobalSearch(trimKeyword, pageable);
+                    if (hasAnyResult(result)) {
+                        searchRankingService.updateRankingCount(trimKeyword, userId);
+                    }
+                    return result;
+                })
+                .orElseGet(() -> empty(pageable));
     }
 
     // V2 레디스 적용
-    // 랭킹 업데이트를 위해 readOnly 제거
     @Transactional
-    @Cacheable(value = "globalSearch",
-            key = "T(com.example.readys7project.domain.search.util.SearchCacheKeyGenerator).generate(#keyword, #pageable)")
     public GlobalSearchResponseDto searchV2(Long userId, String keyword, Pageable pageable) {
-
-        String trimKeyword = validate.validateSearchKeyword(keyword);
-
-        if (trimKeyword == null) {
-            return empty(pageable);
-        }
-
-        GlobalSearchResponseDto result = GlobalSearch(trimKeyword, pageable);
-
-        // 검색 결과가 존재한다면, 랭킹 카운트 업데이트
-        if (hasAnyResult(result)) {
-            searchRankingService.updateRankingCount(trimKeyword, userId);
-        }
-
-        return result;
+        return validate.validateSearchKeyword(keyword)
+                .map(trimKeyword -> {
+                    GlobalSearchResponseDto result = searchQueryService.fetchGlobalSearch(trimKeyword, pageable);
+                    if (hasAnyResult(result)) {
+                        searchRankingService.updateRankingCount(trimKeyword, userId);
+                    }
+                    return result;
+                })
+                .orElseGet(() -> empty(pageable));
     }
 
     // 인기 검색어 조회
@@ -101,25 +72,5 @@ public class SearchService {
                 Page.empty(pageable),
                 Page.empty(pageable)
         );
-    }
-
-    // 공용 DTO 리턴 메서드
-    private GlobalSearchResponseDto GlobalSearch(String keyword, Pageable pageable) {
-        try {
-            SearchPageResponseDto<ProjectsGlobalSearchResponseDto> projectPage =
-                    projectRepository.projectsGlobalSearch(keyword, pageable);
-            SearchPageResponseDto<CategoriesGlobalSearchResponseDto> categoryPage =
-                    categoryRepository.categoriesGlobalSearch(keyword, pageable);
-            SearchPageResponseDto<SkillsGlobalSearchResponseDto> skillPage =
-                    skillRepository.skillsGlobalSearch(keyword, pageable);
-            SearchPageResponseDto<DeveloperGlobalSearchResponseDto> developerPage =
-                    developerRepository.developerGlobalSearch(keyword, pageable);
-
-            return new GlobalSearchResponseDto(projectPage, categoryPage, skillPage, developerPage);
-
-        } catch (Exception e) {
-            log.warn("통합 검색 중 DB 에러 발생 - 키워드: [{}], 메시지: {}", keyword, e.getMessage());
-            throw new SearchException(ErrorCode.SEARCH_FAILED);
-        }
     }
 }

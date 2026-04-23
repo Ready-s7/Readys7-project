@@ -482,9 +482,9 @@ export function Login() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label>응답 시간 * (예: 1시간, 30분)</Label>
+                        <Label>응답 시간 * (예: 1시간 30분, 30분)</Label>
                         <Input
-                          placeholder="1시간"
+                          placeholder="1시간 30분"
                           value={signupData.responseTime}
                           onChange={(e) =>
                             setSignupData({
