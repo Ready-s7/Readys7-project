@@ -173,6 +173,28 @@ class DeveloperServiceTest {
     }
 
     @Test
+    @DisplayName("개발자 프로필 수정 실패 - 시급 범위 역전")
+    void updateProfile_Fail_PayRangeInvalid() {
+        // given
+        String email = "dev@test.com";
+        // 기존: min 30000, max 50000 (createDeveloper 참고)
+        // 요청: max만 20000으로 수정 -> min(30000) > max(20000) 발생
+        DeveloperProfileRequestDto request = new DeveloperProfileRequestDto(
+                null, null, null, 20000, null, null
+        );
+        User user = createUser(1L, email, UserRole.DEVELOPER);
+        Developer developer = createDeveloper(1L, user);
+
+        given(userRepository.findByEmail(email)).willReturn(Optional.of(user));
+        given(developerRepository.findByUser(user)).willReturn(Optional.of(developer));
+
+        // when & then
+        assertThatThrownBy(() -> developerService.updateProfile(request, email))
+                .isInstanceOf(DeveloperException.class)
+                .hasMessage(ErrorCode.DEVELOPER_PAY_RANGE_INVALID.getMessage());
+    }
+
+    @Test
     @DisplayName("평점 업데이트 성공")
     void updateRating_Success() {
         // given

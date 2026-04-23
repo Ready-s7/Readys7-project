@@ -17,6 +17,7 @@ public enum ErrorCode {
 
     // Developer
     DEVELOPER_NOT_FOUND(HttpStatus.NOT_FOUND, "개발자를 찾을 수 없습니다."),
+    DEVELOPER_PAY_RANGE_INVALID(HttpStatus.BAD_REQUEST, "최소 시급은 최대 시급보다 클 수 없습니다."),
 
     // Client
     CLIENT_NOT_FOUND(HttpStatus.NOT_FOUND, "클라이언트를 찾을 수 없습니다."),

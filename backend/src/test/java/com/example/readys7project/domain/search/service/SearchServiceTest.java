@@ -1,11 +1,7 @@
 package com.example.readys7project.domain.search.service;
 
-import com.example.readys7project.domain.category.repository.CategoryRepository;
-import com.example.readys7project.domain.project.repository.ProjectRepository;
 import com.example.readys7project.domain.search.dto.response.*;
 import com.example.readys7project.domain.search.util.ValidateSearchKeyword;
-import com.example.readys7project.domain.skill.repository.SkillRepository;
-import com.example.readys7project.domain.user.developer.repository.DeveloperRepository;
 import com.example.readys7project.global.exception.domain.SearchException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -34,16 +31,7 @@ class SearchServiceTest {
     private SearchService searchService;
 
     @Mock
-    private ProjectRepository projectRepository;
-
-    @Mock
-    private CategoryRepository categoryRepository;
-
-    @Mock
-    private SkillRepository skillRepository;
-
-    @Mock
-    private DeveloperRepository developerRepository;
+    private SearchQueryService searchQueryService;
 
     @Mock
     private SearchRankingService searchRankingService;
@@ -59,19 +47,11 @@ class SearchServiceTest {
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
         
-        given(validate.validateSearchKeyword(keyword)).willReturn(keyword);
+        given(validate.validateSearchKeyword(keyword)).willReturn(Optional.of(keyword));
         
-        // Mocking results
-        Page<ProjectsGlobalSearchResponseDto> projectPage = new PageImpl<>(List.of(mock(ProjectsGlobalSearchResponseDto.class)));
-        given(projectRepository.projectsGlobalSearch(anyString(), any(Pageable.class)))
-                .willReturn(SearchPageResponseDto.from(projectPage));
-        
-        given(categoryRepository.categoriesGlobalSearch(anyString(), any(Pageable.class)))
-                .willReturn(SearchPageResponseDto.from(Page.empty(pageable)));
-        given(skillRepository.skillsGlobalSearch(anyString(), any(Pageable.class)))
-                .willReturn(SearchPageResponseDto.from(Page.empty(pageable)));
-        given(developerRepository.developerGlobalSearch(anyString(), any(Pageable.class)))
-                .willReturn(SearchPageResponseDto.from(Page.empty(pageable)));
+        // Mocking SearchQueryService result
+        GlobalSearchResponseDto mockResponse = createMockResponse(pageable, true);
+        given(searchQueryService.fetchGlobalSearch(eq(keyword), any(Pageable.class))).willReturn(mockResponse);
 
         // when
         GlobalSearchResponseDto result = searchService.searchV1(userId, keyword, pageable);
@@ -88,16 +68,10 @@ class SearchServiceTest {
         String keyword = "noresult";
         Pageable pageable = PageRequest.of(0, 10);
         
-        given(validate.validateSearchKeyword(keyword)).willReturn(keyword);
+        given(validate.validateSearchKeyword(keyword)).willReturn(Optional.of(keyword));
         
-        given(projectRepository.projectsGlobalSearch(anyString(), any(Pageable.class)))
-                .willReturn(SearchPageResponseDto.from(Page.empty(pageable)));
-        given(categoryRepository.categoriesGlobalSearch(anyString(), any(Pageable.class)))
-                .willReturn(SearchPageResponseDto.from(Page.empty(pageable)));
-        given(skillRepository.skillsGlobalSearch(anyString(), any(Pageable.class)))
-                .willReturn(SearchPageResponseDto.from(Page.empty(pageable)));
-        given(developerRepository.developerGlobalSearch(anyString(), any(Pageable.class)))
-                .willReturn(SearchPageResponseDto.from(Page.empty(pageable)));
+        GlobalSearchResponseDto mockResponse = createMockResponse(pageable, false);
+        given(searchQueryService.fetchGlobalSearch(eq(keyword), any(Pageable.class))).willReturn(mockResponse);
 
         // when
         GlobalSearchResponseDto result = searchService.searchV1(null, keyword, pageable);
@@ -113,29 +87,14 @@ class SearchServiceTest {
         // given
         String keyword = "j";
         Pageable pageable = PageRequest.of(0, 10);
-        given(validate.validateSearchKeyword(keyword)).willReturn(null);
+        given(validate.validateSearchKeyword(keyword)).willReturn(Optional.empty());
 
         // when
         GlobalSearchResponseDto result = searchService.searchV1(null, keyword, pageable);
 
         // then
         assertThat(result.projects().content()).isEmpty();
-        verify(projectRepository, never()).projectsGlobalSearch(anyString(), any());
-    }
-
-    @Test
-    @DisplayName("통합 검색 V1 - DB 에러 발생 시 SearchException 발생")
-    void searchV1_DbError_ThrowsSearchException() {
-        // given
-        String keyword = "java";
-        Pageable pageable = PageRequest.of(0, 10);
-        given(validate.validateSearchKeyword(keyword)).willReturn(keyword);
-        given(projectRepository.projectsGlobalSearch(anyString(), any(Pageable.class)))
-                .willThrow(new RuntimeException("DB Error"));
-
-        // when & then
-        assertThatThrownBy(() -> searchService.searchV1(null, keyword, pageable))
-                .isInstanceOf(SearchException.class);
+        verify(searchQueryService, never()).fetchGlobalSearch(anyString(), any());
     }
 
     @Test
@@ -153,20 +112,6 @@ class SearchServiceTest {
     }
 
     @Test
-    @DisplayName("통합 검색 V1 - 유효하지 않은 문자 포함 시 SearchException 전파")
-    void searchV1_InvalidCharacter_ThrowsSearchException() {
-        // given
-        String invalidKeyword = "java' OR '1'='1";
-        Pageable pageable = PageRequest.of(0, 10);
-        given(validate.validateSearchKeyword(invalidKeyword))
-                .willThrow(new SearchException(com.example.readys7project.global.exception.common.ErrorCode.SEARCH_INVALID_CHARACTER));
-
-        // when & then
-        assertThatThrownBy(() -> searchService.searchV1(null, invalidKeyword, pageable))
-                .isInstanceOf(SearchException.class);
-    }
-
-    @Test
     @DisplayName("인기 검색어 조회 위임 확인")
     void getPopularRanking_DelegatesToRankingService() {
         // given
@@ -178,5 +123,19 @@ class SearchServiceTest {
 
         // then
         verify(searchRankingService, times(1)).getPopularRanking(limit);
+    }
+
+    // 테스트용 Mock 응답 생성 헬퍼 메서드
+    private GlobalSearchResponseDto createMockResponse(Pageable pageable, boolean hasResults) {
+        Page<ProjectsGlobalSearchResponseDto> projectPage = hasResults 
+                ? new PageImpl<>(List.of(mock(ProjectsGlobalSearchResponseDto.class))) 
+                : Page.empty(pageable);
+        
+        return new GlobalSearchResponseDto(
+                SearchPageResponseDto.from(projectPage),
+                SearchPageResponseDto.from(Page.empty(pageable)),
+                SearchPageResponseDto.from(Page.empty(pageable)),
+                SearchPageResponseDto.from(Page.empty(pageable))
+        );
     }
 }

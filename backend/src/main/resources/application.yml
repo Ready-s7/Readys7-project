@@ -6,6 +6,12 @@ spring:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 10
+      idle-timeout: 30000
+      connection-timeout: 30000
+      pool-name: HikariCP-Search-Pool
   jpa:
     show-sql: true
     properties:

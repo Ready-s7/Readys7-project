@@ -64,6 +64,11 @@ public class User extends BaseEntity {
         if (description != null && !description.isBlank()) this.description = description;
     }
 
+    // 유저 역할 업데이트 메서드
+    public void updateRole(UserRole userRole) {
+        this.userRole = userRole;
+    }
+
         /* @NotEmpty -> null은 막는데, "" 빈 문자열은 허용
          @NotEmpty -> null은 막는데, "" 빈 문자열은 허용
          null, "" 빈문자열 다 허용*/

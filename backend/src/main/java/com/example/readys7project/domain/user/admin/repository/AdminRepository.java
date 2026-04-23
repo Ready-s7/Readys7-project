@@ -6,6 +6,8 @@ import com.example.readys7project.domain.user.auth.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Map;
@@ -18,6 +20,8 @@ public interface AdminRepository extends JpaRepository<Admin,Long> {
 
     Optional<Admin> findByUser(User user);
 
-    Page<Admin> findAllByStatus(AdminStatus adminStatus, Pageable pageable);
+    @Query(value = "select a from Admin a join fetch a.user where a.status = :status",
+           countQuery = "select count(a) from Admin a where a.status = :status")
+    Page<Admin> findAllByStatus(@Param("status") AdminStatus status, Pageable pageable);
 }
 

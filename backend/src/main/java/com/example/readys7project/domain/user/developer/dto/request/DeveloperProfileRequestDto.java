@@ -20,7 +20,7 @@ public record DeveloperProfileRequestDto (
         @Positive(message = "최대 시급은 0보다 커야합니다")
         Integer maxHourlyPay,
 
-        @Pattern(regexp = "^(\\d+(시간|분))?$", message = "형식이 올바르지 않습니다. (예: 10시간, 30분)")
+        @Pattern(regexp = "^(\\d+\\s*시간)?\\s*(\\d+\\s*분)?$", message = "형식이 올바르지 않습니다. (예: 1시간, 30분, 1시간 30분)")
         String responseTime,
 
         Boolean availableForWork

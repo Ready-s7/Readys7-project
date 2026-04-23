@@ -163,7 +163,7 @@ public class InitData implements ApplicationRunner {
                     .minHourlyPay(50000)
                     .maxHourlyPay(80000)
                     .skills(List.of("Java", "Spring Boot", "JPA", "MySQL", "Redis", "Docker"))
-                    .responseTime("2시간 이내")
+                    .responseTime("1시간 30분")
                     .availableForWork(true)
                     .participateType(ParticipateType.INDIVIDUAL)
                     .build());
@@ -191,7 +191,7 @@ public class InitData implements ApplicationRunner {
                     .minHourlyPay(35000)
                     .maxHourlyPay(60000)
                     .skills(List.of("React", "TypeScript", "Node.js", "Spring Boot", "AWS"))
-                    .responseTime("4시간 이내")
+                    .responseTime("2시간")
                     .availableForWork(true)
                     .participateType(ParticipateType.INDIVIDUAL)
                     .build());
@@ -219,7 +219,7 @@ public class InitData implements ApplicationRunner {
                     .minHourlyPay(60000)
                     .maxHourlyPay(100000)
                     .skills(List.of("Python", "TensorFlow", "PyTorch", "FastAPI", "Docker", "Kubernetes"))
-                    .responseTime("1시간 이내")
+                    .responseTime("30분")
                     .availableForWork(false)
                     .participateType(ParticipateType.COMPANY)
                     .build());

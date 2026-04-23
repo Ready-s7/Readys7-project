@@ -26,7 +26,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -54,7 +56,7 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
 
         List<Developer> content = queryFactory
                 .selectFrom(qDeveloper)
-                .join(qDeveloper.user, qUser).fetchJoin()
+                .join(qDeveloper.user, qUser).fetchJoin() // fetchJoin 추가
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -94,7 +96,7 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
 
         List<Developer> content = queryFactory
                 .selectFrom(qDeveloper)
-                .join(qDeveloper.user, qUser).fetchJoin()
+                .join(qDeveloper.user, qUser).fetchJoin() // fetchJoin 추가
                 .where(builder)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -120,10 +122,10 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
         List<Project> content = queryFactory
                 .select(qProposal.project)
                 .from(qProposal)
-                .join(qProposal.project, qProject)
-                .join(qProject.client, qClient)
-                .join(qClient.user, qUser)
-                .join(qProject.category, qCategory)
+                .join(qProposal.project, qProject).fetchJoin()
+                .join(qProject.client, qClient).fetchJoin()
+                .join(qClient.user, qUser).fetchJoin()
+                .join(qProject.category, qCategory).fetchJoin()
                 .where(
                         qProposal.developer.eq(developer)
                                 .and(qProposal.status.eq(ProposalStatus.ACCEPTED))
@@ -152,8 +154,14 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
             return null;
         }
 
+        // 키워드 전처리: "Java Spring" -> "+Java +Spring" (Boolean Mode AND 검색 효과)
         String trimmedKeyword = keyword.trim();
-        return developerGlobalSearchByFullText(trimmedKeyword, pageable);
+        String processedKeyword = Arrays.stream(trimmedKeyword.split("\\s+"))
+                .filter(word -> !word.isBlank())
+                .map(word -> "+" + word)
+                .collect(Collectors.joining(" "));
+
+        return developerGlobalSearchByFullText(processedKeyword, pageable);
     }
 
     // N-gram Full-text 기반 개발자 검색
@@ -168,6 +176,7 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
         }
 
         // FULLTEXT로 찾은 id 목록을 기준으로 최종 응답 DTO를 조회
+        // FIELD() 함수를 사용하여 검색된 ID 순서(최신순/정확도순)를 그대로 유지
         List<DeveloperGlobalSearchResponseDto> content = queryFactory
                 .select(Projections.constructor(DeveloperGlobalSearchResponseDto.class,
                         qDeveloper.id,
@@ -190,7 +199,8 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
                 .from(qDeveloper)
                 .leftJoin(qDeveloper.user, qUser)
                 .where(qDeveloper.id.in(developerIds))
-                .orderBy(qDeveloper.createdAt.desc())
+                .orderBy(Expressions.numberTemplate(Integer.class, "FIELD({0}, {1})",
+                        qDeveloper.id, Expressions.constant(developerIds)).asc())
                 .fetch();
 
         long total = countDevelopersByFullText(keyword);

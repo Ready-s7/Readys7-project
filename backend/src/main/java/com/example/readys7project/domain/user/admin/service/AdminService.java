@@ -7,6 +7,7 @@ import com.example.readys7project.domain.user.admin.dto.response.UpdateAdminStat
 import com.example.readys7project.domain.user.admin.entity.Admin;
 import com.example.readys7project.domain.user.admin.enums.AdminStatus;
 import com.example.readys7project.domain.user.admin.repository.AdminRepository;
+import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.AdminException;
 import lombok.RequiredArgsConstructor;
@@ -73,6 +74,7 @@ public class AdminService {
         // 승인 메서드 호출
         if (updateAdminStatusRequestDto.adminStatus() == AdminStatus.APPROVED) {
             targetAdmin.adminStatusApprove();
+            targetAdmin.getUser().updateRole(UserRole.ADMIN);
         } else if (updateAdminStatusRequestDto.adminStatus() == AdminStatus.REJECTED) {
             targetAdmin.adminStatusReject();
         } else {
