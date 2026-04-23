@@ -38,6 +38,7 @@ public class ProjectService {
      * 프로젝트 생성 (CLIENT 역할을 가진 사용자만 가능)
      */
     @Transactional
+    @CacheEvict(value = "globalSearch", allEntries = true)
     public ProjectResponseDto createProject(ProjectCreateRequestDto request, String email) {
 
         if (request.minBudget() > request.maxBudget()) {
@@ -141,6 +142,7 @@ public class ProjectService {
      * 프로젝트 상태 변경 (AOP에서 소유권/관리자 검증)
      */
     @Transactional
+    @CacheEvict(value = "globalSearch", allEntries = true)
     public ProjectResponseDto changeProjectStatus(Long projectId, String statusStr) {
         Project project = findProject(projectId);
         if (!(statusStr.equalsIgnoreCase("COMPLETED")

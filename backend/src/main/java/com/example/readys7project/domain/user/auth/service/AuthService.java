@@ -25,6 +25,7 @@ import com.example.readys7project.global.security.JwtTokenProvider;
 import com.example.readys7project.global.security.refreshtoken.entity.RefreshToken;
 import com.example.readys7project.global.security.refreshtoken.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -85,6 +86,7 @@ public class AuthService {
 
     // 개발자 회원 가입
     @Transactional
+    @CacheEvict(value = "globalSearch", allEntries = true)
     public DeveloperRegisterResponseDto registerDeveloper(DeveloperRegisterRequestDto developerRegisterRequestDto) {
 
         // 해당 이메일이 이미 존재하는지 확인

@@ -81,6 +81,7 @@ public class DeveloperService {
 
     // 평점 업데이트 (ReviewService 같은 내부 클래스에서만 호출가능)
     @Transactional
+    @CacheEvict(value = "globalSearch", allEntries = true)
     @Retryable(
             retryFor = OptimisticLockingFailureException.class,  // 이 예외 발생 시 재시도
             maxAttempts = 3,                                      // 최대 3회 시도

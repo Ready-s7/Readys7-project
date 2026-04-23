@@ -171,6 +171,11 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
 
         // FULLTEXT로 찾은 id 목록을 기준으로 최종 응답 DTO를 조회
         // FIELD() 함수를 사용하여 검색된 ID 순서(최신순/정확도순)를 그대로 유지
+        String fieldExpr = "FIELD({0}, " +
+                developerIds.stream()
+                        .map(String::valueOf)
+                        .collect(Collectors.joining(", ")) + ")";
+
         List<DeveloperGlobalSearchResponseDto> content = queryFactory
                 .select(Projections.constructor(DeveloperGlobalSearchResponseDto.class,
                         qDeveloper.id,
@@ -193,8 +198,7 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
                 .from(qDeveloper)
                 .leftJoin(qDeveloper.user, qUser)
                 .where(qDeveloper.id.in(developerIds))
-                .orderBy(Expressions.numberTemplate(Integer.class, "FIELD({0}, {1})",
-                        qDeveloper.id, Expressions.constant(developerIds)).asc())
+                .orderBy(Expressions.numberTemplate(Integer.class, fieldExpr, qDeveloper.id).asc())
                 .fetch();
 
         long total = countDevelopersByFullText(keyword);
