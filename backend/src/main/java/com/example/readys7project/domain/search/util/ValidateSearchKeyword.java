@@ -4,6 +4,7 @@ import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.SearchException;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 @Component
@@ -17,11 +18,11 @@ public class ValidateSearchKeyword {
     private static final Pattern INVALID_PATTERN = Pattern.compile("[<>\"'%;()]");
 
     // 키워드 검증 공용 메서드
-    public String validateSearchKeyword(String keyword) {
+    public Optional<String> validateSearchKeyword(String keyword) {
 
-        // 키워드가 null이거나 비어있으면 null 리턴
+        // 키워드가 null이거나 비어있으면 빈 Optional 리턴
         if (keyword == null || keyword.isBlank()) {
-            return null;
+            return Optional.empty();
         }
 
         // 양끝 공백 제거 및 소문자 변환
@@ -29,7 +30,7 @@ public class ValidateSearchKeyword {
 
         // 최소글자 2글자로 제한 (의미없는 검색 방지)
         if (trimKeyword.length() < 2) {
-            return null;
+            return Optional.empty();
         }
 
         // 최대 글자수 제한
@@ -43,6 +44,6 @@ public class ValidateSearchKeyword {
         }
 
         // 검색 성능을 위해 불필요한 특수문자는 공백으로 치환하거나 제거
-        return trimKeyword;
+        return Optional.of(trimKeyword);
     }
 }

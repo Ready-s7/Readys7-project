@@ -176,9 +176,9 @@ public class ProjectQueryRepositoryImpl implements ProjectQueryRepository {
                         qProject.updatedAt
                 ))
                 .from(qProject)
-                .leftJoin(qProject.category, qCategory).fetchJoin()
-                .leftJoin(qProject.client, qClient).fetchJoin()
-                .leftJoin(qClient.user, qUser).fetchJoin()
+                .leftJoin(qProject.category, qCategory)
+                .leftJoin(qProject.client, qClient)
+                .leftJoin(qClient.user, qUser)
                 .where(qProject.id.in(projectIds))
                 .orderBy(qProject.createdAt.desc())
                 .fetch();

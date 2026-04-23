@@ -169,7 +169,7 @@ public class AuthService {
 
     @Transactional
     public AuthTokenDto login(LoginRequestDto request) {
-        // email로 User 조회
+        // email로 User 조회 (없으면 비밀번호 틀린 것과 동일한 에러 반환하여 보안 강화)
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new UserException(ErrorCode.USER_INFO_MISMATCH));
 

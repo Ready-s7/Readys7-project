@@ -3,6 +3,7 @@ package com.example.readys7project.domain.user.client.dto.response;
 import com.example.readys7project.domain.project.enums.ProjectStatus;
 import lombok.Builder;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -12,8 +13,8 @@ public record ClientProjectsListResponseDto(
         String title,
         String description,
         String category,
-        Long minBudget,
-        Long maxBudget,
+        BigDecimal minBudget,
+        BigDecimal maxBudget,
         Integer duration,
         ProjectStatus status,
         Integer currentProposalCount,
