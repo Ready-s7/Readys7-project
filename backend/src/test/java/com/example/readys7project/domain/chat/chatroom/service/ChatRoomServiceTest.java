@@ -4,6 +4,7 @@ import com.example.readys7project.domain.chat.chatroom.dto.request.CreateChatRoo
 import com.example.readys7project.domain.chat.chatroom.dto.response.ChatRoomResponseDto;
 import com.example.readys7project.domain.chat.chatroom.entity.ChatRoom;
 import com.example.readys7project.domain.chat.chatroom.repository.ChatRoomRepository;
+import com.example.readys7project.domain.chat.message.service.UnreadCountService;
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.project.repository.ProjectRepository;
 import com.example.readys7project.domain.proposal.entity.Proposal;
@@ -53,6 +54,7 @@ class ChatRoomServiceTest {
     @Mock private ProjectRepository projectRepository;
     @Mock private DeveloperRepository developerRepository;
     @Mock private ProposalRepository proposalRepository;
+    @Mock private UnreadCountService unreadCountService;
 
     private User createTestUser(Long id, String email, UserRole role) {
         User u = User.builder().email(email).name("User"+id).userRole(role).build();
@@ -83,6 +85,7 @@ class ChatRoomServiceTest {
         ChatRoom cr = ChatRoom.builder().project(project).client(client).developer(dev).build();
         ReflectionTestUtils.setField(cr, "id", 100L);
         given(chatRoomRepository.save(any())).willReturn(cr);
+        given(unreadCountService.getCount(100L, 1L)).willReturn(0L);
 
         ChatRoomResponseDto res = chatRoomService.createChatRoom(new CreateChatRoomRequestDto(1L, 20L), email);
         assertThat(res.id()).isEqualTo(100L);
@@ -116,14 +119,24 @@ class ChatRoomServiceTest {
         User user = createTestUser(1L, "u@t.com", UserRole.CLIENT);
         PageRequest pr = PageRequest.of(0, 10);
         ChatRoom cr = mock(ChatRoom.class);
-        given(cr.getProject()).willReturn(Project.builder().title("T").build());
-        given(cr.getClient()).willReturn(mock(Client.class));
-        given(cr.getClient().getUser()).willReturn(user);
-        given(cr.getDeveloper()).willReturn(mock(Developer.class));
-        given(cr.getDeveloper().getUser()).willReturn(mock(User.class));
+        Project project = Project.builder().title("T").build();
+        ReflectionTestUtils.setField(project, "id", 1L);
+        Client client = mock(Client.class);
+        Developer developer = mock(Developer.class);
+        User developerUser = createTestUser(2L, "d@t.com", UserRole.DEVELOPER);
+
+        given(cr.getId()).willReturn(100L);
+        given(cr.getProject()).willReturn(project);
+        given(cr.getClient()).willReturn(client);
+        given(client.getId()).willReturn(10L);
+        given(client.getUser()).willReturn(user);
+        given(cr.getDeveloper()).willReturn(developer);
+        given(developer.getId()).willReturn(20L);
+        given(developer.getUser()).willReturn(developerUser);
 
         given(userRepository.findByEmail(anyString())).willReturn(Optional.of(user));
         given(chatRoomRepository.findMyChatRooms(eq(user), any())).willReturn(new PageImpl<>(List.of(cr), pr, 1));
+        given(unreadCountService.getCount(100L, 1L)).willReturn(0L);
 
         Page<ChatRoomResponseDto> res = chatRoomService.getMyChatRooms("u@t.com", pr);
         assertThat(res.getContent()).hasSize(1);

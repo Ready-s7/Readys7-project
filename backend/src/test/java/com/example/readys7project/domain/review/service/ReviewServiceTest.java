@@ -108,7 +108,6 @@ class ReviewServiceTest {
 
         ReviewDto result = reviewService.createReview(request, targetUserId, email);
         assertThat(result.id()).isEqualTo(100L);
-        verify(developerService).updateRating(eq(20L));
     }
 
     @Test
@@ -151,7 +150,6 @@ class ReviewServiceTest {
 
         ReviewDto result = reviewService.createReview(request, targetUserId, email);
         assertThat(result.id()).isEqualTo(101L);
-        verify(clientService).updateRating(eq(10L));
     }
 
     @Test
@@ -494,7 +492,6 @@ class ReviewServiceTest {
 
         // then
         assertThat(result.id()).isEqualTo(200L);
-        verify(clientService).updateRating(eq(10L));
     }
 
     @Test
@@ -550,7 +547,6 @@ class ReviewServiceTest {
 
         // then
         assertThat(result.id()).isEqualTo(201L);
-        verify(clientService).updateRating(eq(10L));
     }
 
     @Test

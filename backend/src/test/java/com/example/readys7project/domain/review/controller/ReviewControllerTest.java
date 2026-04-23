@@ -5,6 +5,7 @@ import com.example.readys7project.domain.review.dto.request.ReviewRequestDto;
 import com.example.readys7project.domain.review.dto.request.ReviewUpdateRequestDto;
 import com.example.readys7project.domain.review.enums.ReviewRole;
 import com.example.readys7project.domain.review.service.ReviewService;
+import com.example.readys7project.domain.review.service.ReviewTransactionService;
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.common.GlobalExceptionHandler;
 import com.example.readys7project.global.exception.domain.ReviewException;
@@ -49,6 +50,8 @@ class ReviewControllerTest {
 
     @Mock
     private ReviewService reviewService;
+    @Mock
+    private ReviewTransactionService reviewTransactionService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private CustomUserDetails mockUserDetails;
@@ -85,7 +88,7 @@ class ReviewControllerTest {
                 .projectId(1L).projectTitle("Project").writerRole(ReviewRole.CLIENT).rating(5)
                 .comment("매우 만족합니다.").createdAt(LocalDateTime.now()).build();
 
-        given(reviewService.createReview(any(ReviewRequestDto.class), anyLong(), anyString()))
+        given(reviewTransactionService.createReviewWithRatingUpdate(any(ReviewRequestDto.class), anyLong(), anyString()))
                 .willReturn(responseDto);
 
         // when & then
@@ -93,7 +96,7 @@ class ReviewControllerTest {
                         .param("targetUserId", "10")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.status").value(201))
                 .andExpect(jsonPath("$.data.id").value(1L))
@@ -220,7 +223,7 @@ class ReviewControllerTest {
     void createReview_AlreadyExists_Fail() throws Exception {
         // given
         ReviewRequestDto request = new ReviewRequestDto(1L, 5, "매우 만족합니다.");
-        given(reviewService.createReview(any(), anyLong(), anyString()))
+        given(reviewTransactionService.createReviewWithRatingUpdate(any(), anyLong(), anyString()))
                 .willThrow(new ReviewException(ErrorCode.REVIEW_ALREADY_EXISTS));
 
         // when & then

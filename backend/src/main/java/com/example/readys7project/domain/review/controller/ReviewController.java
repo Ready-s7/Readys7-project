@@ -34,7 +34,8 @@ public class ReviewController {
         String email = customUserDetails.getEmail();
         ReviewDto result = reviewTransactionService.createReviewWithRatingUpdate(
                 request, targetUserId, email);
-        return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK, result));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponseDto.success(HttpStatus.CREATED, result));
     }
 
     // 개발자 조회
