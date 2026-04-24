@@ -5,7 +5,7 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { Search, Loader2, Briefcase, Tag, Wrench, Users, Star } from "lucide-react";
+import { Search, Loader2, Briefcase, Tag, Wrench, Users, Star, User, Calendar, Target } from "lucide-react";
 import { searchApi } from "../../../api/apiService";
 import type { TotalSearchResponseDto } from "../../../api/types";
 
