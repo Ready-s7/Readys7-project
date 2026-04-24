@@ -3,9 +3,8 @@ import { Link } from "react-router";
 import { Card, CardContent } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
 import { 
-  Search, Users, Star, MessageSquare, Layout, Loader2 
+  Users, Star, MessageSquare, Layout, Loader2 
 } from "lucide-react";
 import { clientApi } from "../../../api/apiService";
 import type { ClientDto } from "../../../api/types";
@@ -13,14 +12,10 @@ import type { ClientDto } from "../../../api/types";
 export function ClientList() {
   const [clients, setClients] = useState<ClientDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  useEffect(() => {
-    setCurrentPage(0);
-  }, [searchTerm]);
-
+  // 페이지 변경 시 데이터 로드
   useEffect(() => {
     fetchClients();
   }, [currentPage]);
@@ -28,10 +23,14 @@ export function ClientList() {
   const fetchClients = async () => {
     setIsLoading(true);
     try {
-      // clientApi.getAll(page, size) 규격에 맞게 호출 (백엔드 0-based)
-      const res = await clientApi.getAll(currentPage, 9);
-      setClients(res.data.data.content || []);
-      setTotalPages(res.data.data.totalPages || 0);
+      // clientApi.getAll(page, size) positional arguments
+      // 백엔드 Pageable 규격이 1-based인 경우 +1
+      const res = await clientApi.getAll(currentPage + 1, 9);
+      
+      if (res.data?.data) {
+        setClients(res.data.data.content || []);
+        setTotalPages(res.data.data.totalPages || 0);
+      }
     } catch (e) {
       console.error("클라이언트 로드 실패:", e);
     } finally {
@@ -41,7 +40,7 @@ export function ClientList() {
 
   if (isLoading && clients.length === 0) {
     return (
-      <div className="flex justify-center py-32">
+      <div className="flex justify-center py-32 bg-background min-h-screen">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -50,30 +49,17 @@ export function ClientList() {
   return (
     <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4 max-w-5xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary p-2 rounded-xl">
-              <Users className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <h1 className="text-3xl font-bold text-foreground">클라이언트 찾기</h1>
+        <div className="flex items-center gap-3 mb-10">
+          <div className="bg-primary p-2 rounded-xl">
+            <Users className="w-6 h-6 text-primary-foreground" />
           </div>
-
-          <div className="relative w-full md:w-80">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="클라이언트 명으로 검색"
-              className="pl-11 h-11 bg-card border-border rounded-xl focus:ring-primary/20 text-foreground"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+          <h1 className="text-3xl font-bold text-foreground">클라이언트 찾기</h1>
         </div>
 
         {clients.length === 0 && !isLoading ? (
           <div className="text-center py-32 bg-card rounded-3xl border border-dashed border-border">
-            <Search className="w-16 h-16 mx-auto mb-4 text-muted-foreground/20" />
-            <p className="text-xl font-bold text-foreground mb-2">검색 결과가 없습니다.</p>
-            <p className="text-muted-foreground">다른 키워드로 검색해보시겠어요?</p>
+            <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground/20" />
+            <p className="text-xl font-bold text-foreground mb-2">등록된 클라이언트가 없습니다.</p>
           </div>
         ) : (
           <>
@@ -109,7 +95,7 @@ export function ClientList() {
                       <div className="flex items-center justify-between text-sm text-muted-foreground pt-1">
                         <div className="flex items-center gap-1.5">
                           <Layout className="w-4 h-4" />
-                          <span>{client.completedProject || 0} 프로젝트 완료</span>
+                          <span>{client.totalProjects || 0} 프로젝트 등록</span>
                         </div>
                       </div>
                     </CardContent>
