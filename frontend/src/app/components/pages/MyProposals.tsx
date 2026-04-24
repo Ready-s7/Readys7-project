@@ -76,21 +76,26 @@ export function MyProposals() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4 max-w-3xl">
-        <h1 className="text-3xl mb-6">내 제안서 목록</h1>
+        <div className="flex items-center gap-3 mb-8">
+          <div className="bg-primary p-2 rounded-xl">
+            <FileText className="w-6 h-6 text-primary-foreground" />
+          </div>
+          <h1 className="text-3xl font-bold text-foreground">내 제안서 목록</h1>
+        </div>
 
         {isLoading ? (
           <div className="flex justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : !proposals || proposals.length === 0 ? (
-          <Card>
-            <CardContent className="p-12 text-center text-gray-500">
-              <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>제출한 제안서가 없습니다.</p>
-              <Link to="/projects" className="mt-4 inline-block">
-                <Button variant="outline">프로젝트 찾기</Button>
+          <Card className="bg-card border-border border-dashed rounded-3xl">
+            <CardContent className="p-16 text-center text-muted-foreground">
+              <FileText className="w-16 h-16 mx-auto mb-4 opacity-20" />
+              <p className="text-xl font-bold mb-4">제출한 제안서가 없습니다.</p>
+              <Link to="/projects">
+                <Button variant="outline" className="rounded-xl border-border hover:bg-secondary font-bold px-6">프로젝트 찾기</Button>
               </Link>
             </CardContent>
           </Card>
@@ -99,35 +104,49 @@ export function MyProposals() {
             {proposals.map((p) => {
               const statusInfo = STATUS_LABELS[p.status] ?? { label: p.status, variant: "outline" as const };
               return (
-                <Card key={p.id}>
+                <Card key={p.id} className="bg-card border-border hover:shadow-md transition-all rounded-2xl group">
                   <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-start justify-between mb-4">
                       <div>
                         <Link to={`/projects/${p.projectId}`}>
-                          <h3 className="font-medium text-lg hover:text-blue-600">{p.projectTitle}</h3>
+                          <h3 className="font-bold text-xl text-foreground group-hover:text-primary transition-colors">{p.projectTitle}</h3>
                         </Link>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-xs text-muted-foreground mt-2 font-medium">
                           {new Date(p.createdAt).toLocaleDateString("ko-KR")} 제출
                         </p>
                       </div>
-                      <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+                      <Badge variant={statusInfo.variant} className={`font-bold px-3 py-1 rounded-lg ${
+                        p.status === "PENDING" ? "bg-primary text-primary-foreground" :
+                        p.status === "ACCEPTED" ? "bg-green-500 text-white" :
+                        p.status === "REJECTED" ? "bg-destructive text-destructive-foreground" : "bg-secondary text-muted-foreground"
+                      }`}>
+                        {statusInfo.label}
+                      </Badge>
                     </div>
 
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{p.coverLetter}</p>
+                    <div className="bg-secondary/20 p-4 rounded-xl mb-4 border border-border/50">
+                      <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">{p.coverLetter}</p>
+                    </div>
 
-                    <div className="flex gap-4 text-sm text-gray-600 mb-4">
-                      <span>제안 예산: {p.proposedBudget}</span>
-                      <span>제안 기간: {p.proposedDuration}</span>
+                    <div className="flex gap-6 text-sm mb-5 ml-1">
+                      <div className="flex flex-col">
+                        <span className="text-xs text-muted-foreground font-bold uppercase mb-1">제안 예산</span>
+                        <span className="text-foreground font-bold">{Number(p.proposedBudget).toLocaleString()}원</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs text-muted-foreground font-bold uppercase mb-1">제안 기간</span>
+                        <span className="text-foreground font-bold">{p.proposedDuration}일</span>
+                      </div>
                     </div>
 
                     {p.status === "PENDING" && (
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-red-600 hover:bg-red-50"
+                        className="rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10 font-bold h-10 px-5"
                         onClick={() => handleWithdraw(p.id)}
                       >
-                        제안서 철회
+                        제안서 철회하기
                       </Button>
                     )}
                   </CardContent>
@@ -136,12 +155,38 @@ export function MyProposals() {
             })}
 
             {totalPages > 1 && (
-              <div className="flex justify-center gap-2 mt-6">
-                <Button variant="outline" size="sm" disabled={currentPage === 0}
-                  onClick={() => setCurrentPage((p) => p - 1)}>이전</Button>
-                <span className="flex items-center px-4 text-sm">{currentPage + 1} / {totalPages}</span>
-                <Button variant="outline" size="sm" disabled={currentPage >= totalPages - 1}
-                  onClick={() => setCurrentPage((p) => p + 1)}>다음</Button>
+              <div className="flex justify-center gap-3 mt-16">
+                <Button 
+                  variant="outline" 
+                  className="rounded-xl h-10 px-6 font-bold border-border text-foreground hover:bg-secondary"
+                  disabled={currentPage === 0} 
+                  onClick={() => setCurrentPage((p) => p - 1)}
+                >
+                  이전
+                </Button>
+                <div className="flex items-center gap-2">
+                  {[...Array(totalPages)].map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentPage(i)}
+                      className={`w-10 h-10 rounded-xl font-bold transition-all ${
+                        currentPage === i 
+                          ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-110" 
+                          : "bg-card text-muted-foreground hover:bg-secondary border border-border"
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="rounded-xl h-10 px-6 font-bold border-border text-foreground hover:bg-secondary"
+                  disabled={currentPage >= totalPages - 1} 
+                  onClick={() => setCurrentPage((p) => p + 1)}
+                >
+                  다음
+                </Button>
               </div>
             )}
           </div>

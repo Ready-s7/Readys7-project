@@ -48,6 +48,7 @@ import {
   Trash2,
   Users,
   MessageSquare,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { adminApi, categoryApi, skillApi, csApi } from "../../../api/apiService";
@@ -306,39 +307,47 @@ export function AdminDashboard() {
 
         {/* 통계 카드 */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card className="bg-card border-border">
+          <Card className="bg-card border-border shadow-sm rounded-2xl hover:shadow-md transition-shadow">
             <CardContent className="p-5 flex items-center gap-4">
-              <Users className="w-8 h-8 text-amber-500" />
+              <div className="bg-amber-500/10 p-2.5 rounded-xl">
+                <Users className="w-6 h-6 text-amber-500" />
+              </div>
               <div>
-                <p className="text-sm text-muted-foreground">대기 중 관리자</p>
-                <p className="text-2xl font-bold text-foreground">{pendingAdmins.length}</p>
+                <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1">대기 중 관리자</p>
+                <p className="text-2xl font-black text-foreground">{pendingAdmins.length}</p>
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-card border-border">
+          <Card className="bg-card border-border shadow-sm rounded-2xl hover:shadow-md transition-shadow">
             <CardContent className="p-5 flex items-center gap-4">
-              <Tag className="w-8 h-8 text-blue-500" />
+              <div className="bg-blue-500/10 p-2.5 rounded-xl">
+                <Tag className="w-6 h-6 text-blue-500" />
+              </div>
               <div>
-                <p className="text-sm text-muted-foreground">카테고리 수</p>
-                <p className="text-2xl font-bold text-foreground">{categories.length}</p>
+                <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1">카테고리 수</p>
+                <p className="text-2xl font-black text-foreground">{categories.length}</p>
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-card border-border">
+          <Card className="bg-card border-border shadow-sm rounded-2xl hover:shadow-md transition-shadow">
             <CardContent className="p-5 flex items-center gap-4">
-              <Wrench className="w-8 h-8 text-green-500" />
+              <div className="bg-green-500/10 p-2.5 rounded-xl">
+                <Wrench className="w-6 h-6 text-green-500" />
+              </div>
               <div>
-                <p className="text-sm text-muted-foreground">스킬 수</p>
-                <p className="text-2xl font-bold text-foreground">{skills.length}</p>
+                <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1">스킬 수</p>
+                <p className="text-2xl font-black text-foreground">{skills.length}</p>
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-card border-border">
+          <Card className="bg-card border-border shadow-sm rounded-2xl hover:shadow-md transition-shadow">
             <CardContent className="p-5 flex items-center gap-4">
-              <MessageSquare className="w-8 h-8 text-indigo-500" />
+              <div className="bg-indigo-500/10 p-2.5 rounded-xl">
+                <MessageSquare className="w-6 h-6 text-indigo-500" />
+              </div>
               <div>
-                <p className="text-sm text-muted-foreground">CS 문의 수</p>
-                <p className="text-2xl font-bold text-foreground">{csRooms.length}</p>
+                <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1">CS 문의 수</p>
+                <p className="text-2xl font-black text-foreground">{csRooms.length}</p>
               </div>
             </CardContent>
           </Card>
@@ -351,23 +360,23 @@ export function AdminDashboard() {
           }}
           className="w-full"
         >
-          <TabsList className="mb-6 flex flex-wrap gap-1 bg-secondary/50 p-1 border border-border">
-            {isSuperAdmin && <TabsTrigger value="admins" className="data-[state=active]:bg-background data-[state=active]:text-primary">관리자 승인</TabsTrigger>}
-            <TabsTrigger value="categories" className="data-[state=active]:bg-background data-[state=active]:text-primary">카테고리 관리</TabsTrigger>
-            <TabsTrigger value="skills" className="data-[state=active]:bg-background data-[state=active]:text-primary">스킬 관리</TabsTrigger>
-            <TabsTrigger value="cs" className="data-[state=active]:bg-background data-[state=active]:text-primary">CS 문의 관리</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-8 bg-secondary/50 p-1 rounded-2xl border border-border h-14">
+            {isSuperAdmin && <TabsTrigger value="admins" className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-primary font-bold">관리자 승인</TabsTrigger>}
+            <TabsTrigger value="categories" className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-primary font-bold">카테고리</TabsTrigger>
+            <TabsTrigger value="skills" className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-primary font-bold">스킬</TabsTrigger>
+            <TabsTrigger value="cs" className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-primary font-bold">CS 문의</TabsTrigger>
           </TabsList>
 
           {/* ── 관리자 승인 탭 (SUPER_ADMIN 전용) ── */}
           {isSuperAdmin && (
             <TabsContent value="admins">
-              <Card className="bg-card border-border shadow-md">
-                <CardHeader>
+              <Card className="bg-card border-border shadow-md rounded-3xl overflow-hidden">
+                <CardHeader className="bg-secondary/20 pb-6 border-b border-border/50">
                   <CardTitle className="text-foreground">승인 대기 중인 관리자</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-8">
                   {pendingAdmins.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-10">
+                    <p className="text-center text-muted-foreground py-10 font-medium">
                       대기 중인 관리자가 없습니다.
                     </p>
                   ) : (
@@ -375,36 +384,37 @@ export function AdminDashboard() {
                       {pendingAdmins.map((admin) => (
                         <div
                           key={admin.id}
-                          className="flex items-center justify-between p-4 border border-border rounded-lg bg-secondary/20"
+                          className="flex items-center justify-between p-5 border border-border rounded-2xl bg-secondary/10 hover:bg-secondary/20 transition-colors"
                         >
                           <div>
-                            <p className="font-medium text-foreground">{admin.name}</p>
-                            <p className="text-sm text-muted-foreground">{admin.email}</p>
-                            <Badge variant="outline" className="mt-1 text-xs border-border text-muted-foreground">
+                            <p className="font-bold text-lg text-foreground">{admin.name}</p>
+                            <p className="text-sm text-muted-foreground mb-2">{admin.email}</p>
+                            <Badge variant="outline" className="text-[10px] border-primary/20 bg-primary/5 text-primary font-bold px-2 py-0">
                               {admin.adminRole}
                             </Badge>
                           </div>
                           <div className="flex gap-2">
                             <Button
                               size="sm"
-                              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
+                              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl px-4 h-10"
                               onClick={() => handleAdminAction(admin.adminId!, "APPROVED")}
                               disabled={processingId === admin.adminId}
                             >
                               {processingId === admin.id ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <Loader2 className="w-4 h-4 animate-spin mr-1" />
                               ) : (
-                                <CheckCircle className="w-4 h-4 mr-1" />
+                                <CheckCircle className="w-4 h-4 mr-2" />
                               )}
                               승인
                             </Button>
                             <Button
                               size="sm"
                               variant="destructive"
+                              className="rounded-xl px-4 h-10 font-bold"
                               onClick={() => handleAdminAction(admin.adminId!, "REJECTED")}
                               disabled={processingId === admin.adminId}
                             >
-                              <XCircle className="w-4 h-4 mr-1" />
+                              <XCircle className="w-4 h-4 mr-2" />
                               거절
                             </Button>
                           </div>
@@ -419,27 +429,29 @@ export function AdminDashboard() {
 
           {/* ── 카테고리 관리 탭 ── */}
           <TabsContent value="categories">
-            <Card className="bg-card border-border shadow-md">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-foreground">카테고리 관리</CardTitle>
-                <Button size="sm" onClick={openCatCreate} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
+            <Card className="bg-card border-border shadow-md rounded-3xl overflow-hidden">
+              <CardHeader className="bg-secondary/20 pb-6 border-b border-border/50 flex flex-row items-center justify-between">
+                <CardTitle className="text-foreground">카테고리 리스트</CardTitle>
+                <Button size="sm" onClick={openCatCreate} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl px-4">
                   <Plus className="w-4 h-4 mr-1" />
-                  추가
+                  카테고리 추가
                 </Button>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-8">
                 <div className="space-y-3">
                   {categories.map((cat) => (
                     <div
                       key={cat.id}
-                      className="flex items-center justify-between p-4 border border-border rounded-lg bg-secondary/20"
+                      className="flex items-center justify-between p-5 border border-border rounded-2xl bg-secondary/10 hover:bg-secondary/20 transition-colors"
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{cat.icon ?? "📦"}</span>
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-card rounded-xl flex items-center justify-center text-2xl shadow-sm border border-border">
+                          {cat.icon ?? "📦"}
+                        </div>
                         <div>
-                          <p className="font-medium text-foreground">{cat.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            순서: {cat.displayOrder}
+                          <p className="font-bold text-lg text-foreground">{cat.name}</p>
+                          <p className="text-sm text-muted-foreground font-medium">
+                            정렬 순서: <span className="text-primary">{cat.displayOrder}</span>
                             {cat.description && ` · ${cat.description}`}
                           </p>
                         </div>
@@ -448,7 +460,7 @@ export function AdminDashboard() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="text-muted-foreground hover:text-foreground hover:bg-secondary"
+                          className="text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl w-10 h-10 p-0"
                           onClick={() => openCatEdit(cat)}
                         >
                           <Pencil className="w-4 h-4" />
@@ -456,7 +468,7 @@ export function AdminDashboard() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="text-destructive hover:text-destructive/80 hover:bg-destructive/10"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10 rounded-xl w-10 h-10 p-0"
                           onClick={() => setDeleteCat(cat)}
                         >
                           <Trash2 className="w-4 h-4" />

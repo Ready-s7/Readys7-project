@@ -199,7 +199,7 @@ export function ProjectList() {
                               {(project.minBudget || 0).toLocaleString()} ~ {(project.maxBudget || 0).toLocaleString()}원
                             </div>
                             <div className="text-muted-foreground text-sm mb-4">예상 기간: {project.duration || 0}일</div>
-                            {project.status === "OPEN" && userRole === "DEVELOPER" && <Button className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground">제안하기</Button>}
+                            {project.status === "OPEN" && userRole === "DEVELOPER" && <Button className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl">제안하기</Button>}
                           </div>
                         </div>
                       </CardContent>
@@ -216,10 +216,38 @@ export function ProjectList() {
             )}
 
             {totalPages > 1 && (
-              <div className="flex justify-center gap-2 mt-8">
-                <Button variant="outline" size="sm" disabled={currentPage === 0} onClick={() => setCurrentPage((p) => p - 1)} className="border-border text-foreground hover:bg-secondary">이전</Button>
-                <span className="flex items-center px-4 text-sm text-muted-foreground">{currentPage + 1} / {totalPages}</span>
-                <Button variant="outline" size="sm" disabled={currentPage >= totalPages - 1} onClick={() => setCurrentPage((p) => p + 1)} className="border-border text-foreground hover:bg-secondary">다음</Button>
+              <div className="flex justify-center gap-3 mt-16">
+                <Button 
+                  variant="outline" 
+                  className="rounded-xl h-10 px-6 font-bold border-border text-foreground hover:bg-secondary"
+                  disabled={currentPage === 0} 
+                  onClick={() => setCurrentPage((p) => p - 1)}
+                >
+                  이전
+                </Button>
+                <div className="flex items-center gap-2">
+                  {[...Array(totalPages)].map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentPage(i)}
+                      className={`w-10 h-10 rounded-xl font-bold transition-all ${
+                        currentPage === i 
+                          ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-110" 
+                          : "bg-card text-muted-foreground hover:bg-secondary border border-border"
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="rounded-xl h-10 px-6 font-bold border-border text-foreground hover:bg-secondary"
+                  disabled={currentPage >= totalPages - 1} 
+                  onClick={() => setCurrentPage((p) => p + 1)}
+                >
+                  다음
+                </Button>
               </div>
             )}
           </>

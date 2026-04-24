@@ -219,28 +219,30 @@ export function MyPortfolio() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4 max-w-4xl">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <Briefcase className="w-7 h-7 text-blue-600" />
-            <h1 className="text-3xl">내 포트폴리오</h1>
+            <div className="bg-primary p-2 rounded-xl">
+              <Briefcase className="w-6 h-6 text-primary-foreground" />
+            </div>
+            <h1 className="text-3xl font-bold text-foreground">내 포트폴리오</h1>
           </div>
-          <Button onClick={openCreateModal}>
+          <Button onClick={openCreateModal} className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-11 px-6 shadow-lg shadow-primary/20">
             <Plus className="w-4 h-4 mr-2" />
             포트폴리오 추가
           </Button>
         </div>
 
         {portfolios.length === 0 ? (
-          <Card>
-            <CardContent className="p-16 text-center text-gray-500">
-              <Briefcase className="w-14 h-14 mx-auto mb-4 opacity-30" />
-              <p className="text-lg mb-2">아직 포트폴리오가 없습니다.</p>
-              <p className="text-sm mb-6">
+          <Card className="bg-card border-border border-dashed rounded-3xl">
+            <CardContent className="p-16 text-center text-muted-foreground">
+              <Briefcase className="w-16 h-16 mx-auto mb-4 opacity-20" />
+              <p className="text-xl font-bold mb-2 text-foreground">아직 포트폴리오가 없습니다.</p>
+              <p className="text-sm mb-8 text-muted-foreground">
                 첫 번째 포트폴리오를 추가하여 클라이언트에게 역량을 보여주세요!
               </p>
-              <Button onClick={openCreateModal}>
+              <Button onClick={openCreateModal} className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 h-12">
                 <Plus className="w-4 h-4 mr-2" />
                 첫 포트폴리오 추가
               </Button>
@@ -249,75 +251,76 @@ export function MyPortfolio() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {portfolios.map((portfolio) => (
-              <Card key={portfolio.id} className="overflow-hidden">
+              <Card key={portfolio.id} className="bg-card border-border hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 rounded-2xl group overflow-hidden">
                 {portfolio.imageUrl ? (
-                  <img
-                    src={portfolio.imageUrl}
-                    alt={portfolio.title}
-                    className="w-full h-48 object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = "none";
-                    }}
-                  />
+                  <div className="relative aspect-video overflow-hidden bg-secondary/30">
+                    <img
+                      src={portfolio.imageUrl}
+                      alt={portfolio.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).parentElement!.style.display = "none";
+                      }}
+                    />
+                  </div>
                 ) : (
-                  <div className="w-full h-40 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-                    <ImageIcon className="w-12 h-12 text-blue-300" />
+                  <div className="aspect-video bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
+                    <ImageIcon className="w-16 h-16 text-primary/20" />
                   </div>
                 )}
-                <CardContent className="p-5">
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="font-semibold text-lg line-clamp-1">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="font-bold text-xl text-foreground line-clamp-1 group-hover:text-primary transition-colors">
                       {portfolio.title}
                     </h3>
-                    <div className="flex gap-1 ml-2 shrink-0">
+                    <div className="flex gap-2 ml-2 shrink-0">
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="text-blue-600 h-8 w-8 p-0"
+                        className="text-primary hover:bg-primary/10 h-9 w-9 p-0 rounded-lg"
                         onClick={() => openEditModal(portfolio)}
-                        title="수정"
                       >
                         <Pencil className="w-4 h-4" />
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="text-red-500 h-8 w-8 p-0"
+                        className="text-destructive hover:bg-destructive/10 h-9 w-9 p-0 rounded-lg"
                         onClick={() => setDeleteTarget(portfolio)}
-                        title="삭제"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
 
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                  <p className="text-muted-foreground text-sm mb-6 line-clamp-2 leading-relaxed h-10">
                     {portfolio.description}
                   </p>
 
-                  <div className="flex flex-wrap gap-1 mb-3">
+                  <div className="flex flex-wrap gap-1.5 mb-6 min-h-[28px]">
                     {portfolio.skills.map((skill) => (
-                      <Badge key={skill} variant="outline" className="text-xs">
+                      <Badge key={skill} variant="outline" className="text-[10px] bg-secondary/30 border-border text-muted-foreground px-2 py-0">
                         {skill}
                       </Badge>
                     ))}
                   </div>
 
-                  {portfolio.projectUrl && (
-                    <a
-                      href={portfolio.projectUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 text-sm flex items-center gap-1 hover:underline"
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                      프로젝트 링크
-                    </a>
-                  )}
-
-                  <p className="text-xs text-gray-400 mt-3">
-                    {new Date(portfolio.createdAt).toLocaleDateString("ko-KR")} 등록
-                  </p>
+                  <div className="flex items-center justify-between pt-4 border-t border-border/50">
+                    {portfolio.projectUrl ? (
+                      <a
+                        href={portfolio.projectUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary text-xs font-bold flex items-center gap-1.5 hover:underline"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        프로젝트 보기
+                      </a>
+                    ) : <div />}
+                    <p className="text-[11px] text-muted-foreground/50 font-medium">
+                      {new Date(portfolio.createdAt).toLocaleDateString("ko-KR")}
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -327,24 +330,25 @@ export function MyPortfolio() {
 
       {/* 추가/수정 모달 */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-card border-border rounded-3xl">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-foreground">
               {editTarget ? "포트폴리오 수정" : "포트폴리오 추가"}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+          <form onSubmit={handleSubmit} className="space-y-6 mt-4">
             <div className="space-y-2">
-              <Label>제목 *</Label>
+              <Label className="text-sm font-bold text-muted-foreground ml-1">제목 *</Label>
               <Input
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 placeholder="포트폴리오 제목"
+                className="h-12 bg-secondary/30 border-border rounded-xl focus:ring-primary/20"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label>설명 *</Label>
+              <Label className="text-sm font-bold text-muted-foreground ml-1">설명 *</Label>
               <Textarea
                 value={form.description}
                 onChange={(e) =>
@@ -352,34 +356,39 @@ export function MyPortfolio() {
                 }
                 placeholder="프로젝트 설명, 역할, 성과 등을 작성해주세요."
                 rows={4}
+                className="bg-secondary/30 border-border rounded-xl focus:ring-primary/20 p-4 resize-none"
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label>이미지 URL</Label>
-              <Input
-                value={form.imageUrl}
-                onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-                placeholder="https://example.com/image.jpg"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-bold text-muted-foreground ml-1">이미지 URL</Label>
+                <Input
+                  value={form.imageUrl}
+                  onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                  placeholder="https://..."
+                  className="h-12 bg-secondary/30 border-border rounded-xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-bold text-muted-foreground ml-1">프로젝트 링크</Label>
+                <Input
+                  value={form.projectUrl}
+                  onChange={(e) =>
+                    setForm({ ...form, projectUrl: e.target.value })
+                  }
+                  placeholder="https://github.com/..."
+                  className="h-12 bg-secondary/30 border-border rounded-xl"
+                />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label>프로젝트 링크</Label>
-              <Input
-                value={form.projectUrl}
-                onChange={(e) =>
-                  setForm({ ...form, projectUrl: e.target.value })
-                }
-                placeholder="https://github.com/..."
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>기술 스택 * (최소 1개)</Label>
+              <Label className="text-sm font-bold text-muted-foreground ml-1">기술 스택 * (최소 1개)</Label>
               <Select onValueChange={(val) => addSkill(val)}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="h-12 bg-secondary/30 border-border rounded-xl">
                   <SelectValue placeholder="기술 스택 선택" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-card border-border">
                   {skillOptions.map((skill) => (
                     <SelectItem key={skill} value={skill}>
                       {skill}
@@ -388,14 +397,14 @@ export function MyPortfolio() {
                 </SelectContent>
               </Select>
               {form.skills.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
+                <div className="flex flex-wrap gap-2 mt-3 p-3 bg-secondary/20 rounded-xl border border-border/50">
                   {form.skills.map((skill) => (
-                    <Badge key={skill} variant="secondary" className="pr-1">
+                    <Badge key={skill} variant="secondary" className="bg-primary/10 text-primary border-none font-bold px-3 py-1">
                       {skill}
                       <button
                         type="button"
                         onClick={() => removeSkill(skill)}
-                        className="ml-2 hover:bg-gray-300 rounded-full p-0.5"
+                        className="ml-2 hover:bg-primary/20 rounded-full p-0.5"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -404,8 +413,8 @@ export function MyPortfolio() {
                 </div>
               )}
             </div>
-            <div className="flex gap-3 pt-2">
-              <Button type="submit" className="flex-1" disabled={isSubmitting}>
+            <div className="flex gap-3 pt-4">
+              <Button type="submit" className="flex-1 h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : null}
@@ -414,6 +423,7 @@ export function MyPortfolio() {
               <Button
                 type="button"
                 variant="outline"
+                className="h-12 border-border text-foreground hover:bg-secondary font-bold rounded-xl px-8"
                 onClick={() => setShowModal(false)}
               >
                 취소

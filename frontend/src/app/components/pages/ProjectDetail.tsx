@@ -326,9 +326,10 @@ export function ProjectDetail() {
               <CardContent>
                 <Link to={`/clients/${project.clientId}`} className="block group">
                   <p className="font-bold text-xl text-foreground group-hover:text-primary transition-colors">{project.clientName}</p>
-                  <div className="flex items-center gap-1 text-sm text-yellow-500 mt-1">
+                  <div className="flex items-center gap-1.5 text-sm text-yellow-400 mt-2 bg-yellow-400/10 w-fit px-3 py-1 rounded-full border border-yellow-400/20">
                     <Star className="w-4 h-4 fill-current" />
-                    <span className="font-bold">{project.clientRating?.toFixed(1) || "0.0"}</span>
+                    <span className="font-black">{project.clientRating?.toFixed(1) || "0.0"}</span>
+                    <span className="text-muted-foreground font-normal ml-0.5">평점</span>
                   </div>
                 </Link>
                 <Separator className="my-6 border-border" />
