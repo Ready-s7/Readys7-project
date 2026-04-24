@@ -7,6 +7,7 @@ import com.example.readys7project.domain.user.developer.entity.Developer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,4 +19,6 @@ public interface ProposalRepository extends JpaRepository<Proposal, Long>, Propo
     boolean existsByProjectIdAndStatus(Long projectId, ProposalStatus status);
 
     Optional<Proposal> findByProjectAndDeveloper(Project project, Developer loginDeveloper);
+
+    Optional<Proposal> findByProjectAndStatus(Project project, ProposalStatus proposalStatus);
 }

@@ -145,4 +145,7 @@ public class Developer extends BaseEntity {
         this.reviewCount = reviewCount;
     }
 
+    public void incrementCompletedProject() {
+        this.completedProjects++;
+    }
 }

@@ -8,11 +8,15 @@ import com.example.readys7project.domain.project.dto.request.ProjectUpdateReques
 import com.example.readys7project.domain.project.entity.Project;
 import com.example.readys7project.domain.project.enums.ProjectStatus;
 import com.example.readys7project.domain.project.repository.ProjectRepository;
+import com.example.readys7project.domain.proposal.entity.Proposal;
+import com.example.readys7project.domain.proposal.enums.ProposalStatus;
+import com.example.readys7project.domain.proposal.repository.ProposalRepository;
 import com.example.readys7project.domain.user.auth.entity.User;
 import com.example.readys7project.domain.user.auth.enums.UserRole;
 import com.example.readys7project.domain.user.auth.repository.UserRepository;
 import com.example.readys7project.domain.user.client.entity.Client;
 import com.example.readys7project.domain.user.client.repository.ClientRepository;
+import com.example.readys7project.domain.user.developer.repository.DeveloperRepository;
 import com.example.readys7project.global.exception.common.ErrorCode;
 import com.example.readys7project.global.exception.domain.ProjectException;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +37,8 @@ public class ProjectService {
     private final UserRepository userRepository;
     private final ClientRepository clientRepository;
     private final CategoryRepository categoryRepository;
+    private final ProposalRepository proposalRepository;
+    private final DeveloperRepository developerRepository;
 
     /**
      * 프로젝트 생성 (CLIENT 역할을 가진 사용자만 가능)
@@ -153,6 +159,17 @@ public class ProjectService {
 
         validateStatusTransition(project.getStatus(), newStatus);
         project.changeStatus(newStatus);
+
+        if (newStatus.equals(ProjectStatus.COMPLETED)) {
+            Client client = clientRepository.findByUser(project.getClient().getUser()).orElseThrow(
+                    () -> new ProjectException(ErrorCode.CLIENT_NOT_FOUND)
+            );
+            Proposal proposal = proposalRepository.findByProjectAndStatus(project, ProposalStatus.ACCEPTED).orElseThrow(
+                    () -> new ProjectException(ErrorCode.PROPOSAL_NOT_FOUND)
+            );
+            client.incrementCompletedProject();
+            proposal.getDeveloper().incrementCompletedProject();
+        }
 
         return convertToDto(project);
     }

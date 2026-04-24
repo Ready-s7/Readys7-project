@@ -82,5 +82,7 @@ public class Client extends BaseEntity {
         this.reviewCount = reviewCount;
     }
 
-
+    public void incrementCompletedProject() {
+        this.completedProject++;
+    }
 }
