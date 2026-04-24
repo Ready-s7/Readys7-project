@@ -91,64 +91,73 @@ export function ProfileView() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-background py-12">
       <div className="container mx-auto px-4 max-w-3xl">
         {/* 상단 헤더 영역 */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
-          <div className="flex items-center gap-5">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl flex items-center justify-center text-white shadow-xl">
-              <User className="w-10 h-10" />
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10">
+          <div className="flex items-center gap-6">
+            <div className="w-24 h-24 bg-gradient-to-br from-primary to-primary/60 rounded-[32px] flex items-center justify-center text-primary-foreground shadow-2xl shadow-primary/20 transition-transform hover:scale-105 duration-300">
+              <User className="w-12 h-12" />
             </div>
             <div className="text-center md:text-left">
-              <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">{profileData?.name}</h1>
-              <div className="flex flex-wrap gap-2 mt-2 justify-center md:justify-start">
-                <Badge className="px-3 py-1 bg-gray-900 text-white border-none uppercase tracking-wider text-[10px]">
+              <div className="flex items-center gap-3 mb-2 justify-center md:justify-start">
+                <h1 className="text-4xl font-black text-foreground tracking-tight">{profileData?.name}</h1>
+                <Badge className="px-3 py-1 bg-primary text-primary-foreground border-none font-black text-[10px] rounded-lg">
                   {userRole}
                 </Badge>
-                <Badge variant="outline" className="px-3 py-1 text-green-600 border-green-200 bg-green-50 flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> 정상 활성
+              </div>
+              <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                <Badge variant="outline" className="px-3 py-1 text-primary border-primary/20 bg-primary/5 font-bold flex items-center gap-1.5 rounded-lg">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> 정상 활성 계정
                 </Badge>
+                <span className="text-sm text-muted-foreground font-medium flex items-center gap-1.5 ml-1">
+                  <Clock className="w-3.5 h-3.5" /> 가입일: {new Date(profileData?.createdAt || Date.now()).toLocaleDateString()}
+                </span>
               </div>
             </div>
           </div>
           <Link to="/my-profile">
-            <Button className="bg-white text-gray-700 border-gray-200 hover:bg-gray-50 shadow-sm gap-2 px-6 h-11 border">
-              <Pencil className="w-4 h-4" /> 내 프로필 수정
+            <Button className="bg-card text-foreground border-border hover:bg-secondary shadow-md gap-2 px-8 h-12 border rounded-2xl font-bold transition-all active:scale-95">
+              <Pencil className="w-4 h-4" /> 프로필 수정하기
             </Button>
           </Link>
         </div>
 
         <div className="grid gap-8">
           {/* ── 기본 계정 정보 카드 ── */}
-          <Card className="overflow-hidden border-none shadow-md">
-            <div className="h-2 bg-blue-600" />
-            <CardHeader className="bg-white pb-2">
-              <CardTitle className="text-xl flex items-center gap-2 text-gray-800">
-                <Shield className="w-5 h-5 text-blue-600" /> 기본 계정 정보
+          <Card className="overflow-hidden border-border bg-card shadow-xl rounded-[32px]">
+            <div className="h-2 bg-primary/80" />
+            <CardHeader className="pb-2 px-8 pt-8">
+              <CardTitle className="text-2xl font-black flex items-center gap-2.5 text-foreground">
+                <Shield className="w-6 h-6 text-primary" /> 기본 계정 정보
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6 pt-4 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-1.5">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                    <Mail className="w-3 h-3" /> Login Email
+            <CardContent className="p-8 pt-6 space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="space-y-2">
+                  <p className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2 ml-1">
+                    <Mail className="w-3.5 h-3.5" /> Login Email
                   </p>
-                  <p className="text-base font-semibold text-gray-700">{userEmail}</p>
+                  <div className="bg-secondary/30 p-4 rounded-2xl border border-border/50">
+                    <p className="text-lg font-bold text-foreground">{userEmail}</p>
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                    <Phone className="w-3 h-3" /> Phone Number
+                <div className="space-y-2">
+                  <p className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2 ml-1">
+                    <Phone className="w-3.5 h-3.5" /> Phone Number
                   </p>
-                  <p className="text-base font-semibold text-gray-700">{profileData?.phoneNumber || "연락처 미등록"}</p>
+                  <div className="bg-secondary/30 p-4 rounded-2xl border border-border/50">
+                    <p className="text-lg font-bold text-foreground">{profileData?.phoneNumber || "연락처 미등록"}</p>
+                  </div>
                 </div>
               </div>
-              <div className="pt-6 border-t border-gray-100 space-y-2">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                  <FileText className="w-3 h-3" /> 자기소개
+              <div className="pt-8 border-t border-border/50 space-y-3">
+                <p className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2 ml-1">
+                  <FileText className="w-3.5 h-3.5" /> 자기소개 전문
                 </p>
-                <div className="bg-gray-50 rounded-xl p-4 min-h-[100px]">
-                  <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
-                    {profileData?.description || "아직 등록된 자기소개가 없습니다. 프로필 수정에서 본인을 소개해보세요!"}
+                <div className="bg-secondary/30 rounded-[24px] p-6 border border-border/50 min-h-[120px]">
+                  <p className="text-base text-muted-foreground leading-relaxed whitespace-pre-wrap font-medium">
+                    {profileData?.description || "아직 등록된 자기소개가 없습니다. 프로필 수정에서 본인을 멋지게 소개해보세요!"}
                   </p>
                 </div>
               </div>
@@ -157,82 +166,82 @@ export function ProfileView() {
 
           {/* ── 역할별 상세 정보 카드 (CLIENT / DEVELOPER) ── */}
           {userRole !== "ADMIN" && (
-            <Card className="overflow-hidden border-none shadow-md">
-              <div className="h-2 bg-indigo-600" />
-              <CardHeader className="bg-white pb-2">
-                <CardTitle className="text-xl flex items-center gap-2 text-gray-800">
-                  <Briefcase className="w-5 h-5 text-indigo-600" /> {userRole === "CLIENT" ? "클라이언트" : "개발자"} 전문 정보
+            <Card className="overflow-hidden border-border bg-card shadow-xl rounded-[32px]">
+              <div className="h-2 bg-primary/40" />
+              <CardHeader className="pb-2 px-8 pt-8">
+                <CardTitle className="text-2xl font-black flex items-center gap-2.5 text-foreground">
+                  <Briefcase className="w-6 h-6 text-primary" /> {userRole === "CLIENT" ? "클라이언트" : "개발자"} 전문 정보
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6 pt-4">
+              <CardContent className="p-8 pt-6">
                 {!roleData ? (
-                  <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-xl border border-amber-100 text-amber-800">
-                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-4 p-6 bg-primary/5 rounded-2xl border border-primary/10 text-primary">
+                    <AlertCircle className="w-6 h-6 shrink-0 mt-0.5" />
                     <div className="text-sm">
-                      <p className="font-bold mb-1">상세 정보가 확인되지 않습니다.</p>
-                      <p className="opacity-90">아직 프로필 정보를 완성하지 않으셨다면 '내 프로필 수정' 메뉴에서 정보를 입력해 주세요.</p>
+                      <p className="font-black text-base mb-1">상세 정보가 아직 부족합니다.</p>
+                      <p className="opacity-80 font-medium">아직 프로필 정보를 완성하지 않으셨다면 '내 프로필 수정' 메뉴에서 전문 정보를 입력해 주세요.</p>
                     </div>
                   </div>
                 ) : userRole === "CLIENT" ? (
-                  <div className="space-y-5">
-                    <div className="flex justify-between items-center py-3 border-b border-gray-50">
-                      <span className="text-sm font-medium text-gray-500">현재 직군/직책</span>
-                      <Badge variant="secondary" className="px-3 py-1 bg-indigo-50 text-indigo-700 border-none font-bold">
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center py-4 border-b border-border/50">
+                      <span className="text-sm font-bold text-muted-foreground">현재 직군/직책</span>
+                      <Badge variant="secondary" className="px-4 py-1.5 bg-primary/10 text-primary border-none font-black rounded-lg">
                         {roleData.title || "미지정"}
                       </Badge>
                     </div>
-                    <div className="flex justify-between items-center py-3 border-b border-gray-50">
-                      <span className="text-sm font-medium text-gray-500">회원 유형</span>
-                      <div className="flex items-center gap-2">
+                    <div className="flex justify-between items-center py-4 border-b border-border/50">
+                      <span className="text-sm font-bold text-muted-foreground">회원 인증 유형</span>
+                      <div className="flex items-center gap-2 font-black text-foreground">
                         {roleData.participateType === "COMPANY" ? "🏢 기업 회원" : "🧑 개인 회원"}
                       </div>
                     </div>
-                    <div className="flex justify-between items-center py-3">
-                      <span className="text-sm font-medium text-gray-500">누적 등록 프로젝트</span>
-                      <span className="text-lg font-black text-gray-800">{roleData.completedProject || 0} <span className="text-sm font-normal text-gray-400 ml-0.5">건</span></span>
+                    <div className="flex justify-between items-center py-4">
+                      <span className="text-sm font-bold text-muted-foreground">누적 완료 프로젝트</span>
+                      <span className="text-3xl font-black text-primary">{roleData.completedProject || 0} <span className="text-sm font-bold text-muted-foreground ml-0.5">건</span></span>
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">전문 분야</p>
-                        <p className="text-lg font-bold text-gray-800">{roleData.title || "미지정"}</p>
+                  <div className="space-y-10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="p-6 bg-secondary/30 rounded-[24px] border border-border/50 hover:bg-secondary/50 transition-colors">
+                        <p className="text-[11px] font-black text-muted-foreground uppercase tracking-widest mb-3">전문 분야</p>
+                        <p className="text-2xl font-black text-foreground">{roleData.title || "미지정"}</p>
                       </div>
-                      <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col justify-between">
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">현재 작업 상태</p>
-                        <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${roleData.availableForWork ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-red-500'}`} />
-                          <span className="font-bold text-gray-700">{roleData.availableForWork ? "새 프로젝트 수령 가능" : "현재 작업 중"}</span>
+                      <div className="p-6 bg-secondary/30 rounded-[24px] border border-border/50 flex flex-col justify-between hover:bg-secondary/50 transition-colors">
+                        <p className="text-[11px] font-black text-muted-foreground uppercase tracking-widest mb-3">현재 활동 상태</p>
+                        <div className="flex items-center gap-3">
+                          <div className={`w-3.5 h-3.5 rounded-full ${roleData.availableForWork ? 'bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.6)] animate-pulse' : 'bg-destructive'}`} />
+                          <span className="font-black text-lg text-foreground">{roleData.availableForWork ? "새 프로젝트 가능" : "현재 작업 중"}</span>
                         </div>
                       </div>
                     </div>
                     
-                    <div className="space-y-3">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                        <Clock className="w-3 h-3" /> 예상 희망 시급
+                    <div className="space-y-4">
+                      <p className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2 ml-1">
+                        <Clock className="w-3.5 h-3.5" /> 예상 희망 시급
                       </p>
-                      <div className="flex items-baseline gap-1 text-2xl font-black text-blue-600">
+                      <div className="inline-flex items-baseline gap-2 text-4xl font-black text-primary bg-primary/5 px-6 py-3 rounded-2xl border border-primary/10">
                         {roleData.minHourlyPay?.toLocaleString() || "0"} 
-                        <span className="text-sm font-medium text-gray-400 mx-1">~</span>
+                        <span className="text-lg font-bold text-muted-foreground/40 mx-1">~</span>
                         {roleData.maxHourlyPay?.toLocaleString() || "0"}
-                        <span className="text-sm font-bold text-gray-500 ml-1">원</span>
+                        <span className="text-base font-black text-muted-foreground ml-2">KRW / hr</span>
                       </div>
                     </div>
 
-                    <div className="space-y-3">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                        <Briefcase className="w-3 h-3" /> 보유 기술 및 스택
+                    <div className="space-y-4">
+                      <p className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2 ml-1">
+                        <Briefcase className="w-3.5 h-3.5" /> 핵심 기술 스택
                       </p>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2.5">
                         {roleData.skills && roleData.skills.length > 0 ? (
                           roleData.skills.map((skill: string) => (
-                            <Badge key={skill} className="px-4 py-1.5 bg-white text-gray-700 border-gray-200 shadow-sm hover:border-blue-400 transition-colors">
+                            <Badge key={skill} className="px-5 py-2 bg-card text-foreground border-border shadow-sm hover:border-primary/50 hover:text-primary transition-all font-bold rounded-xl cursor-default">
                               {skill}
                             </Badge>
                           ))
                         ) : (
-                          <span className="text-sm text-gray-400 italic">등록된 스택 정보가 없습니다.</span>
+                          <span className="text-sm text-muted-foreground italic font-medium">등록된 기술 정보가 없습니다.</span>
                         )}
                       </div>
                     </div>
@@ -244,33 +253,33 @@ export function ProfileView() {
 
           {/* ── 관리자 전용 섹션 ── */}
           {userRole === "ADMIN" && (
-            <Card className="overflow-hidden border-none shadow-md bg-gray-900 text-white">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <Shield className="w-6 h-6 text-blue-400" /> 관리자 시스템 권한
+            <Card className="overflow-hidden border-none bg-foreground text-background shadow-2xl rounded-[40px]">
+              <CardHeader className="pt-10 px-10">
+                <CardTitle className="flex items-center gap-3 text-3xl font-black italic">
+                  <Shield className="w-8 h-8 text-primary" /> SYSTEM AUTHORITY
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-8 space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="p-5 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/5">
-                    <p className="text-[10px] font-bold text-blue-300 uppercase tracking-widest mb-3">Security Level</p>
-                    <div className="flex items-center gap-3">
-                      <Badge className="bg-blue-500 text-white border-none px-4 py-1">LEVEL 4</Badge>
-                      <span className="font-bold">SYSTEM OWNER</span>
+              <CardContent className="p-10 pt-6 space-y-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="p-6 bg-background/5 rounded-3xl backdrop-blur-md border border-background/10">
+                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-4 opacity-70">Security Access</p>
+                    <div className="flex items-center gap-4">
+                      <Badge className="bg-primary text-primary-foreground border-none px-5 py-1.5 font-black rounded-lg">LEVEL 07</Badge>
+                      <span className="font-black text-xl tracking-tight uppercase">Authorized Personnel</span>
                     </div>
                   </div>
-                  <div className="p-5 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/5">
-                    <p className="text-[10px] font-bold text-blue-300 uppercase tracking-widest mb-3">System Status</p>
-                    <div className="flex items-center gap-2 font-black text-green-400">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-ping" />
-                      CONNECTED
+                  <div className="p-6 bg-background/5 rounded-3xl backdrop-blur-md border border-background/10">
+                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-4 opacity-70">Infrastructure Status</p>
+                    <div className="flex items-center gap-3 font-black text-xl text-green-400">
+                      <div className="w-2.5 h-2.5 bg-green-400 rounded-full animate-ping" />
+                      OPERATIONAL
                     </div>
                   </div>
                 </div>
-                <div className="pt-6 border-t border-white/10">
+                <div className="pt-4">
                   <Link to="/admin">
-                    <Button className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold h-14 text-lg rounded-2xl shadow-xl shadow-blue-900/20">
-                      관리자 대시보드 진입하기
+                    <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-black h-16 text-xl rounded-2xl shadow-2xl shadow-primary/40 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                      관리 시스템 대시보드 진입
                     </Button>
                   </Link>
                 </div>
@@ -278,20 +287,20 @@ export function ProfileView() {
             </Card>
           )}
           
-          <div className="flex items-center gap-2 justify-center text-gray-400">
+          <div className="flex items-center gap-2 justify-center text-muted-foreground font-medium">
             <Info className="w-4 h-4" />
-            <p className="text-xs">마지막 업데이트: {new Date().toLocaleDateString()}</p>
+            <p className="text-xs">데이터 무결성 확인됨: {new Date().toLocaleString('ko-KR')}</p>
           </div>
 
-          <div className="mt-8 pt-8 border-t flex justify-center">
+          <div className="mt-10 pt-10 border-t border-border/50 flex justify-center">
             <Button 
               variant="ghost" 
               onClick={handleWithdraw} 
               disabled={isWithdrawing}
-              className="text-gray-400 hover:text-red-600 hover:bg-red-50 gap-2"
+              className="text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 gap-2 font-bold transition-colors rounded-xl px-6"
             >
               {isWithdrawing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-              회원 탈퇴하기
+              회원 탈퇴 요청 (Withdrawal)
             </Button>
           </div>
         </div>

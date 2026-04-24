@@ -1,17 +1,5 @@
 /**
- * ProjectCreate.tsx 수정 사항
- *
- * [버그 수정]
- * 1. 예산 칸이 하나였던 문제 → 최소예산 / 최대예산 두 칸으로 분리
- * 2. 기간(duration)이 텍스트였던 문제 → 백엔드 Integer 타입에 맞게 숫자 입력으로 변경
- * 3. 카테고리를 mockData에서 가져오던 문제 → 실제 API(/v1/categories)에서 가져오도록 수정
- * 4. 폼 제출 시 실제 API(/v1/projects)를 호출하도록 수정 (기존은 toast만 띄우고 DB 저장 없음)
- * 5. 로그인 안 된 경우 또는 DEVELOPER/ADMIN이 접근 시 접근 제한 처리
- *
- * [UX 개선]
- * 1. 예산 입력 시 최소 > 최대 유효성 검사
- * 2. 제출 중 로딩 스피너
- * 3. 최대 제안서 수 입력 추가 (기존 누락)
+ * ProjectCreate.tsx - 프로젝트 등록 페이지 (UI 통합 버전)
  */
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router";
@@ -28,7 +16,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Badge } from "../ui/badge";
-import { ArrowLeft, X, Loader2 } from "lucide-react";
+import { ArrowLeft, X, Loader2, Info, Briefcase, Tag, Target, Calendar, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { categoryApi, projectApi, skillApi } from "../../../api/apiService";
 import type { CategoryDto } from "../../../api/types";
@@ -49,7 +37,7 @@ export function ProjectCreate() {
     description: "",
     minBudget: "",
     maxBudget: "",
-    duration: "",        // 백엔드 Integer (일 단위)
+    duration: "",
     maxProposalCount: "10",
   });
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
@@ -95,49 +83,21 @@ export function ProjectCreate() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 유효성 검사
-    if (!formData.title.trim()) {
-      toast.error("프로젝트 제목을 입력해주세요.");
-      return;
-    }
-    if (!formData.categoryId) {
-      toast.error("카테고리를 선택해주세요.");
-      return;
-    }
-    if (!formData.description.trim()) {
-      toast.error("프로젝트 설명을 입력해주세요.");
-      return;
-    }
+    if (!formData.title.trim()) { toast.error("프로젝트 제목을 입력해주세요."); return; }
+    if (!formData.categoryId) { toast.error("카테고리를 선택해주세요."); return; }
+    if (!formData.description.trim()) { toast.error("프로젝트 설명을 입력해주세요."); return; }
 
     const minBudget = Number(formData.minBudget);
     const maxBudget = Number(formData.maxBudget);
     const duration = Number(formData.duration);
     const maxProposalCount = Number(formData.maxProposalCount);
 
-    if (!minBudget || minBudget <= 0) {
-      toast.error("올바른 최소 예산을 입력해주세요.");
-      return;
-    }
-    if (!maxBudget || maxBudget <= 0) {
-      toast.error("올바른 최대 예산을 입력해주세요.");
-      return;
-    }
-    if (minBudget > maxBudget) {
-      toast.error("최소 예산은 최대 예산보다 클 수 없습니다.");
-      return;
-    }
-    if (!duration || duration <= 0) {
-      toast.error("올바른 기간을 입력해주세요. (숫자, 일 단위)");
-      return;
-    }
-    if (selectedSkills.length === 0) {
-      toast.error("기술 스택을 최소 1개 이상 선택해주세요.");
-      return;
-    }
-    if (!maxProposalCount || maxProposalCount <= 0) {
-      toast.error("최대 제안서 수를 입력해주세요.");
-      return;
-    }
+    if (!minBudget || minBudget <= 0) { toast.error("올바른 최소 예산을 입력해주세요."); return; }
+    if (!maxBudget || maxBudget <= 0) { toast.error("올바른 최대 예산을 입력해주세요."); return; }
+    if (minBudget > maxBudget) { toast.error("최소 예산은 최대 예산보다 클 수 없습니다."); return; }
+    if (!duration || duration <= 0) { toast.error("올바른 기간을 입력해주세요."); return; }
+    if (selectedSkills.length === 0) { toast.error("기술 스택을 최소 1개 이상 선택해주세요."); return; }
+    if (!maxProposalCount || maxProposalCount <= 0) { toast.error("최대 제안서 수를 입력해주세요."); return; }
 
     setIsSubmitting(true);
     try {
@@ -154,9 +114,7 @@ export function ProjectCreate() {
       toast.success("프로젝트가 성공적으로 등록되었습니다!");
       navigate(`/projects/${res.data.data.id}`);
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.message || "프로젝트 등록에 실패했습니다.";
-      toast.error(msg);
+      toast.error(err?.response?.data?.message || "프로젝트 등록에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
@@ -173,266 +131,250 @@ export function ProjectCreate() {
     setSelectedSkills(selectedSkills.filter((s) => s !== skill));
   };
 
-  // 직접 입력 스킬 추가
-  const handleSkillDirectInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      const val = (e.target as HTMLInputElement).value.trim();
-      if (val) addSkill(val);
-      (e.target as HTMLInputElement).value = "";
-    }
-  };
-
   if (isLoadingInit) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+        <Loader2 className="w-12 h-12 animate-spin text-primary" />
+        <p className="text-muted-foreground font-bold tracking-widest">INITIALIZING FORM...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background py-8">
-      <div className="container mx-auto px-4 max-w-3xl">
-        <Button variant="ghost" className="mb-6 text-muted-foreground hover:text-foreground" onClick={() => navigate(-1)}>
+    <div className="min-h-screen bg-background py-8 pb-20">
+      <div className="container mx-auto px-4 max-w-4xl">
+        <Button variant="ghost" className="mb-8 text-muted-foreground hover:text-foreground font-bold hover:bg-secondary rounded-xl" onClick={() => navigate(-1)}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           뒤로가기
         </Button>
 
-        <Card className="bg-card border-border shadow-xl">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-foreground">프로젝트 등록</CardTitle>
-            <p className="text-muted-foreground">
-              프로젝트 정보를 입력하고 최적의 개발자를 찾아보세요
-            </p>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* 제목 */}
-              <div className="space-y-2">
-                <Label htmlFor="title" className="text-sm font-semibold text-foreground">프로젝트 제목 *</Label>
-                <Input
-                  id="title"
-                  placeholder="예: 쇼핑몰 웹사이트 개발"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  required
-                  disabled={isSubmitting}
-                  className="h-11 bg-secondary/30 border-border text-foreground"
-                />
+        <Card className="bg-card border-border shadow-2xl rounded-[40px] overflow-hidden">
+          <CardHeader className="bg-secondary/10 border-b border-border/50 pb-10 pt-12 px-10">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="bg-primary p-3 rounded-2xl shadow-lg shadow-primary/20">
+                <Briefcase className="w-8 h-8 text-primary-foreground" />
               </div>
-
-              {/* 카테고리 */}
-              <div className="space-y-2">
-                <Label htmlFor="category" className="text-sm font-semibold text-foreground">카테고리 *</Label>
-                <Select
-                  value={formData.categoryId}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, categoryId: value })
-                  }
-                >
-                  <SelectTrigger className="h-11 bg-secondary/30 border-border text-foreground">
-                    <SelectValue placeholder="카테고리 선택" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card border-border">
-                    {categories.map((category) => (
-                      <SelectItem
-                        key={category.id}
-                        value={String(category.id)}
-                      >
-                        {category.icon} {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* 설명 */}
-              <div className="space-y-2">
-                <Label htmlFor="description" className="text-sm font-semibold text-foreground">프로젝트 설명 *</Label>
-                <Textarea
-                  id="description"
-                  placeholder="프로젝트에 대해 자세히 설명해주세요. 필요한 기능, 목표, 요구사항 등을 포함해주세요."
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  rows={6}
-                  required
-                  disabled={isSubmitting}
-                  className="resize-none bg-secondary/30 border-border text-foreground"
-                />
-                <p className="text-xs text-muted-foreground">
-                  상세한 설명은 더 좋은 제안을 받을 수 있습니다
+              <div>
+                <CardTitle className="text-4xl font-black text-foreground tracking-tight">새 프로젝트 등록</CardTitle>
+                <p className="text-muted-foreground font-medium mt-1">
+                  Ready's7의 검증된 전문가들에게 당신의 아이디어를 제안하세요.
                 </p>
               </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-10">
+            <form onSubmit={handleSubmit} className="space-y-12">
+              
+              {/* ── 기본 정보 섹션 ── */}
+              <div className="space-y-8">
+                <div className="flex items-center gap-2 text-primary font-black uppercase tracking-[0.2em] text-xs">
+                  <Target className="w-4 h-4" /> Basic Information
+                </div>
+                
+                <div className="space-y-3">
+                  <Label htmlFor="title" className="text-sm font-black text-foreground ml-1">프로젝트 제목 *</Label>
+                  <Input
+                    id="title"
+                    placeholder="예: 기업용 AI 챗봇 구축 및 서비스 연동"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    required
+                    disabled={isSubmitting}
+                    className="h-14 bg-secondary/30 border-border text-foreground rounded-2xl focus:ring-primary/20 text-lg font-bold px-6"
+                  />
+                </div>
 
-              {/* 기술 스택 */}
-              <div className="space-y-2">
-                <Label className="text-sm font-semibold text-foreground">필요 기술 * (최소 1개)</Label>
-                <Select value={skillInput} onValueChange={(val) => { addSkill(val); setSkillInput(""); }}>
-                  <SelectTrigger className="h-11 bg-secondary/30 border-border text-foreground">
-                    <SelectValue placeholder="목록에서 기술 선택" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card border-border">
-                    {allSkills
-                      .filter((skill) => !selectedSkills.includes(skill))
-                      .map((skill) => (
-                        <SelectItem key={skill} value={skill}>
-                          {skill}
+                <div className="space-y-3">
+                  <Label htmlFor="category" className="text-sm font-black text-foreground ml-1">비즈니스 카테고리 *</Label>
+                  <Select value={formData.categoryId} onValueChange={(v) => setFormData({ ...formData, categoryId: v })}>
+                    <SelectTrigger className="h-14 bg-secondary/30 border-border text-foreground rounded-2xl font-bold px-6 focus:ring-primary/20">
+                      <SelectValue placeholder="카테고리를 선택해 주세요" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border">
+                      {categories.map((c) => (
+                        <SelectItem key={c.id} value={String(c.id)} className="font-bold py-3 cursor-pointer">
+                          <span className="mr-2">{c.icon}</span> {c.name}
                         </SelectItem>
                       ))}
-                  </SelectContent>
-                </Select>
-                {selectedSkills.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {selectedSkills.map((skill) => (
-                      <Badge key={skill} variant="secondary" className="pl-3 pr-1 py-1 flex items-center gap-1 bg-secondary text-secondary-foreground border-none">
-                        {skill}
-                        <button
-                          type="button"
-                          onClick={() => removeSkill(skill)}
-                          className="hover:text-destructive transition-colors"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                )}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              {/* 예산 - 최소/최대 분리 */}
-              <div className="space-y-2">
-                <Label className="text-sm font-semibold text-foreground">예산 *</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">최소 예산 (원)</p>
+              {/* ── 상세 요구사항 섹션 ── */}
+              <div className="space-y-8">
+                <div className="flex items-center gap-2 text-primary font-black uppercase tracking-[0.2em] text-xs">
+                  <Tag className="w-4 h-4" /> Requirements & Skills
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="description" className="text-sm font-black text-foreground ml-1">상세 요구사항 설명 *</Label>
+                  <Textarea
+                    id="description"
+                    placeholder="프로젝트의 배경, 필수 기능 리스트, 선호하는 기술 스택 및 작업 방식을 자유롭게 적어주세요."
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    rows={10}
+                    required
+                    disabled={isSubmitting}
+                    className="resize-none bg-secondary/30 border-border text-foreground rounded-[24px] p-8 font-medium leading-relaxed focus:ring-primary/20"
+                  />
+                  <div className="bg-primary/5 p-4 rounded-xl border border-primary/10">
+                    <p className="text-xs text-primary font-bold flex items-center gap-2">
+                      <Info className="w-4 h-4" /> 요구사항이 구체적일수록 더 정확한 견적의 제안을 받을 수 있습니다.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-sm font-black text-foreground ml-1">필요 기술 스택 *</Label>
+                  <Select value={skillInput} onValueChange={(val) => { addSkill(val); setSkillInput(""); }}>
+                    <SelectTrigger className="h-14 bg-secondary/30 border-border text-foreground rounded-2xl font-bold px-6">
+                      <SelectValue placeholder="필요한 핵심 기술을 목록에서 선택하세요" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border">
+                      {allSkills.filter((s) => !selectedSkills.includes(s)).map((s) => (
+                        <SelectItem key={s} value={s} className="font-medium cursor-pointer">{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedSkills.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-4 p-5 bg-secondary/20 rounded-[20px] border border-border/50">
+                      {selectedSkills.map((skill) => (
+                        <Badge key={skill} variant="secondary" className="pl-4 pr-1.5 py-2 flex items-center gap-2 bg-background text-primary border border-primary/20 font-black rounded-xl text-xs shadow-sm">
+                          {skill}
+                          <button type="button" onClick={() => removeSkill(skill)} className="hover:bg-primary/10 rounded-full p-0.5 transition-colors">
+                            <X className="w-4 h-4" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* ── 예산 및 기간 섹션 ── */}
+              <div className="space-y-8">
+                <div className="flex items-center gap-2 text-primary font-black uppercase tracking-[0.2em] text-xs">
+                  <Wallet className="w-4 h-4" /> Budget & Timeline
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <Label className="text-sm font-black text-foreground ml-1">최소 예상 예산 *</Label>
+                    <div className="relative group">
+                      <span className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-xs group-focus-within:text-primary transition-colors">KRW</span>
+                      <Input
+                        type="number"
+                        placeholder="0"
+                        value={formData.minBudget}
+                        onChange={(e) => setFormData({ ...formData, minBudget: e.target.value })}
+                        required
+                        disabled={isSubmitting}
+                        className="h-14 bg-secondary/30 border-border text-foreground rounded-2xl pl-16 font-black text-right pr-6 focus:ring-primary/20 text-lg"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-sm font-black text-foreground ml-1">최대 예상 예산 *</Label>
+                    <div className="relative group">
+                      <span className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-xs group-focus-within:text-primary transition-colors">KRW</span>
+                      <Input
+                        type="number"
+                        placeholder="0"
+                        value={formData.maxBudget}
+                        onChange={(e) => setFormData({ ...formData, maxBudget: e.target.value })}
+                        required
+                        disabled={isSubmitting}
+                        className="h-14 bg-secondary/30 border-border text-foreground rounded-2xl pl-16 font-black text-right pr-6 focus:ring-primary/20 text-lg"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                {formData.minBudget && formData.maxBudget && Number(formData.minBudget) > Number(formData.maxBudget) && (
+                  <p className="text-xs text-destructive font-black bg-destructive/5 p-3 rounded-xl border border-destructive/10 text-center tracking-tight">
+                    ⚠ 최소 예산 설정값이 최대 예산보다 높습니다. 확인해 주세요.
+                  </p>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <Label htmlFor="duration" className="text-sm font-black text-foreground ml-1 flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-muted-foreground" /> 개발 희망 기간 (일) *
+                    </Label>
                     <Input
+                      id="duration"
                       type="number"
-                      placeholder="예: 3000000"
-                      min={0}
-                      value={formData.minBudget}
-                      onChange={(e) =>
-                        setFormData({ ...formData, minBudget: e.target.value })
-                      }
+                      placeholder="예: 30"
+                      value={formData.duration}
+                      onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                       required
                       disabled={isSubmitting}
-                      className="h-11 bg-secondary/30 border-border text-foreground"
+                      className="h-14 bg-secondary/30 border-border text-foreground rounded-2xl font-black focus:ring-primary/20 px-6 text-lg"
                     />
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">최대 예산 (원)</p>
+                  <div className="space-y-3">
+                    <Label htmlFor="maxProposalCount" className="text-sm font-black text-foreground ml-1 flex items-center gap-2">
+                      <Target className="w-4 h-4 text-muted-foreground" /> 최대 제안 수신 제한 *
+                    </Label>
                     <Input
+                      id="maxProposalCount"
                       type="number"
-                      placeholder="예: 5000000"
-                      min={0}
-                      value={formData.maxBudget}
-                      onChange={(e) =>
-                        setFormData({ ...formData, maxBudget: e.target.value })
-                      }
+                      placeholder="예: 10"
+                      value={formData.maxProposalCount}
+                      onChange={(e) => setFormData({ ...formData, maxProposalCount: e.target.value })}
                       required
                       disabled={isSubmitting}
-                      className="h-11 bg-secondary/30 border-border text-foreground"
+                      className="h-14 bg-secondary/30 border-border text-foreground rounded-2xl font-black focus:ring-primary/20 px-6 text-lg"
                     />
                   </div>
                 </div>
-                {formData.minBudget &&
-                  formData.maxBudget &&
-                  Number(formData.minBudget) > Number(formData.maxBudget) && (
-                    <p className="text-xs text-destructive">
-                      최소 예산이 최대 예산보다 클 수 없습니다.
-                    </p>
-                  )}
               </div>
 
-              {/* 기간 - 숫자(일) */}
-              <div className="space-y-2">
-                <Label htmlFor="duration" className="text-sm font-semibold text-foreground">예상 기간 * (일 단위)</Label>
-                <Input
-                  id="duration"
-                  type="number"
-                  placeholder="예: 30 (30일)"
-                  min={1}
-                  value={formData.duration}
-                  onChange={(e) =>
-                    setFormData({ ...formData, duration: e.target.value })
-                  }
-                  required
-                  disabled={isSubmitting}
-                  className="h-11 bg-secondary/30 border-border text-foreground"
-                />
-                <p className="text-xs text-muted-foreground">
-                  숫자로 입력해주세요. (예: 30일이면 30 입력)
-                </p>
-              </div>
-
-              {/* 최대 제안서 수 */}
-              <div className="space-y-2">
-                <Label htmlFor="maxProposalCount" className="text-sm font-semibold text-foreground">최대 제안서 수 *</Label>
-                <Input
-                  id="maxProposalCount"
-                  type="number"
-                  placeholder="예: 10"
-                  min={1}
-                  max={100}
-                  value={formData.maxProposalCount}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      maxProposalCount: e.target.value,
-                    })
-                  }
-                  required
-                  disabled={isSubmitting}
-                  className="h-11 bg-secondary/30 border-border text-foreground"
-                />
-                <p className="text-xs text-muted-foreground">
-                  이 수에 도달하면 모집이 자동으로 마감됩니다.
-                </p>
-              </div>
-
-              {/* 제출 */}
-              <div className="flex gap-3 pt-4">
+              {/* ── 제출 버튼 ── */}
+              <div className="flex flex-col md:flex-row gap-4 pt-10 border-t border-border/50">
                 <Button
                   type="submit"
                   size="lg"
-                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/10 h-12"
+                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-black h-18 text-xl rounded-2xl shadow-2xl shadow-primary/30 transition-all hover:scale-[1.01] active:scale-[0.99] py-8"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      등록 중...
+                      <Loader2 className="w-6 h-6 mr-3 animate-spin" />
+                      데이터 무결성 검사 및 등록 중...
                     </>
                   ) : (
-                    "프로젝트 등록하기"
+                    "프로젝트 공개 및 전문가 모집 시작"
                   )}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   size="lg"
-                  className="border-border text-foreground hover:bg-secondary h-12"
+                  className="md:w-40 border-border text-foreground hover:bg-secondary h-18 rounded-2xl font-black py-8"
                   onClick={() => navigate(-1)}
                   disabled={isSubmitting}
                 >
-                  취소
+                  등록 취소
                 </Button>
               </div>
 
-              <div className="bg-secondary/50 border border-border rounded-xl p-4">
-                <h4 className="text-primary font-bold mb-2 flex items-center gap-2 text-sm">
-                   💡 등록 팁
-                </h4>
-                <ul className="text-xs text-muted-foreground space-y-1">
-                  <li>• 프로젝트 목표와 요구사항을 명확히 작성하세요</li>
-                  <li>• 예산과 기간을 현실적으로 설정하세요</li>
-                  <li>• 필요한 기술 스택을 정확히 선택하세요</li>
-                  <li>• 참고 자료나 예시가 있다면 설명에 포함하세요</li>
-                </ul>
+              <div className="bg-foreground text-background rounded-3xl p-8 flex items-start gap-6 shadow-2xl">
+                <div className="bg-primary p-3 rounded-2xl mt-1">
+                  <Info className="w-6 h-6 text-primary-foreground" />
+                </div>
+                <div className="space-y-2">
+                  <h4 className="text-primary font-black text-lg uppercase tracking-widest italic">
+                    Ready's7 Policy
+                  </h4>
+                  <ul className="text-sm font-bold opacity-70 space-y-2 leading-relaxed">
+                    <li>• 등록된 프로젝트는 검수 후 즉시 공개되며, 적합한 전문가들에게 알림이 발송됩니다.</li>
+                    <li>• 허위 정보 기재나 부적절한 게시물은 관리자에 의해 제재될 수 있습니다.</li>
+                    <li>• 전문가와의 매칭 후 계약 체결 전까지는 어떠한 비용도 발생하지 않습니다.</li>
+                  </ul>
+                </div>
               </div>
             </form>
           </CardContent>

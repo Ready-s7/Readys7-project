@@ -219,18 +219,18 @@ export function Login() {
           <CardHeader>
             <CardTitle className="text-center text-2xl text-foreground">환영합니다</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-secondary/50">
-                <TabsTrigger value="login" className="data-[state=active]:bg-background data-[state=active]:text-primary">로그인</TabsTrigger>
-                <TabsTrigger value="signup" className="data-[state=active]:bg-background data-[state=active]:text-primary">회원가입</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 bg-secondary/50 p-1 rounded-2xl h-12 mb-6">
+                <TabsTrigger value="login" className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-primary font-black transition-all">로그인</TabsTrigger>
+                <TabsTrigger value="signup" className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-primary font-black transition-all">회원가입</TabsTrigger>
               </TabsList>
 
               {/* ── 로그인 탭 ── */}
               <TabsContent value="login">
-                <form onSubmit={handleLogin} className="space-y-4 mt-4">
+                <form onSubmit={handleLogin} className="space-y-5 mt-4">
                   <div className="space-y-2">
-                    <Label htmlFor="login-email" className="text-foreground">이메일</Label>
+                    <Label htmlFor="login-email" className="text-foreground font-bold ml-1">이메일 계정</Label>
                     <Input
                       id="login-email"
                       type="email"
@@ -241,11 +241,11 @@ export function Login() {
                       }
                       required
                       disabled={isLoading}
-                      className="bg-secondary/30 border-border text-foreground"
+                      className="bg-secondary/30 border-border text-foreground h-12 rounded-xl focus:ring-primary/20"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="login-password" className="text-foreground">비밀번호</Label>
+                    <Label htmlFor="login-password" className="text-foreground font-bold ml-1">비밀번호</Label>
                     <Input
                       id="login-password"
                       type="password"
@@ -256,47 +256,49 @@ export function Login() {
                       }
                       required
                       disabled={isLoading}
-                      className="bg-secondary/30 border-border text-foreground"
+                      className="bg-secondary/30 border-border text-foreground h-12 rounded-xl focus:ring-primary/20"
                     />
                   </div>
 
                   {loginError && (
-                    <p className="text-sm text-destructive bg-destructive/10 p-2 rounded">
+                    <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-xl border border-destructive/20 font-medium">
                       {loginError}
                     </p>
                   )}
 
                   <Button
                     type="submit"
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-black h-12 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
                     size="lg"
                     disabled={isLoading}
                   >
                     {isLoading ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        로그인 중...
+                        로그인 시도 중...
                       </>
                     ) : (
-                      "로그인"
+                      "지금 로그인하기"
                     )}
                   </Button>
                 </form>
 
-                <div className="mt-4 p-3 bg-secondary/50 border border-border rounded-lg text-sm text-muted-foreground">
-                  <p className="font-medium mb-1 text-primary">🧪 테스트 계정</p>
-                  <p>클라이언트: client1@test.com / 12345678</p>
-                  <p>개발자: dev1@test.com / 12345678</p>
-                  <p>슈퍼관리자: superAdmin@system.com / 12345678</p>
+                <div className="mt-8 p-4 bg-secondary/30 border border-border rounded-2xl text-xs text-muted-foreground">
+                  <p className="font-black mb-2 text-primary uppercase tracking-widest">🧪 Quick Test Accounts</p>
+                  <div className="space-y-1 font-medium">
+                    <p>클라이언트: <span className="text-foreground font-bold">client1@test.com</span> / 12345678</p>
+                    <p>개발자: <span className="text-foreground font-bold">dev1@test.com</span> / 12345678</p>
+                    <p>슈퍼관리자: <span className="text-foreground font-bold">superAdmin@system.com</span> / 12345678</p>
+                  </div>
                 </div>
               </TabsContent>
 
               {/* ── 회원가입 탭 ── */}
               <TabsContent value="signup">
-                <form onSubmit={handleSignup} className="space-y-4 mt-4 text-foreground">
+                <form onSubmit={handleSignup} className="space-y-6 mt-4 text-foreground">
                   {/* 가입 유형 선택 - 3개 */}
-                  <div className="space-y-2">
-                    <Label>가입 유형 *</Label>
+                  <div className="space-y-3">
+                    <Label className="font-bold ml-1">서비스 가입 유형 *</Label>
                     <div className="grid grid-cols-3 gap-2">
                       {(
                         [
@@ -311,27 +313,27 @@ export function Login() {
                           onClick={() =>
                             setSignupData({ ...signupData, userType: key })
                           }
-                          className={`p-2 border rounded-lg text-center transition-colors text-sm ${
+                          className={`p-3 border rounded-2xl text-center transition-all ${
                             signupData.userType === key
-                              ? "border-primary bg-primary/10 text-primary"
-                              : "border-border bg-secondary/30 text-muted-foreground hover:border-border/80"
+                              ? "border-primary bg-primary/10 text-primary shadow-sm shadow-primary/10"
+                              : "border-border bg-secondary/30 text-muted-foreground hover:bg-secondary/50"
                           }`}
                         >
-                          <div className="text-lg mb-0.5">{icon}</div>
-                          <div>{label}</div>
+                          <div className="text-xl mb-1">{icon}</div>
+                          <div className="text-[11px] font-black">{label}</div>
                         </button>
                       ))}
                     </div>
                     {signupData.userType === "admin" && (
-                      <p className="text-xs text-primary bg-primary/10 p-2 rounded border border-primary/20">
-                        ⚠️ 관리자 계정은 SUPER_ADMIN 승인 후 로그인 가능합니다.
+                      <p className="text-xs text-primary bg-primary/5 p-3 rounded-xl border border-primary/10 font-bold">
+                        ⚠️ 관리자 계정은 내부 승인 절차(SUPER_ADMIN) 완료 후 활성화됩니다.
                       </p>
                     )}
                   </div>
 
                   {/* 공통 필드 */}
                   <div className="space-y-2">
-                    <Label>이름 * (2~20자)</Label>
+                    <Label className="font-bold ml-1">이름 (실명/업체명) *</Label>
                     <Input
                       placeholder="홍길동"
                       value={signupData.name}
@@ -340,11 +342,11 @@ export function Login() {
                       }
                       required
                       disabled={isLoading}
-                      className="bg-secondary/30 border-border text-foreground"
+                      className="bg-secondary/30 border-border text-foreground h-12 rounded-xl"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>이메일 *</Label>
+                    <Label className="font-bold ml-1">이메일 계정 *</Label>
                     <Input
                       type="email"
                       placeholder="your@email.com"
@@ -354,25 +356,25 @@ export function Login() {
                       }
                       required
                       disabled={isLoading}
-                      className="bg-secondary/30 border-border text-foreground"
+                      className="bg-secondary/30 border-border text-foreground h-12 rounded-xl"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>비밀번호 * (8자 이상)</Label>
+                    <Label className="font-bold ml-1">비밀번호 설정 *</Label>
                     <Input
                       type="password"
-                      placeholder="8자 이상 입력"
+                      placeholder="최소 8자 이상 입력"
                       value={signupData.password}
                       onChange={(e) =>
                         setSignupData({ ...signupData, password: e.target.value })
                       }
                       required
                       disabled={isLoading}
-                      className="bg-secondary/30 border-border text-foreground"
+                      className="bg-secondary/30 border-border text-foreground h-12 rounded-xl"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>전화번호 * (하이픈 없이)</Label>
+                    <Label className="font-bold ml-1">휴대폰 번호 *</Label>
                     <Input
                       placeholder="01012345678"
                       value={signupData.phoneNumber}
@@ -384,14 +386,14 @@ export function Login() {
                       }
                       required
                       disabled={isLoading}
-                      className="bg-secondary/30 border-border text-foreground"
+                      className="bg-secondary/30 border-border text-foreground h-12 rounded-xl"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>자기소개 / 업체 설명</Label>
+                    <Label className="font-bold ml-1">자기소개 / 업체 브리핑</Label>
                     <Textarea
-                      placeholder="자신 또는 업체에 대해 간단히 소개해 주세요."
+                      placeholder="간략한 소개를 남겨주시면 매칭 확률이 높아집니다."
                       value={signupData.description}
                       onChange={(e) =>
                         setSignupData({
@@ -401,7 +403,7 @@ export function Login() {
                       }
                       disabled={isLoading}
                       rows={3}
-                      className="bg-secondary/30 border-border text-foreground"
+                      className="bg-secondary/30 border-border text-foreground rounded-xl p-4 resize-none"
                     />
                   </div>
 
@@ -409,21 +411,21 @@ export function Login() {
                   {signupData.userType !== "admin" && (
                     <>
                       <div className="space-y-2">
-                        <Label>직군 * (예: 풀스택 개발자)</Label>
+                        <Label className="font-bold ml-1">전문 직군 *</Label>
                         <Input
-                          placeholder="직군을 입력하세요"
+                          placeholder="예: 시각 디자인, 풀스택 개발자 등"
                           value={signupData.title}
                           onChange={(e) =>
                             setSignupData({ ...signupData, title: e.target.value })
                           }
                           required
                           disabled={isLoading}
-                          className="bg-secondary/30 border-border text-foreground"
+                          className="bg-secondary/30 border-border text-foreground h-12 rounded-xl"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label>사업자 유형 *</Label>
+                        <Label className="font-bold ml-1">인증 유형 *</Label>
                         <div className="grid grid-cols-2 gap-3">
                           {(["INDIVIDUAL", "COMPANY"] as const).map((type) => (
                             <button
@@ -435,13 +437,13 @@ export function Login() {
                                   participateType: type,
                                 })
                               }
-                              className={`p-2 border rounded-lg text-sm transition-colors ${
+                              className={`p-3 border rounded-2xl text-sm font-bold transition-all ${
                                 signupData.participateType === type
-                                  ? "border-primary bg-primary/10 text-primary"
-                                  : "border-border bg-secondary/30 text-muted-foreground hover:border-border/80"
+                                  ? "border-primary bg-primary/10 text-primary shadow-sm"
+                                  : "border-border bg-secondary/30 text-muted-foreground hover:bg-secondary/50"
                               }`}
                             >
-                              {type === "INDIVIDUAL" ? "🧑 개인" : "🏢 회사"}
+                              {type === "INDIVIDUAL" ? "🧑 개인" : "🏢 법인/회사"}
                             </button>
                           ))}
                         </div>
@@ -452,9 +454,9 @@ export function Login() {
                   {/* DEVELOPER 전용 필드 */}
                   {signupData.userType === "developer" && (
                     <>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>최소 시급(원) *</Label>
+                          <Label className="font-bold ml-1">최소 시급(원) *</Label>
                           <Input
                             type="number"
                             placeholder="30000"
@@ -468,11 +470,11 @@ export function Login() {
                             }
                             required
                             disabled={isLoading}
-                            className="bg-secondary/30 border-border text-foreground"
+                            className="bg-secondary/30 border-border text-foreground h-12 rounded-xl"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label>최대 시급(원) *</Label>
+                          <Label className="font-bold ml-1">최대 시급(원) *</Label>
                           <Input
                             type="number"
                             placeholder="80000"
@@ -486,15 +488,15 @@ export function Login() {
                             }
                             required
                             disabled={isLoading}
-                            className="bg-secondary/30 border-border text-foreground"
+                            className="bg-secondary/30 border-border text-foreground h-12 rounded-xl"
                           />
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label>기술 스택 *</Label>
+                        <Label className="font-bold ml-1">핵심 기술 스택 *</Label>
                         <Select onValueChange={(val) => addSkill(val)} onOpenChange={(open) => open && skillOptions.length === 0 && fetchSkills()}>
-                          <SelectTrigger className="bg-secondary/30 border-border text-foreground">
-                            <SelectValue placeholder="기술 스택 선택" />
+                          <SelectTrigger className="bg-secondary/30 border-border text-foreground h-12 rounded-xl">
+                            <SelectValue placeholder="보유한 기술을 선택하세요" />
                           </SelectTrigger>
                           <SelectContent className="bg-card border-border">
                             {skillOptions.map(skill => (
@@ -502,36 +504,36 @@ export function Login() {
                             ))}
                           </SelectContent>
                         </Select>
-                        <div className="flex flex-wrap gap-1.5 mt-2">
+                        <div className="flex flex-wrap gap-2 mt-3 p-1">
                           {selectedSkills.map(skill => (
-                            <Badge key={skill} variant="secondary" className="pl-2 pr-1 py-1 bg-secondary text-secondary-foreground border-border">
+                            <Badge key={skill} variant="secondary" className="pl-3 pr-1.5 py-1 bg-primary/10 text-primary border-none font-black rounded-lg">
                               {skill}
-                              <button type="button" onClick={() => removeSkill(skill)} className="ml-1 hover:text-destructive">
-                                <Code2 className="w-3 h-3" />
+                              <button type="button" onClick={() => removeSkill(skill)} className="ml-2 hover:bg-primary/20 rounded-full p-0.5">
+                                <X className="w-3 h-3" />
                               </button>
                             </Badge>
                           ))}
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label>응답 시간 *</Label>
+                        <Label className="font-bold ml-1">평균 응답 속도 *</Label>
                         <Select
                           value={signupData.responseTime}
                           onValueChange={(val) =>
                             setSignupData({ ...signupData, responseTime: val })
                           }
                         >
-                          <SelectTrigger className="bg-secondary/30 border-border text-foreground">
-                            <SelectValue placeholder="응답 시간 선택" />
+                          <SelectTrigger className="bg-secondary/30 border-border text-foreground h-12 rounded-xl">
+                            <SelectValue placeholder="응답 소요 시간을 선택하세요" />
                           </SelectTrigger>
                           <SelectContent className="bg-card border-border">
-                            <SelectItem value="30분">30분</SelectItem>
-                            <SelectItem value="1시간">1시간</SelectItem>
-                            <SelectItem value="2시간">2시간</SelectItem>
-                            <SelectItem value="3시간">3시간</SelectItem>
-                            <SelectItem value="4시간">4시간</SelectItem>
-                            <SelectItem value="12시간">12시간</SelectItem>
-                            <SelectItem value="24시간">24시간</SelectItem>
+                            <SelectItem value="30분">⚡ 30분 이내</SelectItem>
+                            <SelectItem value="1시간">🕒 1시간 이내</SelectItem>
+                            <SelectItem value="2시간">🕒 2시간 이내</SelectItem>
+                            <SelectItem value="3시간">🕒 3시간 이내</SelectItem>
+                            <SelectItem value="4시간">🕒 4시간 이내</SelectItem>
+                            <SelectItem value="12시간">🕒 12시간 이내</SelectItem>
+                            <SelectItem value="24시간">🕒 24시간 이내</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -541,7 +543,7 @@ export function Login() {
                   {/* ADMIN 전용 필드 */}
                   {signupData.userType === "admin" && (
                     <div className="space-y-2">
-                      <Label>관리자 역할 *</Label>
+                      <Label className="font-bold ml-1">관리자 세부 역할 *</Label>
                       <Select
                         value={signupData.adminRole}
                         onValueChange={(v) =>
@@ -551,18 +553,18 @@ export function Login() {
                           })
                         }
                       >
-                        <SelectTrigger className="bg-secondary/30 border-border text-foreground">
-                          <SelectValue placeholder="역할 선택" />
+                        <SelectTrigger className="bg-secondary/30 border-border text-foreground h-12 rounded-xl">
+                          <SelectValue placeholder="담당 업무 선택" />
                         </SelectTrigger>
                         <SelectContent className="bg-card border-border">
                           <SelectItem value="SUPER_ADMIN">
-                            SUPER_ADMIN (최고 관리자)
+                            🛡️ SUPER_ADMIN (최고 관리자)
                           </SelectItem>
                           <SelectItem value="CS_ADMIN">
-                            CS_ADMIN (고객 지원)
+                            💬 CS_ADMIN (고객 지원)
                           </SelectItem>
                           <SelectItem value="OPER_ADMIN">
-                            OPER_ADMIN (운영 관리)
+                            ⚙️ OPER_ADMIN (운영 관리)
                           </SelectItem>
                         </SelectContent>
                       </Select>
@@ -570,24 +572,24 @@ export function Login() {
                   )}
 
                   {signupError && (
-                    <div className="text-sm text-destructive bg-destructive/10 p-3 rounded border border-destructive/20 whitespace-pre-line">
+                    <div className="text-sm text-destructive bg-destructive/5 p-4 rounded-xl border border-destructive/10 whitespace-pre-line font-medium leading-relaxed">
                       {signupError}
                     </div>
                   )}
 
                   <Button
                     type="submit"
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-black h-12 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98] mt-4"
                     size="lg"
                     disabled={isLoading}
                   >
                     {isLoading ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        처리 중...
+                        가입 정보 처리 중...
                       </>
                     ) : (
-                      "회원가입"
+                      "서비스 가입하기"
                     )}
                   </Button>
                 </form>

@@ -18,19 +18,20 @@ export function ClientList() {
   const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
+    setCurrentPage(0);
+  }, [searchTerm]);
+
+  useEffect(() => {
     fetchClients();
-  }, [currentPage, searchTerm]);
+  }, [currentPage]);
 
   const fetchClients = async () => {
     setIsLoading(true);
     try {
-      const res = await clientApi.getAll({
-        keyword: searchTerm || undefined,
-        page: currentPage + 1,
-        size: 9
-      });
-      setClients(res.data.data.content);
-      setTotalPages(res.data.data.totalPages);
+      // clientApi.getAll(page, size) 규격에 맞게 호출 (백엔드 0-based)
+      const res = await clientApi.getAll(currentPage, 9);
+      setClients(res.data.data.content || []);
+      setTotalPages(res.data.data.totalPages || 0);
     } catch (e) {
       console.error("클라이언트 로드 실패:", e);
     } finally {

@@ -1,39 +1,48 @@
+/**
+ * ProjectEdit.tsx - 프로젝트 수정 페이지 (UI 통합 버전)
+ */
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { Badge } from "../ui/badge";
-import { Loader2, ArrowLeft, X } from "lucide-react";
-import { projectApi, categoryApi, skillApi } from "../../../api/apiService";
-import type { CategoryDto } from "../../../api/types";
+import { ArrowLeft, X, Loader2, Info, Pencil, Tag, Target, Calendar, Wallet } from "lucide-react";
 import { toast } from "sonner";
+import { categoryApi, projectApi, skillApi } from "../../../api/apiService";
+import type { CategoryDto } from "../../../api/types";
 import { useAuth } from "../../../context/AuthContext";
 
 export function ProjectEdit() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { userRole, isLoggedIn, userId } = useAuth();
-  
+  const { isLoggedIn, userRole } = useAuth();
+
   const [categories, setCategories] = useState<CategoryDto[]>([]);
   const [allSkills, setAllSkills] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingInit, setIsLoadingInit] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     title: "",
-    description: "",
     categoryId: "",
+    description: "",
     minBudget: "",
     maxBudget: "",
     duration: "",
     maxProposalCount: "10",
   });
-  
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [skillInput, setSkillInput] = useState("");
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -41,82 +50,56 @@ export function ProjectEdit() {
       navigate("/login");
       return;
     }
-    loadData();
-  }, [id, isLoggedIn]);
+    fetchData();
+  }, [id]);
 
-  const loadData = async () => {
-    setIsLoading(true);
+  const fetchData = async () => {
+    if (!id) return;
+    setIsLoadingInit(true);
     try {
       const [catRes, skillRes, projectRes] = await Promise.all([
         categoryApi.getAll(),
         skillApi.getAll(0, 100),
-        projectApi.getById(Number(id))
+        projectApi.getById(Number(id)),
       ]);
-      
-      // 카테고리 데이터 처리
-      let catData = catRes.data.data;
-      if (Array.isArray(catData) && catData.length === 2 && typeof catData[0] === 'string') {
-        catData = catData[1] as any;
-      }
-      const categoriesArray = Array.isArray(catData) ? catData : [];
-      setCategories(categoriesArray);
 
-      // 스킬 데이터 처리
-      const skillNames = skillRes.data.data.content.map((s: any) => s.name);
-      setAllSkills(skillNames);
+      setCategories(catRes.data.data);
+      setAllSkills(skillRes.data.data.content.map((s) => s.name));
 
-      // 프로젝트 데이터 처리
       const p = projectRes.data.data;
-      
-      // 권한 체크: 소유자나 관리자가 아니면 튕김
-      if (userRole !== "ADMIN" && Number(p.clientUserId) !== Number(userId)) {
-        toast.error("수정 권한이 없습니다.");
-        navigate(`/projects/${id}`);
-        return;
-      }
-
       setFormData({
         title: p.title,
+        categoryId: String(p.categoryId),
         description: p.description,
-        categoryId: String(categoriesArray.find((c: any) => c.name === p.category)?.id || ""),
         minBudget: String(p.minBudget),
         maxBudget: String(p.maxBudget),
         duration: String(p.duration),
-        maxProposalCount: String(p.maxProposalCount),
+        maxProposalCount: String(p.maxProposalCount || 10),
       });
       setSelectedSkills(p.skills || []);
-
     } catch (err) {
-      toast.error("데이터를 불러오는데 실패했습니다.");
-      navigate(-1);
+      toast.error("프로젝트 정보를 불러오는데 실패했습니다.");
+      navigate("/projects");
     } finally {
-      setIsLoading(false);
+      setIsLoadingInit(false);
     }
-  };
-
-  const addSkill = (skill: string) => {
-    if (skill && !selectedSkills.includes(skill)) {
-      setSelectedSkills([...selectedSkills, skill]);
-    }
-  };
-
-  const removeSkill = (s: string) => {
-    setSelectedSkills(selectedSkills.filter(item => item !== s));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.categoryId) return toast.error("카테고리를 선택해주세요.");
-    if (selectedSkills.length === 0) return toast.error("하나 이상의 기술 스택을 선택해주세요.");
-    
+
+    if (!formData.title.trim()) { toast.error("제목을 입력해주세요."); return; }
+    const minBudget = Number(formData.minBudget);
+    const maxBudget = Number(formData.maxBudget);
+
     setIsSubmitting(true);
     try {
       await projectApi.update(Number(id), {
         title: formData.title,
         description: formData.description,
         categoryId: Number(formData.categoryId),
-        minBudget: Number(formData.minBudget),
-        maxBudget: Number(formData.maxBudget),
+        minBudget,
+        maxBudget,
         duration: Number(formData.duration),
         skills: selectedSkills,
         maxProposalCount: Number(formData.maxProposalCount),
@@ -124,138 +107,235 @@ export function ProjectEdit() {
       toast.success("프로젝트가 성공적으로 수정되었습니다.");
       navigate(`/projects/${id}`);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "수정 실패");
+      toast.error(err?.response?.data?.message || "수정에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (isLoading) return <div className="flex justify-center py-32"><Loader2 className="animate-spin text-blue-600 w-10 h-10" /></div>;
+  const addSkill = (skill: string) => {
+    if (skill && !selectedSkills.includes(skill)) {
+      setSelectedSkills([...selectedSkills, skill]);
+      setSkillInput("");
+    }
+  };
+
+  const removeSkill = (skill: string) => {
+    setSelectedSkills(selectedSkills.filter((s) => s !== skill));
+  };
+
+  if (isLoadingInit) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+        <Loader2 className="w-12 h-12 animate-spin text-primary" />
+        <p className="text-muted-foreground font-bold tracking-widest">LOADING PROJECT DATA...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="container mx-auto px-4 max-w-3xl">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6">
-          <ArrowLeft className="w-4 h-4 mr-2" /> 뒤로가기
+    <div className="min-h-screen bg-background py-8 pb-20">
+      <div className="container mx-auto px-4 max-w-4xl">
+        <Button variant="ghost" className="mb-8 text-muted-foreground hover:text-foreground font-bold hover:bg-secondary rounded-xl" onClick={() => navigate(-1)}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          수정 취소하고 돌아가기
         </Button>
-        
-        <Card className="border-none shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-2xl font-black text-gray-900">프로젝트 수정</CardTitle>
+
+        <Card className="bg-card border-border shadow-2xl rounded-[40px] overflow-hidden">
+          <CardHeader className="bg-secondary/10 border-b border-border/50 pb-10 pt-12 px-10">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="bg-primary p-3 rounded-2xl shadow-lg shadow-primary/20">
+                <Pencil className="w-8 h-8 text-primary-foreground" />
+              </div>
+              <div>
+                <CardTitle className="text-4xl font-black text-foreground tracking-tight">프로젝트 정보 수정</CardTitle>
+                <p className="text-muted-foreground font-medium mt-1">
+                  변경 사항을 검토하고 전문가들에게 업데이트된 정보를 전달하세요.
+                </p>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="title">프로젝트 제목 *</Label>
-                <Input 
-                  id="title" 
-                  value={formData.title} 
-                  onChange={e => setFormData({...formData, title: e.target.value})} 
-                  placeholder="예: 리액트 쇼핑몰 개발" 
-                  required 
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="category">카테고리 *</Label>
-                <Select value={formData.categoryId} onValueChange={v => setFormData({...formData, categoryId: v})}>
-                  <SelectTrigger><SelectValue placeholder="카테고리 선택" /></SelectTrigger>
-                  <SelectContent>
-                    {categories.map(c => (
-                      <SelectItem key={c.id} value={String(c.id)}>{c.icon} {c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">상세 내용 *</Label>
-                <Textarea 
-                  id="description" 
-                  rows={10} 
-                  value={formData.description} 
-                  onChange={e => setFormData({...formData, description: e.target.value})} 
-                  placeholder="프로젝트에 대한 상세 설명을 입력해주세요." 
-                  required 
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="minBudget">최소 예산 (원) *</Label>
-                  <Input 
-                    id="minBudget" 
-                    type="number" 
-                    value={formData.minBudget} 
-                    onChange={e => setFormData({...formData, minBudget: e.target.value})} 
-                    required 
+          <CardContent className="p-10">
+            <form onSubmit={handleSubmit} className="space-y-12">
+              
+              {/* ── 기본 정보 섹션 ── */}
+              <div className="space-y-8">
+                <div className="flex items-center gap-2 text-primary font-black uppercase tracking-[0.2em] text-xs">
+                  <Target className="w-4 h-4" /> Edit Core Info
+                </div>
+                
+                <div className="space-y-3">
+                  <Label htmlFor="title" className="text-sm font-black text-foreground ml-1">프로젝트 제목 *</Label>
+                  <Input
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    required
+                    disabled={isSubmitting}
+                    className="h-14 bg-secondary/30 border-border text-foreground rounded-2xl focus:ring-primary/20 text-lg font-bold px-6"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="maxBudget">최대 예산 (원) *</Label>
-                  <Input 
-                    id="maxBudget" 
-                    type="number" 
-                    value={formData.maxBudget} 
-                    onChange={e => setFormData({...formData, maxBudget: e.target.value})} 
-                    required 
-                  />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="duration">예상 기간 (일) *</Label>
-                  <Input 
-                    id="duration" 
-                    type="number" 
-                    value={formData.duration} 
-                    onChange={e => setFormData({...formData, duration: e.target.value})} 
-                    required 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="maxProposalCount">최대 제안수 *</Label>
-                  <Input 
-                    id="maxProposalCount" 
-                    type="number" 
-                    value={formData.maxProposalCount} 
-                    onChange={e => setFormData({...formData, maxProposalCount: e.target.value})} 
-                    required 
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>필요 기술 스택 * (최소 1개)</Label>
-                <Select onValueChange={addSkill}>
-                  <SelectTrigger><SelectValue placeholder="목록에서 기술 선택" /></SelectTrigger>
-                  <SelectContent>
-                    {allSkills
-                      .filter((skill) => !selectedSkills.includes(skill))
-                      .map((skill) => (
-                        <SelectItem key={skill} value={skill}>{skill}</SelectItem>
+                <div className="space-y-3">
+                  <Label htmlFor="category" className="text-sm font-black text-foreground ml-1">비즈니스 카테고리 *</Label>
+                  <Select value={formData.categoryId} onValueChange={(v) => setFormData({ ...formData, categoryId: v })}>
+                    <SelectTrigger className="h-14 bg-secondary/30 border-border text-foreground rounded-2xl font-bold px-6 focus:ring-primary/20">
+                      <SelectValue placeholder="카테고리를 선택해 주세요" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border">
+                      {categories.map((c) => (
+                        <SelectItem key={c.id} value={String(c.id)} className="font-bold py-3 cursor-pointer">
+                          <span className="mr-2">{c.icon}</span> {c.name}
+                        </SelectItem>
                       ))}
-                  </SelectContent>
-                </Select>
-                {selectedSkills.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {selectedSkills.map(s => (
-                      <Badge key={s} variant="secondary" className="pl-3 pr-1 py-1 flex items-center gap-1">
-                        {s}
-                        <button type="button" onClick={() => removeSkill(s)} className="hover:text-red-600 transition-colors">
-                          <X className="w-3 h-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                )}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              <Button type="submit" className="w-full h-14 text-lg font-bold bg-blue-600 hover:bg-blue-700" disabled={isSubmitting}>
-                {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : null}
-                수정 완료
-              </Button>
+              {/* ── 상세 요구사항 섹션 ── */}
+              <div className="space-y-8">
+                <div className="flex items-center gap-2 text-primary font-black uppercase tracking-[0.2em] text-xs">
+                  <Tag className="w-4 h-4" /> Requirements & Skills
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="description" className="text-sm font-black text-foreground ml-1">상세 요구사항 설명 *</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    rows={10}
+                    required
+                    disabled={isSubmitting}
+                    className="resize-none bg-secondary/30 border-border text-foreground rounded-[24px] p-8 font-medium leading-relaxed focus:ring-primary/20"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-sm font-black text-foreground ml-1">필요 기술 스택 *</Label>
+                  <Select value={skillInput} onValueChange={(val) => { addSkill(val); setSkillInput(""); }}>
+                    <SelectTrigger className="h-14 bg-secondary/30 border-border text-foreground rounded-2xl font-bold px-6">
+                      <SelectValue placeholder="추가할 기술을 선택하세요" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border">
+                      {allSkills.filter((s) => !selectedSkills.includes(s)).map((s) => (
+                        <SelectItem key={s} value={s} className="font-medium cursor-pointer">{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedSkills.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-4 p-5 bg-secondary/20 rounded-[20px] border border-border/50">
+                      {selectedSkills.map((skill) => (
+                        <Badge key={skill} variant="secondary" className="pl-4 pr-1.5 py-2 flex items-center gap-2 bg-background text-primary border border-primary/20 font-black rounded-xl text-xs shadow-sm">
+                          {skill}
+                          <button type="button" onClick={() => removeSkill(skill)} className="hover:bg-primary/10 rounded-full p-0.5 transition-colors">
+                            <X className="w-4 h-4" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* ── 예산 및 기간 섹션 ── */}
+              <div className="space-y-8">
+                <div className="flex items-center gap-2 text-primary font-black uppercase tracking-[0.2em] text-xs">
+                  <Wallet className="w-4 h-4" /> Budget & Timeline
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <Label className="text-sm font-black text-foreground ml-1">최소 예상 예산 *</Label>
+                    <div className="relative group">
+                      <span className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-xs group-focus-within:text-primary transition-colors">KRW</span>
+                      <Input
+                        type="number"
+                        value={formData.minBudget}
+                        onChange={(e) => setFormData({ ...formData, minBudget: e.target.value })}
+                        required
+                        disabled={isSubmitting}
+                        className="h-14 bg-secondary/30 border-border text-foreground rounded-2xl pl-16 font-black text-right pr-6 focus:ring-primary/20 text-lg"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-sm font-black text-foreground ml-1">최대 예상 예산 *</Label>
+                    <div className="relative group">
+                      <span className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-xs group-focus-within:text-primary transition-colors">KRW</span>
+                      <Input
+                        type="number"
+                        value={formData.maxBudget}
+                        onChange={(e) => setFormData({ ...formData, maxBudget: e.target.value })}
+                        required
+                        disabled={isSubmitting}
+                        className="h-14 bg-secondary/30 border-border text-foreground rounded-2xl pl-16 font-black text-right pr-6 focus:ring-primary/20 text-lg"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <Label htmlFor="duration" className="text-sm font-black text-foreground ml-1 flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-muted-foreground" /> 개발 희망 기간 (일) *
+                    </Label>
+                    <Input
+                      id="duration"
+                      type="number"
+                      value={formData.duration}
+                      onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                      required
+                      disabled={isSubmitting}
+                      className="h-14 bg-secondary/30 border-border text-foreground rounded-2xl font-black focus:ring-primary/20 px-6 text-lg"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label htmlFor="maxProposalCount" className="text-sm font-black text-foreground ml-1 flex items-center gap-2">
+                      <Target className="w-4 h-4 text-muted-foreground" /> 최대 제안 수신 제한 *
+                    </Label>
+                    <Input
+                      id="maxProposalCount"
+                      type="number"
+                      value={formData.maxProposalCount}
+                      onChange={(e) => setFormData({ ...formData, maxProposalCount: e.target.value })}
+                      required
+                      disabled={isSubmitting}
+                      className="h-14 bg-secondary/30 border-border text-foreground rounded-2xl font-black focus:ring-primary/20 px-6 text-lg"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* ── 제출 버튼 ── */}
+              <div className="flex flex-col md:flex-row gap-4 pt-10 border-t border-border/50">
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-black h-18 text-xl rounded-2xl shadow-xl shadow-primary/30 transition-all hover:scale-[1.01] active:scale-[0.99] py-8"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-6 h-6 mr-3 animate-spin" />
+                      변경 사항 저장 중...
+                    </>
+                  ) : (
+                    "프로젝트 수정 사항 저장하기"
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  className="md:w-40 border-border text-foreground hover:bg-secondary h-18 rounded-2xl font-black py-8"
+                  onClick={() => navigate(-1)}
+                  disabled={isSubmitting}
+                >
+                  수정 취소
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>

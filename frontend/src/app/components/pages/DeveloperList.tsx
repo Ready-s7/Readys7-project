@@ -54,10 +54,15 @@ export function DeveloperList() {
     });
   }, []);
 
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [searchTerm, selectedSkill, minRating]);
+
   const fetchDevelopers = useCallback(async () => {
     setIsLoading(true);
     try {
-      const params: any = { page: currentPage, size: 12 };
+      // 백엔드 DeveloperController의 adjustPageable (page - 1) 보정을 위해 +1 전달
+      const params: any = { page: currentPage + 1, size: 12 };
       if (selectedSkill !== "all") params.skills = [selectedSkill];
       if (minRating !== "all") params.minRating = Number(minRating);
 

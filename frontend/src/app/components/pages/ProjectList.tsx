@@ -52,9 +52,14 @@ export function ProjectList() {
     }).catch(err => console.error("Categories load failed:", err));
   }, []);
 
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [appliedSearch, selectedCategoryId, selectedStatus]);
+
   const fetchProjects = useCallback(async () => {
     setIsLoading(true);
     try {
+      // 백엔드 ProjectController는 표준 0-indexed Pageable을 사용함
       const params: any = { page: currentPage, size: 10 };
       if (appliedSearch.trim()) params.keyword = appliedSearch;
       if (selectedCategoryId !== "all") params.categoryId = Number(selectedCategoryId);

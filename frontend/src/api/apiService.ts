@@ -157,7 +157,8 @@ export const developerApi = {
 // 클라이언트 API
 // ─────────────────────────────────────────────────────────────
 export const clientApi = {
-    getAll: (page = 1, size = 10) =>
+    // 백엔드 ClientController가 keyword를 받지 않으므로 page, size만 유지
+    getAll: (page = 0, size = 10) =>
         apiClient.get<SuccessResponse<ClientPageResponse<ClientDto>>>(
             "/v1/clients",
             { params: { page, size } }
@@ -175,7 +176,7 @@ export const clientApi = {
             data
         ),
 
-    getMyProjects: (page = 1, size = 10) =>
+    getMyProjects: (page = 0, size = 10) =>
         apiClient.get<SuccessResponse<ClientPageResponse<ProjectDto>>>(
             "/v1/clients/my-projects",
             { params: { page, size } }

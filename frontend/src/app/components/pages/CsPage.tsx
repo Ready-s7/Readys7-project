@@ -129,59 +129,70 @@ export function CsPage() {
           </Dialog>
         </div>
 
-        <Card className="border-border bg-card shadow-xl overflow-hidden">
-          <CardHeader className="border-b border-border bg-secondary/20">
-            <CardTitle className="flex items-center gap-2 text-lg text-foreground">
-              <MessageSquare className="w-5 h-5 text-primary" />
-              내 문의 내역 ({csRooms.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            {csRooms.length === 0 ? (
-              <div className="text-center py-20 text-muted-foreground">
-                <div className="bg-secondary/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-border">
-                  <MessageSquare className="w-8 h-8 opacity-20 text-primary" />
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-2 px-1">
+            <MessageSquare className="w-5 h-5 text-primary" />
+            <h2 className="text-xl font-black text-foreground">상담 내역 <span className="text-primary/50 text-sm ml-1 font-bold">({csRooms.length})</span></h2>
+          </div>
+          
+          {csRooms.length === 0 ? (
+            <Card className="border-border bg-card shadow-sm rounded-3xl border-dashed">
+              <CardContent className="p-20 text-center text-muted-foreground">
+                <div className="bg-secondary/30 w-20 h-20 rounded-[24px] flex items-center justify-center mx-auto mb-6 border border-border">
+                  <MessageSquare className="w-10 h-10 opacity-20 text-primary" />
                 </div>
-                <p className="text-lg font-medium text-foreground">아직 문의하신 내역이 없습니다.</p>
-                <p className="text-sm mt-1">궁금하신 점이 있다면 새 문의를 남겨주세요.</p>
-                <Button variant="outline" onClick={() => setShowCsModal(true)} className="mt-6 border-border text-foreground hover:bg-secondary">
-                  지금 문의하기
+                <p className="text-xl font-black text-foreground mb-2">접수된 문의가 없습니다.</p>
+                <p className="text-sm font-medium mb-8">서비스 이용 중 궁금하신 점은 언제든 물어보세요.</p>
+                <Button onClick={() => setShowCsModal(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground font-black px-8 rounded-xl shadow-lg shadow-primary/20 h-12">
+                  <Plus className="w-5 h-5 mr-2" /> 지금 첫 문의하기
                 </Button>
-              </div>
-            ) : (
-              <div className="divide-y divide-border">
-                {csRooms.map((room) => (
-                  <div key={room.id} className="flex items-center justify-between p-6 hover:bg-secondary/30 transition-colors cursor-pointer group" onClick={() => navigate(`/chat?csRoomId=${room.id}`)}>
-                    <div className="flex-1 min-w-0 pr-6">
-                      <div className="flex items-center gap-3 mb-2">
-                        <Badge variant={
-                          room.status === "WAITING" ? "destructive" :
-                          room.status === "IN_PROGRESS" ? "default" : "secondary"
-                        } className={`px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider ${
-                          room.status === "WAITING" ? "bg-destructive text-destructive-foreground" :
-                          room.status === "IN_PROGRESS" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
-                        }`}>
-                          {room.status === "WAITING" ? "대기중" :
-                           room.status === "IN_PROGRESS" ? "처리중" : "완료"}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(room.createdAt).toLocaleString()} 접수
-                        </span>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4">
+              {csRooms.map((room) => (
+                <Card 
+                  key={room.id} 
+                  className="border-border bg-card shadow-sm hover:shadow-md hover:border-primary/30 transition-all cursor-pointer group rounded-2xl overflow-hidden"
+                  onClick={() => navigate(`/chat?csRoomId=${room.id}`)}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Badge className={`px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest border-none ${
+                            room.status === "WAITING" ? "bg-destructive text-white" :
+                            room.status === "IN_PROGRESS" ? "bg-primary text-white shadow-sm shadow-primary/20" : 
+                            "bg-secondary text-muted-foreground"
+                          }`}>
+                            {room.status === "WAITING" ? "대기중" :
+                             room.status === "IN_PROGRESS" ? "상담중" : "상담종료"}
+                          </Badge>
+                          <span className="text-[11px] font-bold text-muted-foreground bg-secondary/50 px-2 py-0.5 rounded-md">
+                            No. {room.id.toString().padStart(4, '0')}
+                          </span>
+                        </div>
+                        <h4 className="font-black text-xl text-foreground truncate group-hover:text-primary transition-colors mb-1">
+                          {room.title}
+                        </h4>
+                        <p className="text-xs text-muted-foreground font-medium">
+                          {new Date(room.createdAt).toLocaleString('ko-KR', { dateStyle: 'medium', timeStyle: 'short' })} 접수됨
+                        </p>
                       </div>
-                      <h4 className="font-bold text-lg text-foreground truncate group-hover:text-primary transition-colors">
-                        {room.title}
-                      </h4>
+                      <div className="shrink-0 flex items-center gap-3">
+                        <div className="w-px h-10 bg-border hidden md:block" />
+                        <Button variant="ghost" className="text-primary font-black text-sm gap-2 hover:bg-primary/5 rounded-xl px-4">
+                          상담실 입장
+                          <ExternalLink className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="shrink-0 flex items-center gap-2 text-primary font-semibold text-sm">
-                      상담하기
-                      <ExternalLink className="w-4 h-4" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

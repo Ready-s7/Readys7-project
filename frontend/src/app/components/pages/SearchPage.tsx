@@ -52,97 +52,104 @@ export function SearchPage() {
   const totalPages = currentPageInfo?.totalPages || 0;
 
   return (
-    <div className="min-h-screen bg-background py-8">
-      <div className="container mx-auto px-4 max-w-5xl">
+    <div className="min-h-screen bg-background py-12">
+      <div className="container mx-auto px-4 max-w-6xl">
         {/* Search Header */}
-        <div className="mb-10 text-center">
-          <h1 className="text-3xl font-bold mb-6 text-foreground">통합 검색 결과</h1>
-          <form onSubmit={onSearchSubmit} className="max-w-2xl mx-auto flex gap-2">
-            <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+        <div className="mb-16 text-center">
+          <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-1.5 rounded-full text-primary font-black text-[10px] uppercase tracking-[0.2em] mb-6 border border-primary/20">
+            <Search className="w-3.5 h-3.5" /> Total Search
+          </div>
+          <h1 className="text-5xl font-black mb-8 text-foreground tracking-tight italic">통합 검색 센터</h1>
+          
+          <form onSubmit={onSearchSubmit} className="max-w-3xl mx-auto flex flex-col md:flex-row gap-3">
+            <div className="flex-1 relative group">
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-muted-foreground group-focus-within:text-primary transition-colors" />
               <Input
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="검색어를 입력하세요"
-                className="pl-12 h-14 rounded-2xl border-border shadow-lg focus-visible:ring-primary bg-card text-foreground"
+                placeholder="어떤 프로젝트나 전문가를 찾으시나요?"
+                className="pl-16 h-18 rounded-[24px] border-border shadow-2xl focus-visible:ring-primary/20 bg-card text-foreground text-xl font-bold transition-all"
               />
             </div>
-            <Button type="submit" size="lg" className="h-14 px-8 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-bold">검색</Button>
+            <Button type="submit" size="lg" className="h-18 px-12 bg-primary hover:bg-primary/90 text-primary-foreground rounded-[24px] font-black text-xl shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]">검색 실행</Button>
           </form>
+          
           {keyword && !isLoading && (
-            <p className="mt-6 text-muted-foreground">
-              "<span className="text-primary font-bold">{keyword}</span>"에 대한 검색 결과입니다.
+            <p className="mt-8 text-muted-foreground font-medium text-lg">
+              "<span className="text-primary font-black">{keyword}</span>" 키워드로 분석된 최적의 결과입니다.
             </p>
           )}
         </div>
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-32">
-            <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground font-medium">최적의 결과를 찾는 중입니다...</p>
+          <div className="flex flex-col items-center justify-center py-40 bg-card/30 rounded-[40px] border border-dashed border-border shadow-inner">
+            <Loader2 className="w-16 h-16 animate-spin text-primary mb-6" />
+            <p className="text-muted-foreground font-black tracking-widest uppercase text-sm animate-pulse">Analyzing Repository Data...</p>
           </div>
         ) : !results ? (
-          <div className="text-center py-32 text-muted-foreground">
-            <Search className="w-20 h-20 mx-auto mb-6 opacity-10" />
-            <p className="text-lg">검색어를 입력하고 준비된 프로젝트와 전문가를 만나보세요.</p>
+          <div className="text-center py-40 bg-secondary/10 rounded-[40px] border-2 border-dashed border-border">
+            <Search className="w-24 h-24 mx-auto mb-8 opacity-5 text-primary" />
+            <p className="text-xl font-bold text-muted-foreground">Ready's7의 모든 자원을 검색해 보세요.</p>
           </div>
         ) : (
           <Tabs defaultValue="projects" value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-10 bg-card p-1 rounded-2xl shadow-sm border border-border h-14">
-              <TabsTrigger value="projects" className="flex gap-2 rounded-xl data-[state=active]:bg-secondary data-[state=active]:text-primary">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-12 bg-secondary/50 p-1.5 rounded-[24px] border border-border h-18">
+              <TabsTrigger value="projects" className="flex gap-2 rounded-2xl data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-xl font-black transition-all">
                 <Briefcase className="w-4 h-4" /> 프로젝트 ({results.projects?.totalElements || 0})
               </TabsTrigger>
-              <TabsTrigger value="developers" className="flex gap-2 rounded-xl data-[state=active]:bg-secondary data-[state=active]:text-primary">
-                <Users className="w-4 h-4" /> 개발자 ({results.developers?.totalElements || 0})
+              <TabsTrigger value="developers" className="flex gap-2 rounded-2xl data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-xl font-black transition-all">
+                <Users className="w-4 h-4" /> 전문가 ({results.developers?.totalElements || 0})
               </TabsTrigger>
-              <TabsTrigger value="categories" className="flex gap-2 rounded-xl data-[state=active]:bg-secondary data-[state=active]:text-primary">
+              <TabsTrigger value="categories" className="flex gap-2 rounded-2xl data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-xl font-black transition-all">
                 <Tag className="w-4 h-4" /> 카테고리 ({results.categories?.totalElements || 0})
               </TabsTrigger>
-              <TabsTrigger value="skills" className="flex gap-2 rounded-xl data-[state=active]:bg-secondary data-[state=active]:text-primary">
+              <TabsTrigger value="skills" className="flex gap-2 rounded-2xl data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-xl font-black transition-all">
                 <Wrench className="w-4 h-4" /> 기술 스택 ({results.skills?.totalElements || 0})
               </TabsTrigger>
             </TabsList>
 
-            <div className="mb-12">
+            <div className="mb-20">
               <TabsContent value="projects">
                 {(!results.projects?.content || results.projects.content.length === 0) ? (
                   <NoResults message="일치하는 프로젝트를 찾지 못했습니다." />
                 ) : (
-                  <div className="grid grid-cols-1 gap-4">
+                  <div className="grid grid-cols-1 gap-6">
                     {results.projects.content.map((p) => (
                       <Link key={p.id} to={`/projects/${p.id}`}>
-                        <Card className="hover:border-primary/50 transition-colors border border-border bg-card shadow-sm rounded-2xl overflow-hidden">
-                          <CardContent className="p-6">
-                            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                        <Card className="hover:border-primary/40 transition-all border border-border bg-card shadow-lg hover:shadow-2xl hover:shadow-primary/5 rounded-[32px] overflow-hidden group">
+                          <CardContent className="p-8">
+                            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
                               <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-3 mb-3 flex-wrap">
-                                  <Badge variant="secondary" className="bg-secondary text-secondary-foreground border-none">{p.category || "기타"}</Badge>
-                                  <Badge variant="outline" className="border-border text-muted-foreground">{p.status === "OPEN" ? "모집중" : p.status === "IN_PROGRESS" ? "진행중" : "완료"}</Badge>
-                                  <span className="text-xs text-muted-foreground font-medium">
+                                <div className="flex items-center gap-3 mb-4 flex-wrap">
+                                  <Badge className="bg-primary/10 text-primary border-none font-black text-[10px] px-3 py-1 rounded-lg uppercase tracking-wider">{p.category || "General"}</Badge>
+                                  <Badge variant="outline" className={`border-border font-bold rounded-lg text-[10px] ${p.status === 'OPEN' ? 'text-green-500' : 'text-muted-foreground'}`}>{p.status === "OPEN" ? "● 모집중" : p.status === "IN_PROGRESS" ? "○ 진행중" : "완료"}</Badge>
+                                  <div className="w-1 h-1 rounded-full bg-border" />
+                                  <span className="text-[11px] text-muted-foreground font-bold italic">
                                     {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ""}
                                   </span>
                                 </div>
-                                <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary truncate">{p.title}</h3>
-                                <p className="text-muted-foreground text-sm mb-4 line-clamp-2 leading-relaxed">{p.description}</p>
-                                <div className="flex flex-wrap gap-1.5 mb-4">
+                                <h3 className="text-2xl font-black text-foreground mb-3 group-hover:text-primary transition-colors tracking-tight">{p.title}</h3>
+                                <p className="text-muted-foreground text-sm mb-6 line-clamp-2 leading-relaxed font-medium">{p.description}</p>
+                                <div className="flex flex-wrap gap-1.5 mb-6">
                                   {(p.skills || []).map(skill => (
-                                    <Badge key={skill} variant="outline" className="bg-secondary/30 border-border text-muted-foreground text-[10px] px-2">
+                                    <Badge key={skill} variant="outline" className="bg-secondary/20 border-border text-muted-foreground text-[10px] px-2.5 py-0.5 font-bold rounded-md uppercase tracking-tight">
                                       {skill}
                                     </Badge>
                                   ))}
                                 </div>
-                                <div className="flex items-center gap-4 text-xs text-muted-foreground font-bold">
-                                  <div className="flex items-center gap-1">👤 {p.clientName || "익명"}</div>
-                                  <div className="flex items-center gap-1"><span className="text-yellow-400">⭐</span> {typeof p.clientRating === 'number' ? p.clientRating.toFixed(1) : "0.0"}</div>
-                                  <div className="flex items-center gap-1"><span className="text-primary">📝</span> 제안 {p.currentProposalCount || 0}개</div>
+                                <div className="flex items-center gap-6 text-[11px] text-muted-foreground font-black uppercase tracking-widest border-t border-border/50 pt-4">
+                                  <div className="flex items-center gap-1.5 hover:text-primary transition-colors cursor-default"><User className="w-3.5 h-3.5" /> {p.clientName || "Anonymous"}</div>
+                                  <div className="flex items-center gap-1.5 text-yellow-500 bg-yellow-400/5 px-2 py-0.5 rounded-md border border-yellow-400/10"><Star className="w-3.5 h-3.5 fill-current" /> {typeof p.clientRating === 'number' ? p.clientRating.toFixed(1) : "0.0"}</div>
+                                  <div className="flex items-center gap-1.5 text-primary bg-primary/5 px-2 py-0.5 rounded-md border border-primary/10"><Target className="w-3.5 h-3.5" /> PROPOSALS: {p.currentProposalCount || 0}</div>
                                 </div>
                               </div>
-                              <div className="md:text-right shrink-0 flex flex-col justify-between items-end min-w-[150px]">
-                                <div className="mb-4">
-                                  <div className="text-lg font-black text-primary">{(p.minBudget || 0).toLocaleString()}원 ~ {(p.maxBudget || 0).toLocaleString()}원</div>
-                                  <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1">예상 기간: {p.duration || 0}일</div>
+                              <div className="md:text-right shrink-0 flex flex-col justify-between items-end min-w-[200px] border-t md:border-t-0 md:border-l border-border/50 pt-6 md:pt-0 md:pl-8">
+                                <div className="mb-6 w-full">
+                                  <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] mb-2">Estimated Budget</p>
+                                  <div className="text-2xl font-black text-primary leading-tight">{(p.minBudget || 0).toLocaleString()}원 <span className="text-xs text-muted-foreground/40 font-bold block mt-1 md:inline md:mt-0">~ {(p.maxBudget || 0).toLocaleString()}원</span></div>
+                                  <div className="text-[10px] text-muted-foreground font-black mt-3 flex items-center md:justify-end gap-1.5 uppercase tracking-widest"><Calendar className="w-3 h-3" /> PERIOD: {p.duration || 0} DAYS</div>
                                 </div>
-                                <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl px-6">상세보기</Button>
+                                <Button className="w-full md:w-auto bg-foreground text-background hover:bg-foreground/90 font-black rounded-xl px-10 h-12 shadow-lg">상세 브리핑 보기</Button>
                               </div>
                             </div>
                           </CardContent>
@@ -157,42 +164,48 @@ export function SearchPage() {
                 {(!results.developers?.content || results.developers.content.length === 0) ? (
                   <NoResults message="일치하는 개발자를 찾지 못했습니다." />
                 ) : (
-                  <div className="grid grid-cols-1 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {results.developers.content.map((dev) => (
                       <Link key={dev.id} to={`/developers/${dev.id}`}>
-                        <Card className="hover:border-primary/50 transition-colors border border-border bg-card shadow-sm rounded-2xl overflow-hidden">
-                          <CardContent className="p-6">
-                            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-3 mb-3">
-                                  <Badge className="bg-secondary text-secondary-foreground border-none">{dev.participateType === "INDIVIDUAL" ? "개인" : "업체"}</Badge>
-                                  {dev.availableForWork && <Badge className="bg-primary/10 text-primary border-none">활동중</Badge>}
-                                </div>
-                                <h3 className="text-xl font-bold text-foreground mb-1">{dev.name}</h3>
-                                <p className="text-primary font-bold text-sm mb-3">{dev.title}</p>
-                                <p className="text-muted-foreground text-sm mb-4 line-clamp-2">{dev.description}</p>
-                                <div className="flex flex-wrap gap-1.5 mb-4">
-                                  {(dev.skills || []).map(skill => (
-                                    <Badge key={skill} variant="outline" className="bg-secondary/30 border-border text-muted-foreground text-[10px]">{skill}</Badge>
-                                  ))}
-                                </div>
-                                <div className="flex items-center gap-6 text-xs text-muted-foreground font-bold">
-                                  <div className="flex items-center gap-1.5"><Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" /><span className="text-foreground">{Number(dev.rating ?? 0).toFixed(1)}</span><span className="text-muted-foreground">({dev.reviewCount || 0})</span></div>
-                                  <div className="flex items-center gap-1"><span className="text-muted-foreground font-medium">완료 프로젝트</span><span className="text-foreground">{dev.completedProjects || 0}건</span></div>
-                                  <div className="flex items-center gap-1"><span className="text-muted-foreground font-medium">응답 시간</span><span className="text-foreground">{dev.responseTime || "-"}</span></div>
-                                </div>
+                        <Card className="hover:border-primary/40 transition-all border border-border bg-card shadow-lg hover:shadow-2xl hover:shadow-primary/5 rounded-[32px] overflow-hidden group h-full flex flex-col">
+                          <CardContent className="p-8 flex-1">
+                            <div className="flex items-center gap-5 mb-6">
+                              <div className="w-16 h-16 rounded-[20px] bg-primary text-primary-foreground flex items-center justify-center text-2xl font-black shadow-lg shadow-primary/20">
+                                {dev.name[0]}
                               </div>
-                              <div className="md:text-right shrink-0 flex flex-col justify-between items-end min-w-[160px]">
-                                <div className="mb-4">
-                                  <div className="text-xs text-muted-foreground font-bold mb-1">희망 시급</div>
-                                  <div className="text-lg font-black text-foreground">
-                                    {dev.minHourlyPay?.toLocaleString() || 0}원 ~ {dev.maxHourlyPay?.toLocaleString() || 0}원
-                                  </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h3 className="text-xl font-black text-foreground group-hover:text-primary transition-colors truncate">{dev.name}</h3>
+                                  <Badge className="bg-secondary text-muted-foreground border-none font-black text-[9px] px-2 py-0.5 rounded-md uppercase tracking-tighter shrink-0">{dev.participateType === "INDIVIDUAL" ? "Personal" : "Company"}</Badge>
                                 </div>
-                                <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl px-6">프로필 보기</Button>
+                                <p className="text-primary font-bold text-sm truncate uppercase tracking-widest">{dev.title}</p>
+                              </div>
+                            </div>
+                            <p className="text-muted-foreground text-sm mb-8 line-clamp-3 font-medium leading-relaxed min-h-[4.5rem] italic opacity-80">"{dev.description}"</p>
+                            <div className="flex flex-wrap gap-1.5 mb-8">
+                              {(dev.skills || []).slice(0, 5).map(skill => (
+                                <Badge key={skill} variant="outline" className="bg-secondary/10 border-border text-muted-foreground text-[10px] px-2 font-bold uppercase">{skill}</Badge>
+                              ))}
+                              {(dev.skills || []).length > 5 && <span className="text-[10px] text-muted-foreground font-black ml-1">+{(dev.skills || []).length - 5}</span>}
+                            </div>
+                            <div className="grid grid-cols-3 gap-4 border-t border-border/50 pt-6">
+                              <div className="text-center">
+                                <div className="flex items-center justify-center gap-1 text-yellow-500 mb-1"><Star className="w-3.5 h-3.5 fill-current" /><span className="text-sm font-black text-foreground">{Number(dev.rating ?? 0).toFixed(1)}</span></div>
+                                <p className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">RATING</p>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-sm font-black text-foreground mb-1">{dev.completedProjects || 0}</div>
+                                <p className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">PROJECTS</p>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-sm font-black text-foreground mb-1">{dev.responseTime || "FAST"}</div>
+                                <p className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">RESPONSE</p>
                               </div>
                             </div>
                           </CardContent>
+                          <div className="p-6 pt-0 mt-auto">
+                             <Button className="w-full bg-secondary text-foreground hover:bg-primary hover:text-primary-foreground font-black rounded-2xl h-12 transition-all shadow-sm">프로필 포트폴리오 조회</Button>
+                          </div>
                         </Card>
                       </Link>
                     ))}
@@ -204,12 +217,12 @@ export function SearchPage() {
                 {(!results.categories?.content || results.categories.content.length === 0) ? (
                   <NoResults message="일치하는 카테고리가 없습니다." />
                 ) : (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     {results.categories.content.map((c) => (
                       <Link key={c.id} to={`/projects?categoryId=${c.id}`}>
-                        <Card className="hover:bg-secondary/50 transition-all border border-border bg-card shadow-sm rounded-2xl text-center p-8 group">
-                          <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">{c.icon || "📦"}</div>
-                          <div className="font-black text-foreground text-lg">{c.name}</div>
+                        <Card className="hover:bg-primary/5 hover:border-primary/30 transition-all border border-border bg-card shadow-lg hover:shadow-2xl rounded-[32px] text-center p-12 group h-full flex flex-col items-center justify-center">
+                          <div className="text-7xl mb-6 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500 drop-shadow-2xl">{c.icon || "📦"}</div>
+                          <div className="font-black text-foreground text-xl tracking-tight uppercase tracking-[0.1em]">{c.name}</div>
                         </Card>
                       </Link>
                     ))}
@@ -221,11 +234,11 @@ export function SearchPage() {
                 {(!results.skills?.content || results.skills.content.length === 0) ? (
                   <NoResults message="일치하는 기술 스택이 없습니다." />
                 ) : (
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap gap-4 p-8 bg-card border border-border rounded-[40px] shadow-inner">
                     {results.skills.content.map((s) => (
-                      <Badge key={s.id} variant="outline" className="px-6 py-3 text-sm bg-card hover:bg-secondary border-border hover:border-primary/50 text-foreground cursor-pointer shadow-sm rounded-xl transition-all">
-                        <span className="font-bold">{s.name}</span>
-                        <span className="text-[10px] text-muted-foreground ml-3 uppercase font-black">{s.skillCategory}</span>
+                      <Badge key={s.id} variant="outline" className="px-8 py-4 text-base bg-background hover:bg-primary hover:text-primary-foreground hover:border-primary border-border text-foreground cursor-pointer shadow-sm rounded-2xl transition-all duration-300 group">
+                        <span className="font-black tracking-tight">{s.name}</span>
+                        <span className="text-[10px] text-muted-foreground group-hover:text-primary-foreground/70 ml-4 uppercase font-black tracking-widest">{s.skillCategory}</span>
                       </Badge>
                     ))}
                   </div>
@@ -235,38 +248,41 @@ export function SearchPage() {
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-4 py-8 border-t border-border">
+              <div className="flex items-center justify-center gap-6 py-12 border-t border-border mt-10">
                 <Button 
                   variant="outline" 
                   disabled={pageParam === 1}
                   onClick={() => handlePageChange(pageParam - 1)}
-                  className="rounded-xl border-border text-foreground hover:bg-secondary"
+                  className="rounded-2xl border-border text-foreground hover:bg-secondary h-12 px-8 font-black uppercase tracking-widest text-xs"
                 >
-                  이전
+                  PREV
                 </Button>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     const pageNum = i + 1;
                     return (
-                      <Button
+                      <button
                         key={pageNum}
-                        variant={pageParam === pageNum ? "default" : "ghost"}
                         onClick={() => handlePageChange(pageNum)}
-                        className={`w-10 h-10 rounded-xl ${pageParam === pageNum ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'}`}
+                        className={`w-12 h-12 rounded-2xl font-black text-sm transition-all ${
+                          pageParam === pageNum 
+                            ? 'bg-primary text-primary-foreground shadow-xl shadow-primary/20 scale-110' 
+                            : 'bg-card text-muted-foreground hover:bg-secondary border border-border'
+                        }`}
                       >
                         {pageNum}
-                      </Button>
+                      </button>
                     );
                   })}
-                  {totalPages > 5 && <span className="text-muted-foreground px-2">...</span>}
+                  {totalPages > 5 && <span className="text-muted-foreground font-black px-2 tracking-[0.3em]">...</span>}
                 </div>
                 <Button 
                   variant="outline" 
                   disabled={pageParam >= totalPages}
                   onClick={() => handlePageChange(pageParam + 1)}
-                  className="rounded-xl border-border text-foreground hover:bg-secondary"
+                  className="rounded-2xl border-border text-foreground hover:bg-secondary h-12 px-8 font-black uppercase tracking-widest text-xs"
                 >
-                  다음
+                  NEXT
                 </Button>
               </div>
             )}
