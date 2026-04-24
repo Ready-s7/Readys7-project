@@ -92,8 +92,14 @@ public class DeveloperService {
         Developer developer = developerRepository.findById(developerId)
                 .orElseThrow(() -> new DeveloperException(ErrorCode.DEVELOPER_NOT_FOUND));
 
-        Object[] summary = (Object[]) reviewRepository.getDeveloperRatingSummary(developerId);
+        List<Object[]> results = reviewRepository.getDeveloperRatingSummary(developerId);
+        
+        if (results.isEmpty() || results.get(0) == null) {
+            developer.updateRating(0.0, 0);
+            return;
+        }
 
+        Object[] summary = results.get(0);
         Double avg = (Double) summary[0];
         Long count = (Long) summary[1];
 

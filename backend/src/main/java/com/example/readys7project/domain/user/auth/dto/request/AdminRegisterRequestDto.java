@@ -27,6 +27,8 @@ public record AdminRegisterRequestDto (
         )
         String phoneNumber,
 
+        String description,
+
         // ADMIN 전용
         @NotNull(message = "역할은 필수입니다.")
         AdminRole adminRole

@@ -15,24 +15,24 @@ public record PageResponseDto<T> (
         List<T> content,
 
         // 현재 페이지 (컴퓨터는 0부터 시작하기 때문에 리턴해줄 때 +1 해주기)
-        int currentPage,
+        int pageNumber,
 
         // 한 페이지에 몇개씩 보여줄지
         int size,
 
         // 전체 데이터 개수 (ex 검색결과 총 50건)
-        long totalCount,
+        long totalElements,
 
         // 전체 페이지 수 (ex 50건을 10개씩 보여주면 총 5페이지)
-        int totalPage
+        int totalPages
 ) {
     public static <T, P> PageResponseDto<T> of(Page<P> page, List<T> content) {
         return PageResponseDto.<T>builder()
                 .content(content)
-                .currentPage(page.getNumber() + 1) // 0 페이지 부터 시작을 +1 해주므로 1페이지 부터 시작
+                .pageNumber(page.getNumber() + 1) // 0 페이지 부터 시작을 +1 해주므로 1페이지 부터 시작
                 .size(page.getSize())
-                .totalCount(page.getTotalElements())
-                .totalPage(page.getTotalPages())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
                 .build();
     }
 }

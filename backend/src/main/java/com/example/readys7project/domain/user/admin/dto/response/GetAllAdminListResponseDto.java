@@ -6,12 +6,12 @@ public record GetAllAdminListResponseDto(
 
         List<AdminSummaryResponseDto> admins,
 
-        int currentPage,
+        int pageNumber,
 
         int size,
 
-        long totalCount,
+        long totalElements,
 
-        int totalPage
+        int totalPages
 
 ) {}

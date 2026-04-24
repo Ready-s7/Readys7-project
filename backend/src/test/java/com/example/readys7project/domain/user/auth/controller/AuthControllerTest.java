@@ -119,7 +119,7 @@ class AuthControllerTest {
         void registerDeveloper_Success() throws Exception {
             // given
             DeveloperRegisterRequestDto request = new DeveloperRegisterRequestDto(
-                    "dev@email.com", "password123", "Developer", "01012345678", "title", 10000, 50000, List.of("Java"), "1시간", true, ParticipateType.INDIVIDUAL
+                    "dev@email.com", "password123", "Developer", "01012345678", "description", "title", 10000, 50000, List.of("Java"), "1시간", true, ParticipateType.INDIVIDUAL
             );
             DeveloperRegisterResponseDto response = DeveloperRegisterResponseDto.builder().email("dev@email.com").build();
             given(authService.registerDeveloper(any())).willReturn(response);
@@ -135,7 +135,7 @@ class AuthControllerTest {
         @DisplayName("성공: Admin 회원가입")
         void registerAdmin_Success() throws Exception {
             // given
-            AdminRegisterRequestDto request = new AdminRegisterRequestDto("admin@email.com", "password123", "AdminUser", "01012345678", AdminRole.SUPER_ADMIN);
+            AdminRegisterRequestDto request = new AdminRegisterRequestDto("admin@email.com", "password123", "AdminUser", "01012345678", "description", AdminRole.SUPER_ADMIN);
             AdminRegisterResponseDto response = AdminRegisterResponseDto.builder().email("admin@email.com").build();
             given(authService.registerAdmin(any())).willReturn(response);
 

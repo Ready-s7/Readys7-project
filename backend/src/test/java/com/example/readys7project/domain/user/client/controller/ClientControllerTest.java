@@ -194,10 +194,10 @@ class ClientControllerTest {
             // given
             PageResponseDto response = PageResponseDto.builder()
                     .content(Collections.emptyList())
-                    .currentPage(1)
+                    .pageNumber(1)
                     .size(10)
-                    .totalCount(0L)
-                    .totalPage(0)
+                    .totalElements(0L)
+                    .totalPages(0)
                     .build();
 
             given(clientService.getMyProjects(any(), any())).willReturn(response);

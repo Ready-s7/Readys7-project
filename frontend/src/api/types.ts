@@ -216,10 +216,10 @@ export interface AdminDto {
 
 export interface AdminListResponse {
   admins: AdminDto[];
-  currentPage: number;
+  pageNumber: number;
   size: number;
-  totalCount: number;
-  totalPage: number;
+  totalElements: number;
+  totalPages: number;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -332,6 +332,7 @@ export interface DeveloperRegisterRequest {
   password: string;
   name: string;
   phoneNumber: string;
+  description?: string;
   title: string;
   minHourlyPay: number;
   maxHourlyPay: number;
@@ -343,8 +344,8 @@ export interface DeveloperRegisterRequest {
 
 export interface ClientPageResponse<T> {
   content: T[];
-  totalPages: number;
-  totalElements: number;
+  pageNumber: number;
   size: number;
-  number: number;
+  totalElements: number;
+  totalPages: number;
 }
