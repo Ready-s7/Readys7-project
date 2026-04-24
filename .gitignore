@@ -36,5 +36,11 @@ out/
 ### VS Code ###
 .vscode/
 
-### yml ###
-*.yml
+### env ###
+.env
+
+### frontpid ###
+.frontend.pid
+
+### Harness Engineering ###
+.harness/

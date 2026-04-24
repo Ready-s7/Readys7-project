@@ -1,0 +1,87 @@
+package com.example.readys7project.domain.portfolio.controller;
+
+
+import com.example.readys7project.domain.portfolio.dto.PortfolioDto;
+import com.example.readys7project.domain.portfolio.dto.request.PortfolioRequestDto;
+import com.example.readys7project.domain.portfolio.dto.request.PortfolioUpdateRequestDto;
+import com.example.readys7project.domain.portfolio.service.PortfolioService;
+import com.example.readys7project.global.dto.ApiResponseDto;
+import com.example.readys7project.global.security.CustomUserDetails;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequiredArgsConstructor
+public class PortfolioController {
+
+    private final PortfolioService portfolioService;
+
+    // 개발자 포트폴리오 생성
+    @PostMapping("/v1/portfolios")
+    public ResponseEntity<ApiResponseDto<PortfolioDto>> createPortfolio(
+            @Valid @RequestBody PortfolioRequestDto request,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails
+    ) {
+        String email = customUserDetails.getEmail();
+        return ResponseEntity.ok(
+                ApiResponseDto.success(HttpStatus.CREATED, portfolioService.createPortfolio(request, email))
+        );
+    }
+
+    // 개발자 포트폴리오 수정
+    @PatchMapping("/v1/portfolios/{portfolioId}")
+    public ResponseEntity<ApiResponseDto<PortfolioDto>> updatePortfolio(
+            @PathVariable Long portfolioId,
+            @Valid @RequestBody PortfolioUpdateRequestDto request,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails
+    ) {
+        String email = customUserDetails.getEmail();
+        return ResponseEntity.ok(
+                ApiResponseDto.success(HttpStatus.OK, portfolioService.updatePortfolio(portfolioId, request, email))
+        );
+    }
+
+    // 개발자 포트폴리오 삭제
+    @DeleteMapping("/v1/portfolios/{portfolioId}")
+    public ResponseEntity<ApiResponseDto<Void>> deletePortfolio(
+            @PathVariable Long portfolioId,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails
+    ) {
+        String email = customUserDetails.getEmail();
+        portfolioService.deletePortfolio(portfolioId, email);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                .body(ApiResponseDto.successWithNoContent());
+    }
+
+
+    // 특정 개발자 포트폴리오 조회.
+    @GetMapping("/v1/portfolios")
+    public ResponseEntity<ApiResponseDto<Page<PortfolioDto>>> getPortfolio(
+            @RequestParam Long developerId,
+            @RequestParam(required = false) String skill,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(
+                ApiResponseDto.success(HttpStatus.OK, portfolioService.getPortfolio(developerId,skill, page, size))
+        );
+    }
+
+    // 로그인한 사용자는 포트폴리오 조회 가능.
+    @GetMapping("/v1/portfolios/search")
+    public ResponseEntity<ApiResponseDto<Page<PortfolioDto>>> searchPortfolios(
+            @RequestParam(required = false) String skill,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
+        return ResponseEntity.ok(
+                ApiResponseDto.success(HttpStatus.OK, portfolioService.searchPortfolios(skill, page, size))
+        );
+    }
+
+}
