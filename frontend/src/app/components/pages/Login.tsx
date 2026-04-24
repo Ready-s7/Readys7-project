@@ -212,25 +212,25 @@ export function Login() {
       <div className="container mx-auto px-4 max-w-md">
         <Link to="/" className="flex items-center justify-center gap-2 mb-8">
           <img src={logo} alt="Ready's7 Logo" className="h-10 w-auto" />
-          <span className="font-bold text-2xl text-white">Ready's7</span>
+          <span className="font-bold text-2xl text-foreground">Ready's7</span>
         </Link>
 
-        <Card>
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-center text-2xl">환영합니다</CardTitle>
+            <CardTitle className="text-center text-2xl text-foreground">환영합니다</CardTitle>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">로그인</TabsTrigger>
-                <TabsTrigger value="signup">회원가입</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 bg-secondary/50">
+                <TabsTrigger value="login" className="data-[state=active]:bg-background data-[state=active]:text-primary">로그인</TabsTrigger>
+                <TabsTrigger value="signup" className="data-[state=active]:bg-background data-[state=active]:text-primary">회원가입</TabsTrigger>
               </TabsList>
 
               {/* ── 로그인 탭 ── */}
               <TabsContent value="login">
                 <form onSubmit={handleLogin} className="space-y-4 mt-4">
                   <div className="space-y-2">
-                    <Label htmlFor="login-email">이메일</Label>
+                    <Label htmlFor="login-email" className="text-foreground">이메일</Label>
                     <Input
                       id="login-email"
                       type="email"
@@ -241,10 +241,11 @@ export function Login() {
                       }
                       required
                       disabled={isLoading}
+                      className="bg-secondary/30 border-border text-foreground"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="login-password">비밀번호</Label>
+                    <Label htmlFor="login-password" className="text-foreground">비밀번호</Label>
                     <Input
                       id="login-password"
                       type="password"
@@ -255,18 +256,19 @@ export function Login() {
                       }
                       required
                       disabled={isLoading}
+                      className="bg-secondary/30 border-border text-foreground"
                     />
                   </div>
 
                   {loginError && (
-                    <p className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                    <p className="text-sm text-destructive bg-destructive/10 p-2 rounded">
                       {loginError}
                     </p>
                   )}
 
                   <Button
                     type="submit"
-                    className="w-full"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
                     size="lg"
                     disabled={isLoading}
                   >
@@ -281,8 +283,8 @@ export function Login() {
                   </Button>
                 </form>
 
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-800">
-                  <p className="font-medium mb-1">🧪 테스트 계정</p>
+                <div className="mt-4 p-3 bg-secondary/50 border border-border rounded-lg text-sm text-muted-foreground">
+                  <p className="font-medium mb-1 text-primary">🧪 테스트 계정</p>
                   <p>클라이언트: client1@test.com / 12345678</p>
                   <p>개발자: dev1@test.com / 12345678</p>
                   <p>슈퍼관리자: superAdmin@system.com / 12345678</p>
@@ -291,7 +293,7 @@ export function Login() {
 
               {/* ── 회원가입 탭 ── */}
               <TabsContent value="signup">
-                <form onSubmit={handleSignup} className="space-y-4 mt-4">
+                <form onSubmit={handleSignup} className="space-y-4 mt-4 text-foreground">
                   {/* 가입 유형 선택 - 3개 */}
                   <div className="space-y-2">
                     <Label>가입 유형 *</Label>
@@ -309,10 +311,10 @@ export function Login() {
                           onClick={() =>
                             setSignupData({ ...signupData, userType: key })
                           }
-                          className={`p-2 border rounded-lg text-center hover:border-blue-600 transition-colors text-sm ${
+                          className={`p-2 border rounded-lg text-center transition-colors text-sm ${
                             signupData.userType === key
-                              ? "border-blue-600 bg-blue-50"
-                              : "border-gray-200"
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border bg-secondary/30 text-muted-foreground hover:border-border/80"
                           }`}
                         >
                           <div className="text-lg mb-0.5">{icon}</div>
@@ -321,7 +323,7 @@ export function Login() {
                       ))}
                     </div>
                     {signupData.userType === "admin" && (
-                      <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                      <p className="text-xs text-primary bg-primary/10 p-2 rounded border border-primary/20">
                         ⚠️ 관리자 계정은 SUPER_ADMIN 승인 후 로그인 가능합니다.
                       </p>
                     )}
@@ -338,6 +340,7 @@ export function Login() {
                       }
                       required
                       disabled={isLoading}
+                      className="bg-secondary/30 border-border text-foreground"
                     />
                   </div>
                   <div className="space-y-2">
@@ -351,6 +354,7 @@ export function Login() {
                       }
                       required
                       disabled={isLoading}
+                      className="bg-secondary/30 border-border text-foreground"
                     />
                   </div>
                   <div className="space-y-2">
@@ -364,6 +368,7 @@ export function Login() {
                       }
                       required
                       disabled={isLoading}
+                      className="bg-secondary/30 border-border text-foreground"
                     />
                   </div>
                   <div className="space-y-2">
@@ -379,6 +384,7 @@ export function Login() {
                       }
                       required
                       disabled={isLoading}
+                      className="bg-secondary/30 border-border text-foreground"
                     />
                   </div>
 
@@ -395,6 +401,7 @@ export function Login() {
                       }
                       disabled={isLoading}
                       rows={3}
+                      className="bg-secondary/30 border-border text-foreground"
                     />
                   </div>
 
@@ -411,6 +418,7 @@ export function Login() {
                           }
                           required
                           disabled={isLoading}
+                          className="bg-secondary/30 border-border text-foreground"
                         />
                       </div>
 
@@ -427,10 +435,10 @@ export function Login() {
                                   participateType: type,
                                 })
                               }
-                              className={`p-2 border rounded-lg text-sm hover:border-blue-600 transition-colors ${
+                              className={`p-2 border rounded-lg text-sm transition-colors ${
                                 signupData.participateType === type
-                                  ? "border-blue-600 bg-blue-50"
-                                  : "border-gray-200"
+                                  ? "border-primary bg-primary/10 text-primary"
+                                  : "border-border bg-secondary/30 text-muted-foreground hover:border-border/80"
                               }`}
                             >
                               {type === "INDIVIDUAL" ? "🧑 개인" : "🏢 회사"}
@@ -460,6 +468,7 @@ export function Login() {
                             }
                             required
                             disabled={isLoading}
+                            className="bg-secondary/30 border-border text-foreground"
                           />
                         </div>
                         <div className="space-y-2">
@@ -477,16 +486,17 @@ export function Login() {
                             }
                             required
                             disabled={isLoading}
+                            className="bg-secondary/30 border-border text-foreground"
                           />
                         </div>
                       </div>
                       <div className="space-y-2">
                         <Label>기술 스택 *</Label>
                         <Select onValueChange={(val) => addSkill(val)} onOpenChange={(open) => open && skillOptions.length === 0 && fetchSkills()}>
-                          <SelectTrigger>
+                          <SelectTrigger className="bg-secondary/30 border-border text-foreground">
                             <SelectValue placeholder="기술 스택 선택" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="bg-card border-border">
                             {skillOptions.map(skill => (
                               <SelectItem key={skill} value={skill}>{skill}</SelectItem>
                             ))}
@@ -494,9 +504,9 @@ export function Login() {
                         </Select>
                         <div className="flex flex-wrap gap-1.5 mt-2">
                           {selectedSkills.map(skill => (
-                            <Badge key={skill} variant="secondary" className="pl-2 pr-1 py-1">
+                            <Badge key={skill} variant="secondary" className="pl-2 pr-1 py-1 bg-secondary text-secondary-foreground border-border">
                               {skill}
-                              <button type="button" onClick={() => removeSkill(skill)} className="ml-1 hover:text-red-600">
+                              <button type="button" onClick={() => removeSkill(skill)} className="ml-1 hover:text-destructive">
                                 <Code2 className="w-3 h-3" />
                               </button>
                             </Badge>
@@ -511,10 +521,10 @@ export function Login() {
                             setSignupData({ ...signupData, responseTime: val })
                           }
                         >
-                          <SelectTrigger>
+                          <SelectTrigger className="bg-secondary/30 border-border text-foreground">
                             <SelectValue placeholder="응답 시간 선택" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="bg-card border-border">
                             <SelectItem value="30분">30분</SelectItem>
                             <SelectItem value="1시간">1시간</SelectItem>
                             <SelectItem value="2시간">2시간</SelectItem>
@@ -541,10 +551,10 @@ export function Login() {
                           })
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-secondary/30 border-border text-foreground">
                           <SelectValue placeholder="역할 선택" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-card border-border">
                           <SelectItem value="SUPER_ADMIN">
                             SUPER_ADMIN (최고 관리자)
                           </SelectItem>
@@ -560,14 +570,14 @@ export function Login() {
                   )}
 
                   {signupError && (
-                    <div className="text-sm text-red-600 bg-red-50 p-3 rounded whitespace-pre-line">
+                    <div className="text-sm text-destructive bg-destructive/10 p-3 rounded border border-destructive/20 whitespace-pre-line">
                       {signupError}
                     </div>
                   )}
 
                   <Button
                     type="submit"
-                    className="w-full"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
                     size="lg"
                     disabled={isLoading}
                   >

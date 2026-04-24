@@ -335,25 +335,25 @@ export function ChatPage() {
     }
   };
 
-  if (!isLoggedIn) return <div className="flex items-center justify-center h-full py-20 text-gray-500">로그인이 필요합니다.</div>;
+  if (!isLoggedIn) return <div className="flex items-center justify-center h-full py-20 text-muted-foreground bg-background">로그인이 필요합니다.</div>;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] bg-white overflow-hidden">
-      <div className="px-4 py-3 border-b flex items-center justify-between shrink-0 bg-white z-20">
+    <div className="flex flex-col h-[calc(100vh-64px)] bg-background overflow-hidden">
+      <div className="px-4 py-3 border-b border-border flex items-center justify-between shrink-0 bg-card z-20">
         <div className="flex items-center gap-3">
           {(selectedRoom || isCsMode) && (
-            <Button variant="ghost" size="icon" onClick={() => isCsMode ? navigate(-1) : setSelectedRoom(null)} className="lg:hidden -ml-2">
+            <Button variant="ghost" size="icon" onClick={() => isCsMode ? navigate(-1) : setSelectedRoom(null)} className="lg:hidden -ml-2 text-foreground">
               <ChevronLeft className="w-6 h-6" />
             </Button>
           )}
-          <h1 className="text-lg font-extrabold text-gray-900">
+          <h1 className="text-lg font-extrabold text-foreground">
             {isCsMode ? "고객센터 상담" : selectedRoom ? "대화 중" : "메시지"}
           </h1>
-          <Badge className={`text-[10px] h-5 ${isConnected ? "bg-green-50 text-green-600" : "bg-gray-50 text-gray-400"}`} variant="outline">
+          <Badge className={`text-[10px] h-5 ${isConnected ? "bg-primary/10 text-primary border-primary/20" : "bg-secondary text-muted-foreground border-border"}`} variant="outline">
             {isConnected ? "● 실시간" : "○ 연결끊김"}
           </Badge>
         </div>
-        <Button size="icon" variant="ghost" onClick={loadInitialData} className="w-8 h-8 text-gray-400">
+        <Button size="icon" variant="ghost" onClick={loadInitialData} className="w-8 h-8 text-muted-foreground hover:text-foreground">
           <RefreshCw className="w-4 h-4" />
         </Button>
       </div>
@@ -361,19 +361,19 @@ export function ChatPage() {
       <div className="flex-1 flex min-h-0">
         {/* ── 사이드바 ── */}
         {!isCsMode && (
-          <div className={`${selectedRoom ? "hidden lg:flex" : "flex"} w-full lg:w-80 flex-col border-r bg-gray-50/30`}>
+          <div className={`${selectedRoom ? "hidden lg:flex" : "flex"} w-full lg:w-80 flex-col border-r border-border bg-card/50`}>
             <div className="flex-1 overflow-y-auto">
-              {isLoadingRooms ? <div className="flex justify-center py-10"><Loader2 className="animate-spin" /></div> :
-               rooms.length === 0 ? <div className="p-10 text-center text-gray-400 text-sm">대화가 없습니다.</div> :
+              {isLoadingRooms ? <div className="flex justify-center py-10"><Loader2 className="animate-spin text-primary" /></div> :
+               rooms.length === 0 ? <div className="p-10 text-center text-muted-foreground text-sm">대화가 없습니다.</div> :
                rooms.map(room => (
-                <div key={room.id} className={`group p-4 border-b cursor-pointer relative ${selectedRoom?.id === room.id ? "bg-white border-l-4 border-l-blue-600" : "hover:bg-gray-100"}`}>
+                <div key={room.id} className={`group p-4 border-b border-border cursor-pointer relative ${selectedRoom?.id === room.id ? "bg-secondary/50 border-l-4 border-l-primary" : "hover:bg-secondary/30"}`}>
                   <div onClick={() => handleSelectRoom(room)}>
-                    <p className="font-bold text-sm truncate pr-6">{room.projectTitle}</p>
-                    <p className="text-[11px] text-gray-500">{room.clientName} & {room.developerName}</p>
+                    <p className="font-bold text-sm truncate pr-6 text-foreground">{room.projectTitle}</p>
+                    <p className="text-[11px] text-muted-foreground">{room.clientName} & {room.developerName}</p>
                   </div>
                   <button 
                     onClick={(e) => { e.stopPropagation(); setDeleteRoomTarget(room); }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -384,49 +384,49 @@ export function ChatPage() {
         )}
 
         {/* ── 채팅창 ── */}
-        <div className={`${(selectedRoom || isCsMode) ? "flex" : "hidden lg:flex"} flex-1 flex-col bg-white`}>
+        <div className={`${(selectedRoom || isCsMode) ? "flex" : "hidden lg:flex"} flex-1 flex-col bg-background`}>
           {(selectedRoom || isCsMode) ? (
             <>
-              <div className="px-4 py-2 border-b bg-gray-50/50 hidden lg:block">
-                <p className="text-xs font-bold text-gray-400 uppercase">Chatting with</p>
-                <p className="text-sm font-black text-gray-700">{isCsMode ? csRoom?.title : selectedRoom?.projectTitle}</p>
+              <div className="px-4 py-2 border-b border-border bg-card/30 hidden lg:block">
+                <p className="text-xs font-bold text-muted-foreground uppercase">Chatting with</p>
+                <p className="text-sm font-black text-foreground">{isCsMode ? csRoom?.title : selectedRoom?.projectTitle}</p>
               </div>
 
-              <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-4 space-y-4 bg-white">
-                {isLoadingMessages ? <div className="flex justify-center py-10"><Loader2 className="animate-spin" /></div> :
-                 messages.length === 0 ? <div className="flex flex-col items-center justify-center h-full text-gray-300">대화의 시작을 열어보세요!</div> :
+              <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-4 space-y-4 bg-background">
+                {isLoadingMessages ? <div className="flex justify-center py-10"><Loader2 className="animate-spin text-primary" /></div> :
+                 messages.length === 0 ? <div className="flex flex-col items-center justify-center h-full text-muted-foreground/30">대화의 시작을 열어보세요!</div> :
                  messages.map(msg => {
                    const isMine = msg.senderId === userId;
                    const isEditing = editingId === msg.id;
 
-                   if (msg.isSystem) return <div key={msg.id} className="flex justify-center my-4"><span className="bg-gray-100 text-gray-400 text-[10px] px-4 py-1 rounded-full">{msg.content}</span></div>;
+                   if (msg.isSystem) return <div key={msg.id} className="flex justify-center my-4"><span className="bg-secondary text-muted-foreground text-[10px] px-4 py-1 rounded-full">{msg.content}</span></div>;
                    
                    return (
                      <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"} group`}>
                        <div className={`flex flex-col ${isMine ? "items-end" : "items-start"} max-w-[85%]`}>
-                         {!isMine && <span className="text-[11px] font-bold text-gray-400 mb-1">{msg.senderName}</span>}
+                         {!isMine && <span className="text-[11px] font-bold text-muted-foreground mb-1">{msg.senderName}</span>}
                          
                          <div className="flex items-end gap-2 max-w-full">
                            {isMine && !isEditing && (
                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity mb-1">
-                               <button onClick={() => { setEditingId(msg.id); setEditContent(msg.content); }} className="p-1 text-gray-300 hover:text-blue-500"><Pencil className="w-3 h-3" /></button>
-                               <button onClick={() => handleDeleteMessage(msg.id)} className="p-1 text-gray-300 hover:text-red-500"><Trash2 className="w-3 h-3" /></button>
+                               <button onClick={() => { setEditingId(msg.id); setEditContent(msg.content); }} className="p-1 text-muted-foreground hover:text-primary"><Pencil className="w-3 h-3" /></button>
+                               <button onClick={() => handleDeleteMessage(msg.id)} className="p-1 text-muted-foreground hover:text-destructive"><Trash2 className="w-3 h-3" /></button>
                              </div>
                            )}
 
-                           <div className={`relative px-4 py-2.5 rounded-2xl text-sm shadow-sm ${isMine ? "bg-blue-600 text-white rounded-tr-none" : "bg-gray-100 text-gray-800 rounded-tl-none"}`}>
+                           <div className={`relative px-4 py-2.5 rounded-2xl text-sm shadow-sm ${isMine ? "bg-primary text-primary-foreground rounded-tr-none" : "bg-card text-foreground border border-border rounded-tl-none"}`}>
                              {isEditing ? (
                                <div className="flex flex-col gap-2 min-w-[200px]">
                                  <textarea 
                                    value={editContent} 
                                    onChange={e => setEditContent(e.target.value)}
-                                   className="bg-transparent border-none text-white focus:ring-0 p-0 resize-none text-sm w-full"
+                                   className="bg-transparent border-none text-primary-foreground focus:ring-0 p-0 resize-none text-sm w-full"
                                    rows={2}
                                    autoFocus
                                  />
                                  <div className="flex justify-end gap-2">
-                                   <button onClick={() => setEditingId(null)} className="text-[10px] text-blue-200 hover:text-white">취소</button>
-                                   <button onClick={() => handleUpdateMessage(msg.id, editContent)} className="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded shadow-sm">저장</button>
+                                   <button onClick={() => setEditingId(null)} className="text-[10px] text-primary-foreground/70 hover:text-primary-foreground">취소</button>
+                                   <button onClick={() => handleUpdateMessage(msg.id, editContent)} className="text-[10px] font-bold text-primary-foreground bg-primary-foreground/20 px-2 py-0.5 rounded shadow-sm">저장</button>
                                  </div>
                                </div>
                              ) : (
@@ -435,9 +435,9 @@ export function ChatPage() {
                            </div>
                          </div>
                          
-                         <span className="text-[9px] text-gray-300 mt-1">
+                         <span className="text-[9px] text-muted-foreground mt-1">
                            {new Date(msg.sentAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                           {msg.eventType === "EDIT" && <span className="ml-1 text-blue-300">(수정됨)</span>}
+                           {msg.eventType === "EDIT" && <span className="ml-1 text-primary">(수정됨)</span>}
                          </span>
                        </div>
                      </div>
@@ -445,23 +445,23 @@ export function ChatPage() {
                  })}
               </div>
 
-              <div className="p-4 border-t bg-white">
-                <div className="flex gap-2 items-center bg-gray-100 p-1.5 rounded-2xl border transition-all focus-within:bg-white focus-within:border-blue-200">
+              <div className="p-4 border-t border-border bg-card">
+                <div className="flex gap-2 items-center bg-secondary/30 p-1.5 rounded-2xl border border-border transition-all focus-within:bg-secondary/50 focus-within:border-primary/50">
                   <Input 
                     placeholder="메시지를 입력하세요..." 
                     value={inputText} 
                     onChange={e => setInputText(e.target.value)} 
-                    className="border-none bg-transparent focus-visible:ring-0 h-10 flex-1"
+                    className="border-none bg-transparent focus-visible:ring-0 h-10 flex-1 text-foreground"
                     onKeyDown={e => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
                   />
-                  <Button onClick={handleSend} disabled={!inputText.trim()} size="icon" className="rounded-xl w-10 h-10 bg-blue-600"><Send className="w-4 h-4 text-white" /></Button>
+                  <Button onClick={handleSend} disabled={!inputText.trim()} size="icon" className="rounded-xl w-10 h-10 bg-primary hover:bg-primary/90"><Send className="w-4 h-4 text-primary-foreground" /></Button>
                 </div>
               </div>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-gray-200 bg-gray-50/20">
+            <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground/10 bg-background">
               <MessageCircle className="w-12 h-12 mb-4 opacity-10" />
-              <p className="text-sm font-bold text-gray-400">대화할 채팅방을 선택해 주세요</p>
+              <p className="text-sm font-bold text-muted-foreground">대화할 채팅방을 선택해 주세요</p>
             </div>
           )}
         </div>

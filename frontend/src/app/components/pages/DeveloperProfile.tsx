@@ -246,10 +246,10 @@ export function DeveloperProfile() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4">
         <Link to="/developers">
-          <Button variant="ghost" className="mb-6">
+          <Button variant="ghost" className="mb-6 text-muted-foreground hover:text-foreground">
             <ArrowLeft className="w-4 h-4 mr-2" />개발자 목록
           </Button>
         </Link>
@@ -257,62 +257,62 @@ export function DeveloperProfile() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* 사이드바 */}
           <div className="space-y-6">
-            <Card>
+            <Card className="bg-card border-border shadow-none">
               <CardContent className="p-6 text-center">
-                <div className="w-32 h-32 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4 text-5xl">
+                <div className="w-32 h-32 rounded-full bg-[#1a1c22] border border-white/5 flex items-center justify-center mx-auto mb-4 text-5xl">
                   {developer.name[0]}
                 </div>
-                <h1 className="text-2xl mb-2">{developer.name}</h1>
-                <p className="text-gray-600 mb-3">{developer.title}</p>
+                <h1 className="text-2xl mb-2 font-bold text-foreground">{developer.name}</h1>
+                <p className="text-muted-foreground mb-3">{developer.title}</p>
                 <div className="flex items-center justify-center gap-2 mb-4">
                   <div className="flex items-center gap-1">
                     <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                    <span className="text-xl">{developer.rating?.toFixed(1) ?? "0.0"}</span>
+                    <span className="text-xl font-bold text-foreground">{developer.rating?.toFixed(1) ?? "0.0"}</span>
                   </div>
-                  <span className="text-gray-500">({developer.reviewCount}개 리뷰)</span>
+                  <span className="text-muted-foreground">({developer.reviewCount}개 리뷰)</span>
                 </div>
                 <div className="space-y-2 mb-4 text-sm">
                   {developer.responseTime && (
-                    <div className="flex items-center justify-center gap-2 text-gray-600">
+                    <div className="flex items-center justify-center gap-2 text-muted-foreground">
                       <Clock className="w-4 h-4" />
                       <span>응답 시간: {developer.responseTime}</span>
                     </div>
                   )}
-                  <div className="flex items-center justify-center gap-2 text-gray-600">
+                  <div className="flex items-center justify-center gap-2 text-muted-foreground">
                     <Briefcase className="w-4 h-4" />
                     <span>{developer.completedProjects}개 프로젝트 완료</span>
                   </div>
                   <div className="flex items-center justify-center gap-2">
-                    <Badge variant={developer.availableForWork ? "default" : "secondary"}>
+                    <Badge variant={developer.availableForWork ? "default" : "secondary"} className={developer.availableForWork ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}>
                       {developer.availableForWork ? "✅ 작업 가능" : "🔴 작업 중"}
                     </Badge>
                   </div>
                 </div>
                 {/* CLIENT: 리뷰 작성 버튼 */}
                 {isLoggedIn && userRole === "CLIENT" && (
-                  <Button variant="outline" size="sm" className="w-full" onClick={openReviewModal}>
+                  <Button variant="outline" size="sm" className="w-full border-border hover:bg-muted" onClick={openReviewModal}>
                     <Plus className="w-4 h-4 mr-1" />리뷰 작성
                   </Button>
                 )}
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader><CardTitle>시간당 요금</CardTitle></CardHeader>
+            <Card className="bg-card border-border shadow-none">
+              <CardHeader><CardTitle className="text-lg font-bold">시간당 요금</CardTitle></CardHeader>
               <CardContent>
-                <div className="text-2xl text-blue-600 mb-2">
+                <div className="text-2xl text-primary font-black mb-2">
                   {(developer.minHourlyPay ?? 0).toLocaleString()}~{(developer.maxHourlyPay ?? 0).toLocaleString()}원/시간
                 </div>
-                <p className="text-sm text-gray-600">프로젝트 규모에 따라 협의 가능합니다</p>
+                <p className="text-sm text-muted-foreground">프로젝트 규모에 따라 협의 가능합니다</p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader><CardTitle>보유 기술</CardTitle></CardHeader>
+            <Card className="bg-card border-border shadow-none">
+              <CardHeader><CardTitle className="text-lg font-bold">보유 기술</CardTitle></CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
                   {(developer.skills ?? []).map((skill) => (
-                    <Badge key={skill} variant="secondary">{skill}</Badge>
+                    <Badge key={skill} variant="secondary" className="bg-muted text-muted-foreground border-none">{skill}</Badge>
                   ))}
                 </div>
               </CardContent>
@@ -321,34 +321,33 @@ export function DeveloperProfile() {
 
           {/* 메인 */}
           <div className="lg:col-span-2 space-y-6">
-            <Card>
-              <CardHeader><CardTitle>소개</CardTitle></CardHeader>
+            <Card className="bg-card border-border shadow-none">
+              <CardHeader><CardTitle className="text-xl font-bold">소개</CardTitle></CardHeader>
               <CardContent>
-                <p className="text-gray-700 leading-relaxed mb-6 whitespace-pre-wrap">
+                <p className="text-foreground leading-relaxed mb-6 whitespace-pre-wrap">
                   {developer.description ?? "소개가 없습니다."}
                 </p>
-                <Separator className="my-6" />
+                <Separator className="my-6 opacity-5" />
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl mb-1">{developer.completedProjects}</div>
-                    <div className="text-sm text-gray-600">완료 프로젝트</div>
+                  <div className="text-center p-4 bg-[#1a1c22] border border-white/5 rounded-xl">
+                    <div className="text-2xl mb-1 font-bold text-primary">{developer.completedProjects}</div>
+                    <div className="text-sm text-muted-foreground">완료 프로젝트</div>
                   </div>
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl mb-1">{developer.reviewCount}</div>
-                    <div className="text-sm text-gray-600">총 리뷰</div>
+                  <div className="text-center p-4 bg-[#1a1c22] border border-white/5 rounded-xl">
+                    <div className="text-2xl mb-1 font-bold text-primary">{developer.reviewCount}</div>
+                    <div className="text-sm text-muted-foreground">총 리뷰</div>
                   </div>
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl mb-1">{developer.rating?.toFixed(1) ?? "0.0"}★</div>
-                    <div className="text-sm text-gray-600">평균 평점</div>
+                  <div className="text-center p-4 bg-[#1a1c22] border border-white/5 rounded-xl">
+                    <div className="text-2xl mb-1 font-bold text-primary">{developer.rating?.toFixed(1) ?? "0.0"}★</div>
+                    <div className="text-sm text-muted-foreground">평균 평점</div>
                   </div>
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl mb-1">
+                  <div className="text-center p-4 bg-[#1a1c22] border border-white/5 rounded-xl">
+                    <div className="text-2xl mb-1 font-bold text-primary">
                       {developer.participateType?.toUpperCase() === "INDIVIDUAL" ? "개인" : 
                        developer.participateType?.toUpperCase() === "COMPANY" ? "회사" : "미지정"}
                     </div>
-                    <div className="text-sm text-gray-600">유형</div>
+                    <div className="text-sm text-muted-foreground">유형</div>
                   </div>
-                  {/* Rebuild trigger for deployment verification */}
                 </div>
               </CardContent>
             </Card>

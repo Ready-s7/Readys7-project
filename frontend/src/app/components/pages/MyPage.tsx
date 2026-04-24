@@ -202,69 +202,69 @@ export function MyPage() {
 
   if (isLoading) {
     return (
-        <div className="flex justify-center py-32">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <div className="flex justify-center py-32 bg-background min-h-screen">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
     );
   }
 
   return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-background py-8">
         <div className="container mx-auto px-4 max-w-2xl">
           <div className="flex items-center gap-3 mb-6">
-            <div className="bg-blue-600 p-2 rounded-lg">
-              <User className="w-6 h-6 text-white" />
+            <div className="bg-primary p-2 rounded-lg">
+              <User className="w-6 h-6 text-primary-foreground" />
             </div>
-            <h1 className="text-3xl font-bold">내 프로필 수정</h1>
+            <h1 className="text-3xl font-bold text-foreground">내 프로필 수정</h1>
           </div>
 
           <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="basic">기본 정보 수정</TabsTrigger>
-              <TabsTrigger value="role">
+            <TabsList className="grid w-full grid-cols-2 mb-6 bg-secondary/50">
+              <TabsTrigger value="basic" className="data-[state=active]:bg-background data-[state=active]:text-primary">기본 정보 수정</TabsTrigger>
+              <TabsTrigger value="role" className="data-[state=active]:bg-background data-[state=active]:text-primary">
                 {userRole === "CLIENT" ? "클라이언트" : userRole === "ADMIN" ? "관리자" : "개발자"}
               </TabsTrigger>
             </TabsList>
 
             {/* ── 기본 정보 탭 ── */}
             <TabsContent value="basic">
-              <Card className="border-none shadow-md">
+              <Card className="border-border bg-card shadow-md">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-xl">
-                    <Settings className="w-5 h-5 text-blue-600" />
+                  <CardTitle className="flex items-center gap-2 text-xl text-foreground">
+                    <Settings className="w-5 h-5 text-primary" />
                     계정 기본 설정
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-5">
                   <div className="space-y-2">
-                    <Label className="text-sm font-semibold">이름 *</Label>
+                    <Label className="text-sm font-semibold text-foreground">이름 *</Label>
                     <Input
                         value={userForm.name}
                         onChange={(e) => setUserForm({ ...userForm, name: e.target.value })}
                         placeholder="이름을 입력하세요"
-                        className="h-11"
+                        className="h-11 bg-secondary/30 border-border text-foreground"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-semibold">전화번호</Label>
+                    <Label className="text-sm font-semibold text-foreground">전화번호</Label>
                     <Input
                         value={userForm.phoneNumber}
                         onChange={(e) => setUserForm({ ...userForm, phoneNumber: e.target.value })}
                         placeholder="01012345678 (하이픈 없이)"
-                        className="h-11"
+                        className="h-11 bg-secondary/30 border-border text-foreground"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-semibold">자기소개</Label>
+                    <Label className="text-sm font-semibold text-foreground">자기소개</Label>
                     <Textarea
                         value={userForm.description}
                         onChange={(e) => setUserForm({ ...userForm, description: e.target.value })}
                         placeholder="자기소개를 입력하세요"
                         rows={5}
-                        className="resize-none"
+                        className="resize-none bg-secondary/30 border-border text-foreground"
                     />
                   </div>
-                  <Button onClick={handleSaveUser} disabled={isSavingUser} className="w-full h-11 bg-blue-600 hover:bg-blue-700">
+                  <Button onClick={handleSaveUser} disabled={isSavingUser} className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
                     {isSavingUser ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                     수정 사항 저장하기
                   </Button>
@@ -275,20 +275,20 @@ export function MyPage() {
             {/* ── 역할별 정보 탭 ── */}
             <TabsContent value="role">
               {userRole === "CLIENT" ? (
-                  <Card className="border-none shadow-md">
-                    <CardHeader><CardTitle className="text-xl">클라이언트 프로필 관리</CardTitle></CardHeader>
+                  <Card className="border-border bg-card shadow-md">
+                    <CardHeader><CardTitle className="text-xl text-foreground">클라이언트 프로필 관리</CardTitle></CardHeader>
                     <CardContent className="space-y-5">
                       <div className="space-y-2">
-                        <Label className="text-sm font-semibold">직군/직책</Label>
+                        <Label className="text-sm font-semibold text-foreground">직군/직책</Label>
                         <Input
                             value={clientForm.title}
                             onChange={(e) => setClientForm({ ...clientForm, title: e.target.value })}
                             placeholder="예: 스타트업 CTO"
-                            className="h-11"
+                            className="h-11 bg-secondary/30 border-border text-foreground"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-sm font-semibold">사업자 유형</Label>
+                        <Label className="text-sm font-semibold text-foreground">사업자 유형</Label>
                         <div className="grid grid-cols-2 gap-3">
                           {(["INDIVIDUAL", "COMPANY"] as const).map((type) => (
                               <button
@@ -297,8 +297,8 @@ export function MyPage() {
                                   onClick={() => setClientForm({ ...clientForm, participateType: type })}
                                   className={`p-4 border rounded-xl text-sm font-medium transition-all ${
                                       clientForm.participateType === type
-                                          ? "border-blue-600 bg-blue-50 text-blue-700"
-                                          : "border-gray-200 text-gray-500 hover:border-gray-300"
+                                          ? "border-primary bg-primary/10 text-primary"
+                                          : "border-border text-muted-foreground bg-secondary/30 hover:border-border/80"
                                   }`}
                               >
                                 {type === "INDIVIDUAL" ? "🧑 개인 회원" : "🏢 기업 회원"}
@@ -306,43 +306,43 @@ export function MyPage() {
                           ))}
                         </div>
                       </div>
-                      <Button onClick={handleSaveClient} disabled={isSavingRole} className="w-full h-11 bg-blue-600 hover:bg-blue-700">
+                      <Button onClick={handleSaveClient} disabled={isSavingRole} className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
                         {isSavingRole ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                         클라이언트 정보 업데이트
                       </Button>
                     </CardContent>
                   </Card>
               ) : userRole === "ADMIN" ? (
-                  <Card className="border-none shadow-md">
-                    <CardHeader><CardTitle className="text-xl">관리자 계정 안내</CardTitle></CardHeader>
+                  <Card className="border-border bg-card shadow-md">
+                    <CardHeader><CardTitle className="text-xl text-foreground">관리자 계정 안내</CardTitle></CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="p-4 bg-blue-50 rounded-xl">
+                      <div className="p-4 bg-secondary/50 border border-border rounded-xl">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs font-bold text-blue-600 uppercase">Account Role</span>
-                          <Badge className="bg-blue-600 px-3">ADMINISTRATOR</Badge>
+                          <span className="text-xs font-bold text-muted-foreground uppercase">Account Role</span>
+                          <Badge className="bg-primary text-primary-foreground px-3">ADMINISTRATOR</Badge>
                         </div>
-                        <div className="flex justify-between items-center pt-2 border-t border-blue-100">
-                          <span className="text-xs font-bold text-blue-600 uppercase">Email</span>
-                          <span className="text-sm font-bold text-blue-700">{userEmail}</span>
+                        <div className="flex justify-between items-center pt-2 border-t border-border">
+                          <span className="text-xs font-bold text-muted-foreground uppercase">Email</span>
+                          <span className="text-sm font-bold text-foreground">{userEmail}</span>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
               ) : (
-                  <Card className="border-none shadow-md">
-                    <CardHeader><CardTitle className="text-xl">개발자 프로필 관리</CardTitle></CardHeader>
+                  <Card className="border-border bg-card shadow-md">
+                    <CardHeader><CardTitle className="text-xl text-foreground">개발자 프로필 관리</CardTitle></CardHeader>
                     <CardContent className="space-y-5">
                       <div className="space-y-2">
-                        <Label className="text-sm font-semibold">현재 직군</Label>
+                        <Label className="text-sm font-semibold text-foreground">현재 직군</Label>
                         <Input
                             value={devForm.title}
                             onChange={(e) => setDevForm({ ...devForm, title: e.target.value })}
                             placeholder="예: 풀스택 개발자"
-                            className="h-11"
+                            className="h-11 bg-secondary/30 border-border text-foreground"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-sm font-semibold">작업 가능 상태</Label>
+                        <Label className="text-sm font-semibold text-foreground">작업 가능 상태</Label>
                         <div className="grid grid-cols-2 gap-3">
                           {[
                             { value: true, label: "✅ 지금 작업 가능" },
@@ -354,8 +354,8 @@ export function MyPage() {
                                   onClick={() => setDevForm({ ...devForm, availableForWork: opt.value })}
                                   className={`p-4 border rounded-xl text-sm font-medium transition-all ${
                                       devForm.availableForWork === opt.value
-                                          ? "border-blue-600 bg-blue-50 text-blue-700"
-                                          : "border-gray-200 text-gray-500 hover:border-gray-300"
+                                          ? "border-primary bg-primary/10 text-primary"
+                                          : "border-border text-muted-foreground bg-secondary/30 hover:border-border/80"
                                   }`}
                               >
                                 {opt.label}
@@ -365,34 +365,34 @@ export function MyPage() {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label className="text-sm font-semibold">최소 시급 (원)</Label>
+                          <Label className="text-sm font-semibold text-foreground">최소 시급 (원)</Label>
                           <Input
                               type="number"
                               value={devForm.minHourlyPay}
                               onChange={(e) => setDevForm({ ...devForm, minHourlyPay: e.target.value })}
-                              className="h-11"
+                              className="h-11 bg-secondary/30 border-border text-foreground"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label className="text-sm font-semibold">최대 시급 (원)</Label>
+                          <Label className="text-sm font-semibold text-foreground">최대 시급 (원)</Label>
                           <Input
                               type="number"
                               value={devForm.maxHourlyPay}
                               onChange={(e) => setDevForm({ ...devForm, maxHourlyPay: e.target.value })}
-                              className="h-11"
+                              className="h-11 bg-secondary/30 border-border text-foreground"
                           />
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-sm font-semibold">평균 응답 시간</Label>
+                        <Label className="text-sm font-semibold text-foreground">평균 응답 시간</Label>
                         <Select
                             value={devForm.responseTime}
                             onValueChange={(val) => setDevForm({ ...devForm, responseTime: val })}
                         >
-                          <SelectTrigger className="h-11">
+                          <SelectTrigger className="h-11 bg-secondary/30 border-border text-foreground">
                             <SelectValue placeholder="응답 시간 선택" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="bg-card border-border">
                             <SelectItem value="30분">30분</SelectItem>
                             <SelectItem value="1시간">1시간</SelectItem>
                             <SelectItem value="2시간">2시간</SelectItem>
@@ -404,13 +404,13 @@ export function MyPage() {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-sm font-semibold">보유 기술 스택</Label>
+                        <Label className="text-sm font-semibold text-foreground">보유 기술 스택</Label>
                         <div className="flex gap-2">
                           <Select onValueChange={(val) => addSkill(val)}>
-                            <SelectTrigger className="h-11">
+                            <SelectTrigger className="h-11 bg-secondary/30 border-border text-foreground">
                               <SelectValue placeholder="기술 스택 선택" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="bg-card border-border">
                               {skillOptions.map(skill => (
                                 <SelectItem key={skill} value={skill}>{skill}</SelectItem>
                               ))}
@@ -419,14 +419,14 @@ export function MyPage() {
                         </div>
                         <div className="flex flex-wrap gap-2 mt-3">
                           {devForm.skills.map((skill) => (
-                              <Badge key={skill} variant="secondary" className="px-3 py-1 rounded-lg">
+                              <Badge key={skill} variant="secondary" className="px-3 py-1 rounded-lg bg-secondary text-secondary-foreground border border-border">
                                 {skill}
-                                <button type="button" onClick={() => removeSkill(skill)} className="ml-2 hover:text-red-600"><X className="w-3 h-3" /></button>
+                                <button type="button" onClick={() => removeSkill(skill)} className="ml-2 hover:text-destructive"><X className="w-3 h-3" /></button>
                               </Badge>
                           ))}
                         </div>
                       </div>
-                      <Button onClick={handleSaveDeveloper} disabled={isSavingRole} className="w-full h-11 bg-blue-600 hover:bg-blue-700">
+                      <Button onClick={handleSaveDeveloper} disabled={isSavingRole} className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
                         {isSavingRole ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                         개발자 정보 업데이트
                       </Button>

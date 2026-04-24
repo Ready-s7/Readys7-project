@@ -101,28 +101,28 @@ export function DeveloperList() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4">
         <div className="mb-8">
-          <h1 className="text-3xl mb-2 font-bold">개발자 찾기</h1>
-          <p className="text-gray-600">검증된 전문 개발자들을 만나보세요</p>
+          <h1 className="text-3xl mb-2 font-bold text-foreground">개발자 찾기</h1>
+          <p className="text-muted-foreground">검증된 전문 개발자들을 만나보세요</p>
         </div>
 
-        <Card className="mb-6">
+        <Card className="mb-6 bg-card border-border">
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="relative md:col-span-2">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
                   placeholder="이름 또는 직군 검색..."
-                  className="pl-10"
+                  className="w-full pl-10 h-10 rounded-md bg-secondary/50 border border-border text-foreground focus:ring-1 focus:ring-primary outline-none"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               <Select value={selectedSkill} onValueChange={(v) => { setSelectedSkill(v); setCurrentPage(0); }}>
-                <SelectTrigger><SelectValue placeholder="기술" /></SelectTrigger>
-                <SelectContent>
+                <SelectTrigger className="bg-secondary/50 border-border text-foreground"><SelectValue placeholder="기술" /></SelectTrigger>
+                <SelectContent className="bg-card border-border">
                   <SelectItem value="all">전체 기술</SelectItem>
                   {(allSkills || []).map((skill) => (
                     <SelectItem key={skill} value={skill}>{skill}</SelectItem>
@@ -130,8 +130,8 @@ export function DeveloperList() {
                 </SelectContent>
               </Select>
               <Select value={minRating} onValueChange={(v) => { setMinRating(v); setCurrentPage(0); }}>
-                <SelectTrigger><SelectValue placeholder="최소 평점" /></SelectTrigger>
-                <SelectContent>
+                <SelectTrigger className="bg-secondary/50 border-border text-foreground"><SelectValue placeholder="최소 평점" /></SelectTrigger>
+                <SelectContent className="bg-card border-border">
                   <SelectItem value="all">전체</SelectItem>
                   <SelectItem value="4.5">4.5점 이상</SelectItem>
                   <SelectItem value="4.0">4.0점 이상</SelectItem>
@@ -142,54 +142,54 @@ export function DeveloperList() {
           </CardContent>
         </Card>
 
-        <div className="mb-4 text-gray-600">총 {filtered?.length || 0}명의 개발자</div>
+        <div className="mb-4 text-muted-foreground">총 {filtered?.length || 0}명의 개발자</div>
 
         {isLoading ? (
-          <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>
+          <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {(filtered || []).map((dev) => (
                 <Link key={dev.id} to={`/developers/${dev.id}`}>
-                  <Card className="hover:shadow-lg transition-shadow h-full">
+                  <Card className="hover:border-primary/50 transition-colors h-full bg-card border-border">
                     <CardContent className="p-6">
                       <div className="text-center mb-4">
-                        <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-3 text-2xl font-bold text-blue-600">
+                        <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center mx-auto mb-3 text-2xl font-bold text-primary">
                           {dev.name ? dev.name[0] : "?"}
                         </div>
-                        <h3 className="text-xl mb-1 font-bold">{dev.name || "익명 개발자"}</h3>
-                        <p className="text-gray-600 text-sm mb-2 line-clamp-1">{dev.title || "전문 개발자"}</p>
+                        <h3 className="text-xl mb-1 font-bold text-foreground">{dev.name || "익명 개발자"}</h3>
+                        <p className="text-muted-foreground text-sm mb-2 line-clamp-1">{dev.title || "전문 개발자"}</p>
                         <div className="flex items-center justify-center gap-1">
                           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span className="font-bold">{dev.rating?.toFixed(1) || "0.0"}</span>
-                          <span className="text-gray-500 text-sm">({dev.reviewCount || 0}개 리뷰)</span>
+                          <span className="font-bold text-foreground">{dev.rating?.toFixed(1) || "0.0"}</span>
+                          <span className="text-muted-foreground text-sm">({dev.reviewCount || 0}개 리뷰)</span>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2 mb-3 text-sm text-gray-600">
+                      <div className="grid grid-cols-2 gap-2 mb-3 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1"><Clock className="w-3 h-3" />{dev.responseTime || "24시간 이내"}</div>
                         <div className="flex items-center gap-1"><span>✅ 완료: {dev.completedProjects || 0}개</span></div>
                       </div>
 
                       <div className="flex flex-wrap gap-1 mb-4 h-20 overflow-hidden content-start">
                         {(dev.skills || []).slice(0, 4).map((skill) => (
-                          <Badge key={skill} variant="outline" className="text-xs bg-gray-50">{skill}</Badge>
+                          <Badge key={skill} variant="outline" className="text-xs bg-secondary/30 border-border text-muted-foreground">{skill}</Badge>
                         ))}
                         {(dev.skills?.length || 0) > 4 && (
-                          <Badge variant="outline" className="text-xs">+{(dev.skills?.length || 0) - 4}</Badge>
+                          <Badge variant="outline" className="text-xs border-border text-muted-foreground">+{(dev.skills?.length || 0) - 4}</Badge>
                         )}
                       </div>
 
-                      <div className="pt-4 border-t flex justify-between items-center text-sm">
+                      <div className="pt-4 border-t border-border flex justify-between items-center text-sm">
                         <div>
-                          <span className="text-gray-500 text-xs">예상 시급</span>
-                          <p className="text-blue-600 font-bold">{(dev.minHourlyPay || 0).toLocaleString()} ~ {(dev.maxHourlyPay || 0).toLocaleString()}원</p>
+                          <span className="text-muted-foreground text-xs">예상 시급</span>
+                          <p className="text-primary font-bold">{(dev.minHourlyPay || 0).toLocaleString()} ~ {(dev.maxHourlyPay || 0).toLocaleString()}원</p>
                         </div>
-                        <Badge variant={dev.availableForWork ? "default" : "secondary"} className="text-xs">
+                        <Badge variant={dev.availableForWork ? "default" : "secondary"} className={`text-xs ${dev.availableForWork ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}`}>
                           {dev.availableForWork ? "작업 가능" : "작업 중"}
                         </Badge>
                       </div>
-                      <Button className="w-full mt-4">프로필 상세보기</Button>
+                      <Button className="w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground">프로필 상세보기</Button>
                     </CardContent>
                   </Card>
                 </Link>
@@ -197,16 +197,16 @@ export function DeveloperList() {
             </div>
 
             {(!filtered || filtered.length === 0) && (
-              <Card><CardContent className="p-12 text-center text-gray-500">
+              <Card className="bg-card border-border"><CardContent className="p-12 text-center text-muted-foreground">
                 <Search className="w-12 h-12 mx-auto mb-4 opacity-50" /><p>검색 결과가 없습니다.</p>
               </CardContent></Card>
             )}
 
             {totalPages > 1 && (
               <div className="flex justify-center gap-2 mt-8">
-                <Button variant="outline" size="sm" disabled={currentPage === 0} onClick={() => setCurrentPage((p) => p - 1)}>이전</Button>
-                <span className="flex items-center px-4 text-sm">{currentPage + 1} / {totalPages}</span>
-                <Button variant="outline" size="sm" disabled={currentPage >= totalPages - 1} onClick={() => setCurrentPage((p) => p + 1)}>다음</Button>
+                <Button variant="outline" size="sm" disabled={currentPage === 0} onClick={() => setCurrentPage((p) => p - 1)} className="border-border text-foreground hover:bg-secondary">이전</Button>
+                <span className="flex items-center px-4 text-sm text-muted-foreground">{currentPage + 1} / {totalPages}</span>
+                <Button variant="outline" size="sm" disabled={currentPage >= totalPages - 1} onClick={() => setCurrentPage((p) => p + 1)} className="border-border text-foreground hover:bg-secondary">다음</Button>
               </div>
             )}
           </>

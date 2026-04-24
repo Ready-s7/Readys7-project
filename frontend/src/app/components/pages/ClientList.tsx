@@ -1,147 +1,114 @@
-import { useState, useEffect, useCallback } from "react";
-import { Link, useSearchParams } from "react-router";
+import { useState, useEffect } from "react";
+import { Link } from "react-router";
 import { Card, CardContent } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { Search, Loader2, Star, Briefcase, MessageSquare } from "lucide-react";
+import { 
+  Search, Users, Star, MessageSquare, Layout, Loader2 
+} from "lucide-react";
 import { clientApi } from "../../../api/apiService";
 import type { ClientDto } from "../../../api/types";
 
 export function ClientList() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const [clients, setClients] = useState<ClientDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [totalPages, setTotalPages] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
-  const [searchTerm, setSearchTerm] = useState(searchParams.get("search") ?? "");
-  const [appliedSearch, setAppliedSearch] = useState(searchParams.get("search") ?? "");
-
-  const fetchClients = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      // clientApi.getAll은 현재 검색 기능이 없으므로 전체 목록을 가져오거나 
-      // 백엔드 스펙에 따라 검색 파라미터를 추가해야 함.
-      // 현재는 페이징 처리 위주로 구현.
-      const res = await clientApi.getAll(currentPage + 1, 12);
-      
-      const responseBody = res.data;
-      if (responseBody.success) {
-        let innerData = responseBody.data;
-        // ['org.springframework.data.domain.PageImpl', { content: [...] }] 구조 대응
-        if (Array.isArray(innerData) && innerData.length === 2 && typeof innerData[0] === 'string') {
-          innerData = innerData[1];
-        }
-
-        if (innerData && Array.isArray(innerData.content)) {
-          setClients(innerData.content);
-          setTotalPages(innerData.totalPages || 0);
-        } else {
-          setClients([]);
-          setTotalPages(0);
-        }
-      }
-    } catch (error) {
-      console.error("Fetch clients error:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentPage]);
+  const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
     fetchClients();
-  }, [fetchClients]);
+  }, [currentPage, searchTerm]);
 
-  const handleSearch = () => {
-    setAppliedSearch(searchTerm);
-    setCurrentPage(0);
-    // 실제 검색 API가 구현되어 있다면 여기서 호출
+  const fetchClients = async () => {
+    setIsLoading(true);
+    try {
+      const res = await clientApi.getAll({
+        keyword: searchTerm || undefined,
+        page: currentPage + 1,
+        size: 9
+      });
+      setClients(res.data.data.content);
+      setTotalPages(res.data.data.totalPages);
+    } catch (e) {
+      console.error("클라이언트 로드 실패:", e);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") handleSearch();
-  };
+  if (isLoading && clients.length === 0) {
+    return (
+      <div className="flex justify-center py-32">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="container mx-auto px-4">
-        <div className="mb-10 text-center md:text-left">
-          <h1 className="text-4xl font-black text-gray-900 mb-3">클라이언트 찾기</h1>
-          <p className="text-gray-500 text-lg">Ready's7과 함께하는 신뢰할 수 있는 파트너들을 만나보세요.</p>
+    <div className="min-h-screen bg-background py-8">
+      <div className="container mx-auto px-4 max-w-5xl">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary p-2 rounded-xl">
+              <Users className="w-6 h-6 text-primary-foreground" />
+            </div>
+            <h1 className="text-3xl font-bold text-foreground">클라이언트 찾기</h1>
+          </div>
+
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="클라이언트 명으로 검색"
+              className="pl-11 h-11 bg-card border-border rounded-xl focus:ring-primary/20 text-foreground"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
 
-        <Card className="mb-10 border-none shadow-sm overflow-hidden">
-          <CardContent className="p-6 bg-white">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <Input
-                  placeholder="클라이언트 이름 또는 소개 검색..."
-                  className="pl-12 h-14 text-lg border-gray-200 focus:ring-blue-500 rounded-xl"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-32">
-            <Loader2 className="w-12 h-12 animate-spin text-blue-600 mb-4" />
-            <p className="text-gray-500 font-medium">클라이언트 목록을 불러오고 있습니다...</p>
+        {clients.length === 0 && !isLoading ? (
+          <div className="text-center py-32 bg-card rounded-3xl border border-dashed border-border">
+            <Search className="w-16 h-16 mx-auto mb-4 text-muted-foreground/20" />
+            <p className="text-xl font-bold text-foreground mb-2">검색 결과가 없습니다.</p>
+            <p className="text-muted-foreground">다른 키워드로 검색해보시겠어요?</p>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {clients.map((client) => (
-                <Link key={client.id} to={`/clients/${client.id}`} className="group">
-                  <Card className="h-full border-none shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden group-hover:-translate-y-1">
-                    <CardContent className="p-0">
-                      <div className="h-24 bg-gradient-to-r from-blue-500 to-indigo-600 opacity-80 group-hover:opacity-100 transition-opacity" />
-                      <div className="px-6 pb-6">
-                        <div className="relative -mt-10 mb-4">
-                          <div className="w-20 h-20 rounded-2xl bg-white shadow-md flex items-center justify-center text-3xl font-black text-blue-600 border-4 border-white">
-                            {client.name[0]}
-                          </div>
+                <Link key={client.id} to={`/clients/${client.id}`}>
+                  <Card className="hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 h-full border-border bg-card group overflow-hidden">
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="w-14 h-14 rounded-2xl bg-secondary/50 flex items-center justify-center text-2xl font-bold text-primary group-hover:scale-110 transition-transform">
+                          {client.name[0]}
                         </div>
-                        
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                            {client.name}
-                          </h3>
-                          <Badge variant="secondary" className="text-[10px] uppercase font-bold py-0 h-5">
-                            {client.participateType === "COMPANY" ? "🏢 기업" : "🧑 개인"}
-                          </Badge>
+                        <Badge variant="outline" className="bg-secondary/20 border-none text-muted-foreground">
+                          {client.participateType === "COMPANY" ? "🏢 기업" : "🧑 개인"}
+                        </Badge>
+                      </div>
+                      
+                      <h3 className="text-xl font-bold text-foreground mb-1 group-hover:text-primary transition-colors">{client.name}</h3>
+                      <p className="text-sm text-muted-foreground mb-4 line-clamp-1">{client.title}</p>
+                      
+                      <div className="flex items-center gap-4 mb-5 p-3 bg-secondary/20 rounded-xl">
+                        <div className="flex items-center gap-1.5">
+                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          <span className="font-bold text-foreground">{client.rating?.toFixed(1) || "0.0"}</span>
                         </div>
-                        
-                        <p className="text-gray-600 text-sm font-medium mb-6 line-clamp-1">
-                          {client.title || "Ready's7 클라이언트"}
-                        </p>
-                        
-                        <div className="grid grid-cols-3 gap-2 py-4 border-t border-gray-50">
-                          <div className="text-center">
-                            <div className="flex items-center justify-center gap-1 text-yellow-500 mb-1">
-                              <Star className="w-4 h-4 fill-current" />
-                              <span className="font-bold text-sm text-gray-900">{Number(client.rating ?? 0).toFixed(1)}</span>
-                            </div>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase">평점</p>
-                          </div>
-                          <div className="text-center border-x border-gray-50">
-                            <div className="flex items-center justify-center gap-1 text-blue-500 mb-1">
-                              <Briefcase className="w-4 h-4" />
-                              <span className="font-bold text-sm text-gray-900">{client.completedProject}</span>
-                            </div>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase">완료</p>
-                          </div>
-                          <div className="text-center">
-                            <div className="flex items-center justify-center gap-1 text-green-500 mb-1">
-                              <MessageSquare className="w-4 h-4" />
-                              <span className="font-bold text-sm text-gray-900">{client.reviewCount || 0}</span>
-                            </div>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase">리뷰</p>
-                          </div>
+                        <div className="w-px h-3 bg-border" />
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                          <MessageSquare className="w-4 h-4" />
+                          <span className="text-sm font-medium">{client.reviewCount} 리뷰</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-sm text-muted-foreground pt-1">
+                        <div className="flex items-center gap-1.5">
+                          <Layout className="w-4 h-4" />
+                          <span>{client.totalProjects} 프로젝트 등록</span>
                         </div>
                       </div>
                     </CardContent>
@@ -150,21 +117,11 @@ export function ClientList() {
               ))}
             </div>
 
-            {clients.length === 0 && (
-              <Card className="border-none shadow-sm py-20 text-center">
-                <CardContent>
-                  <Search className="w-16 h-16 mx-auto mb-4 text-gray-200" />
-                  <p className="text-xl font-bold text-gray-900 mb-2">검색 결과가 없습니다.</p>
-                  <p className="text-gray-500">다른 키워드로 검색해보시겠어요?</p>
-                </CardContent>
-              </Card>
-            )}
-
             {totalPages > 1 && (
-              <div className="flex justify-center gap-3 mt-12">
+              <div className="flex justify-center gap-3 mt-16">
                 <Button 
                   variant="outline" 
-                  className="rounded-xl h-10 px-6 font-bold border-gray-200"
+                  className="rounded-xl h-10 px-6 font-bold border-border text-foreground hover:bg-secondary"
                   disabled={currentPage === 0} 
                   onClick={() => setCurrentPage((p) => p - 1)}
                 >
@@ -177,8 +134,8 @@ export function ClientList() {
                       onClick={() => setCurrentPage(i)}
                       className={`w-10 h-10 rounded-xl font-bold transition-all ${
                         currentPage === i 
-                          ? "bg-blue-600 text-white shadow-md shadow-blue-200 scale-110" 
-                          : "bg-white text-gray-500 hover:bg-gray-50 border border-gray-100"
+                          ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-110" 
+                          : "bg-card text-muted-foreground hover:bg-secondary border border-border"
                       }`}
                     >
                       {i + 1}
@@ -187,7 +144,7 @@ export function ClientList() {
                 </div>
                 <Button 
                   variant="outline" 
-                  className="rounded-xl h-10 px-6 font-bold border-gray-200"
+                  className="rounded-xl h-10 px-6 font-bold border-border text-foreground hover:bg-secondary"
                   disabled={currentPage >= totalPages - 1} 
                   onClick={() => setCurrentPage((p) => p + 1)}
                 >

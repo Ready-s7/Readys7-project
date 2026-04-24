@@ -297,48 +297,48 @@ export function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4 max-w-5xl">
         <div className="flex items-center gap-3 mb-6">
-          <Shield className="w-7 h-7 text-blue-600" />
-          <h1 className="text-3xl">관리자 대시보드</h1>
+          <Shield className="w-7 h-7 text-primary" />
+          <h1 className="text-3xl font-bold text-foreground">관리자 대시보드</h1>
         </div>
 
         {/* 통계 카드 */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card>
+          <Card className="bg-card border-border">
             <CardContent className="p-5 flex items-center gap-4">
               <Users className="w-8 h-8 text-amber-500" />
               <div>
-                <p className="text-sm text-gray-500">대기 중 관리자</p>
-                <p className="text-2xl font-bold">{pendingAdmins.length}</p>
+                <p className="text-sm text-muted-foreground">대기 중 관리자</p>
+                <p className="text-2xl font-bold text-foreground">{pendingAdmins.length}</p>
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-card border-border">
             <CardContent className="p-5 flex items-center gap-4">
               <Tag className="w-8 h-8 text-blue-500" />
               <div>
-                <p className="text-sm text-gray-500">카테고리 수</p>
-                <p className="text-2xl font-bold">{categories.length}</p>
+                <p className="text-sm text-muted-foreground">카테고리 수</p>
+                <p className="text-2xl font-bold text-foreground">{categories.length}</p>
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-card border-border">
             <CardContent className="p-5 flex items-center gap-4">
               <Wrench className="w-8 h-8 text-green-500" />
               <div>
-                <p className="text-sm text-gray-500">스킬 수</p>
-                <p className="text-2xl font-bold">{skills.length}</p>
+                <p className="text-sm text-muted-foreground">스킬 수</p>
+                <p className="text-2xl font-bold text-foreground">{skills.length}</p>
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-card border-border">
             <CardContent className="p-5 flex items-center gap-4">
               <MessageSquare className="w-8 h-8 text-indigo-500" />
               <div>
-                <p className="text-sm text-gray-500">CS 문의 수</p>
-                <p className="text-2xl font-bold">{csRooms.length}</p>
+                <p className="text-sm text-muted-foreground">CS 문의 수</p>
+                <p className="text-2xl font-bold text-foreground">{csRooms.length}</p>
               </div>
             </CardContent>
           </Card>
@@ -349,24 +349,25 @@ export function AdminDashboard() {
           onValueChange={(val) => {
             if (val === "cs") loadCsRooms(selectedCsStatus);
           }}
+          className="w-full"
         >
-          <TabsList className="mb-6 flex flex-wrap gap-1">
-            {isSuperAdmin && <TabsTrigger value="admins">관리자 승인</TabsTrigger>}
-            <TabsTrigger value="categories">카테고리 관리</TabsTrigger>
-            <TabsTrigger value="skills">스킬 관리</TabsTrigger>
-            <TabsTrigger value="cs">CS 문의 관리</TabsTrigger>
+          <TabsList className="mb-6 flex flex-wrap gap-1 bg-secondary/50 p-1 border border-border">
+            {isSuperAdmin && <TabsTrigger value="admins" className="data-[state=active]:bg-background data-[state=active]:text-primary">관리자 승인</TabsTrigger>}
+            <TabsTrigger value="categories" className="data-[state=active]:bg-background data-[state=active]:text-primary">카테고리 관리</TabsTrigger>
+            <TabsTrigger value="skills" className="data-[state=active]:bg-background data-[state=active]:text-primary">스킬 관리</TabsTrigger>
+            <TabsTrigger value="cs" className="data-[state=active]:bg-background data-[state=active]:text-primary">CS 문의 관리</TabsTrigger>
           </TabsList>
 
           {/* ── 관리자 승인 탭 (SUPER_ADMIN 전용) ── */}
           {isSuperAdmin && (
             <TabsContent value="admins">
-              <Card>
+              <Card className="bg-card border-border shadow-md">
                 <CardHeader>
-                  <CardTitle>승인 대기 중인 관리자</CardTitle>
+                  <CardTitle className="text-foreground">승인 대기 중인 관리자</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {pendingAdmins.length === 0 ? (
-                    <p className="text-center text-gray-500 py-10">
+                    <p className="text-center text-muted-foreground py-10">
                       대기 중인 관리자가 없습니다.
                     </p>
                   ) : (
@@ -374,18 +375,19 @@ export function AdminDashboard() {
                       {pendingAdmins.map((admin) => (
                         <div
                           key={admin.id}
-                          className="flex items-center justify-between p-4 border rounded-lg"
+                          className="flex items-center justify-between p-4 border border-border rounded-lg bg-secondary/20"
                         >
                           <div>
-                            <p className="font-medium">{admin.name}</p>
-                            <p className="text-sm text-gray-500">{admin.email}</p>
-                            <Badge variant="outline" className="mt-1 text-xs">
+                            <p className="font-medium text-foreground">{admin.name}</p>
+                            <p className="text-sm text-muted-foreground">{admin.email}</p>
+                            <Badge variant="outline" className="mt-1 text-xs border-border text-muted-foreground">
                               {admin.adminRole}
                             </Badge>
                           </div>
                           <div className="flex gap-2">
                             <Button
                               size="sm"
+                              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
                               onClick={() => handleAdminAction(admin.adminId!, "APPROVED")}
                               disabled={processingId === admin.adminId}
                             >
@@ -417,10 +419,10 @@ export function AdminDashboard() {
 
           {/* ── 카테고리 관리 탭 ── */}
           <TabsContent value="categories">
-            <Card>
+            <Card className="bg-card border-border shadow-md">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>카테고리 관리</CardTitle>
-                <Button size="sm" onClick={openCatCreate}>
+                <CardTitle className="text-foreground">카테고리 관리</CardTitle>
+                <Button size="sm" onClick={openCatCreate} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
                   <Plus className="w-4 h-4 mr-1" />
                   추가
                 </Button>
@@ -430,13 +432,13 @@ export function AdminDashboard() {
                   {categories.map((cat) => (
                     <div
                       key={cat.id}
-                      className="flex items-center justify-between p-4 border rounded-lg"
+                      className="flex items-center justify-between p-4 border border-border rounded-lg bg-secondary/20"
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-2xl">{cat.icon ?? "📦"}</span>
                         <div>
-                          <p className="font-medium">{cat.name}</p>
-                          <p className="text-sm text-gray-500">
+                          <p className="font-medium text-foreground">{cat.name}</p>
+                          <p className="text-sm text-muted-foreground">
                             순서: {cat.displayOrder}
                             {cat.description && ` · ${cat.description}`}
                           </p>
@@ -446,6 +448,7 @@ export function AdminDashboard() {
                         <Button
                           size="sm"
                           variant="ghost"
+                          className="text-muted-foreground hover:text-foreground hover:bg-secondary"
                           onClick={() => openCatEdit(cat)}
                         >
                           <Pencil className="w-4 h-4" />
@@ -453,7 +456,7 @@ export function AdminDashboard() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="text-red-500"
+                          className="text-destructive hover:text-destructive/80 hover:bg-destructive/10"
                           onClick={() => setDeleteCat(cat)}
                         >
                           <Trash2 className="w-4 h-4" />
@@ -468,10 +471,10 @@ export function AdminDashboard() {
 
           {/* ── 스킬 관리 탭 ── */}
           <TabsContent value="skills">
-            <Card>
+            <Card className="bg-card border-border shadow-md">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>스킬 관리</CardTitle>
-                <Button size="sm" onClick={openSkillCreate}>
+                <CardTitle className="text-foreground">스킬 관리</CardTitle>
+                <Button size="sm" onClick={openSkillCreate} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
                   <Plus className="w-4 h-4 mr-1" />
                   추가
                 </Button>
@@ -483,25 +486,25 @@ export function AdminDashboard() {
                   if (catSkills.length === 0) return null;
                   return (
                     <div key={cat} className="mb-6">
-                      <h4 className="text-sm font-semibold text-gray-500 mb-2">
+                      <h4 className="text-sm font-semibold text-muted-foreground mb-2">
                         {cat}
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {catSkills.map((skill) => (
                           <div
                             key={skill.id}
-                            className="flex items-center gap-1 border rounded-full px-3 py-1"
+                            className="flex items-center gap-1 border border-border rounded-full px-3 py-1 bg-secondary/30"
                           >
-                            <span className="text-sm">{skill.name}</span>
+                            <span className="text-sm text-foreground">{skill.name}</span>
                             <button
                               onClick={() => openSkillEdit(skill)}
-                              className="text-blue-500 hover:text-blue-700 ml-1"
+                              className="text-primary hover:text-primary/80 ml-1"
                             >
                               <Pencil className="w-3 h-3" />
                             </button>
                             <button
                               onClick={() => setDeleteSkill(skill)}
-                              className="text-red-400 hover:text-red-600"
+                              className="text-destructive hover:text-destructive/80 ml-1"
                             >
                               <X className="w-3 h-3" />
                             </button>
@@ -517,15 +520,15 @@ export function AdminDashboard() {
 
           {/* ── CS 문의 관리 탭 ── */}
           <TabsContent value="cs">
-            <Card>
+            <Card className="bg-card border-border shadow-md">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>CS 문의 관리</CardTitle>
+                <CardTitle className="text-foreground">CS 문의 관리</CardTitle>
                 <div className="flex gap-2">
                   <Select value={selectedCsStatus} onValueChange={(v) => { setSelectedCsStatus(v); loadCsRooms(v); }}>
-                    <SelectTrigger className="w-[120px]">
+                    <SelectTrigger className="w-[120px] bg-secondary/50 border-border text-foreground">
                       <SelectValue placeholder="상태 필터" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-card border-border">
                       <SelectItem value="all">전체</SelectItem>
                       <SelectItem value="WAITING">대기중</SelectItem>
                       <SelectItem value="IN_PROGRESS">처리중</SelectItem>
@@ -536,40 +539,43 @@ export function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 {csRooms.length === 0 ? (
-                  <p className="text-center text-gray-500 py-10">
+                  <p className="text-center text-muted-foreground py-10">
                     문의 내역이 없습니다.
                   </p>
                 ) : (
                   <div className="space-y-3">
                     {csRooms.map((room) => (
-                      <div key={room.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg gap-4">
+                      <div key={room.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 border border-border rounded-lg bg-secondary/20 gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-bold">{room.title}</h4>
+                            <h4 className="font-bold text-foreground">{room.title}</h4>
                             <Badge variant={
                               room.status === "WAITING" ? "destructive" :
                               room.status === "IN_PROGRESS" ? "default" : "secondary"
+                            } className={
+                              room.status === "WAITING" ? "bg-destructive text-destructive-foreground" :
+                              room.status === "IN_PROGRESS" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
                             }>
                               {room.status === "WAITING" ? "대기중" :
                                room.status === "IN_PROGRESS" ? "처리중" : "완료"}
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-muted-foreground">
                             문의자: {room.inquirerName} ({new Date(room.createdAt).toLocaleString()})
                           </p>
                         </div>
                         <div className="flex gap-2 shrink-0">
                           {room.status === "WAITING" && (
-                            <Button size="sm" variant="outline" onClick={() => handleCsStatusChange(room.id, "IN_PROGRESS")} disabled={processingCsId === room.id}>
+                            <Button size="sm" variant="outline" className="border-border text-foreground hover:bg-secondary" onClick={() => handleCsStatusChange(room.id, "IN_PROGRESS")} disabled={processingCsId === room.id}>
                               시작
                             </Button>
                           )}
                           {room.status === "IN_PROGRESS" && (
-                            <Button size="sm" variant="outline" className="text-blue-600 border-blue-600" onClick={() => handleCsStatusChange(room.id, "COMPLETED")} disabled={processingCsId === room.id}>
+                            <Button size="sm" variant="outline" className="text-primary border-primary/50 hover:bg-primary/10" onClick={() => handleCsStatusChange(room.id, "COMPLETED")} disabled={processingCsId === room.id}>
                               완료
                             </Button>
                           )}
-                          <Button size="sm" onClick={() => navigate(`/chat?csRoomId=${room.id}`)}>
+                          <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold" onClick={() => navigate(`/chat?csRoomId=${room.id}`)}>
                             상담 채팅
                           </Button>
                         </div>
@@ -585,40 +591,43 @@ export function AdminDashboard() {
 
       {/* 카테고리 추가/수정 모달 */}
       <Dialog open={showCatModal} onOpenChange={setShowCatModal}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm bg-card border-border text-foreground">
           <DialogHeader>
-            <DialogTitle>{editCat ? "카테고리 수정" : "카테고리 추가"}</DialogTitle>
+            <DialogTitle className="text-foreground">{editCat ? "카테고리 수정" : "카테고리 추가"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCatSubmit} className="space-y-4 mt-2">
             <div className="space-y-2">
-              <Label>이름 *</Label>
+              <Label className="text-muted-foreground">이름 *</Label>
               <Input
                 value={catForm.name}
                 onChange={(e) => setCatForm({ ...catForm, name: e.target.value })}
                 placeholder="예: 백엔드"
+                className="bg-secondary/30 border-border text-foreground"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label>아이콘 (이모지)</Label>
+              <Label className="text-muted-foreground">아이콘 (이모지)</Label>
               <Input
                 value={catForm.icon}
                 onChange={(e) => setCatForm({ ...catForm, icon: e.target.value })}
                 placeholder="예: 🖥️"
+                className="bg-secondary/30 border-border text-foreground"
               />
             </div>
             <div className="space-y-2">
-              <Label>설명</Label>
+              <Label className="text-muted-foreground">설명</Label>
               <Input
                 value={catForm.description}
                 onChange={(e) =>
                   setCatForm({ ...catForm, description: e.target.value })
                 }
                 placeholder="카테고리 설명"
+                className="bg-secondary/30 border-border text-foreground"
               />
             </div>
             <div className="space-y-2">
-              <Label>정렬 순서 *</Label>
+              <Label className="text-muted-foreground">정렬 순서 *</Label>
               <Input
                 type="number"
                 value={catForm.displayOrder}
@@ -627,15 +636,16 @@ export function AdminDashboard() {
                 }
                 placeholder="1, 2, 3..."
                 min={1}
+                className="bg-secondary/30 border-border text-foreground"
                 required
               />
             </div>
-            <div className="flex gap-3">
-              <Button type="submit" className="flex-1" disabled={isCatSubmitting}>
+            <div className="flex gap-3 pt-2">
+              <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-bold" disabled={isCatSubmitting}>
                 {isCatSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                 {editCat ? "수정" : "추가"}
               </Button>
-              <Button type="button" variant="outline" onClick={() => setShowCatModal(false)}>
+              <Button type="button" variant="outline" className="border-border text-foreground hover:bg-secondary" onClick={() => setShowCatModal(false)}>
                 취소
               </Button>
             </div>
@@ -645,43 +655,44 @@ export function AdminDashboard() {
 
       {/* 스킬 추가/수정 모달 */}
       <Dialog open={showSkillModal} onOpenChange={setShowSkillModal}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm bg-card border-border text-foreground">
           <DialogHeader>
-            <DialogTitle>{editSkill ? "스킬 수정" : "스킬 추가"}</DialogTitle>
+            <DialogTitle className="text-foreground">{editSkill ? "스킬 수정" : "스킬 추가"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSkillSubmit} className="space-y-4 mt-2">
             <div className="space-y-2">
-              <Label>스킬 이름 *</Label>
+              <Label className="text-muted-foreground">스킬 이름 *</Label>
               <Input
                 value={skillForm.name}
                 onChange={(e) =>
                   setSkillForm({ ...skillForm, name: e.target.value })
                 }
                 placeholder="예: Spring Boot"
+                className="bg-secondary/30 border-border text-foreground"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label>카테고리 *</Label>
+              <Label className="text-muted-foreground">카테고리 *</Label>
               <Select
                 value={skillForm.category}
                 onValueChange={(v) => setSkillForm({ ...skillForm, category: v })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-secondary/30 border-border text-foreground">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-card border-border">
                   {SKILL_CATEGORIES.map((c) => (
                     <SelectItem key={c} value={c}>{c}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex gap-3">
-              <Button type="submit" className="flex-1" disabled={isSkillSubmitting}>
+            <div className="flex gap-3 pt-2">
+              <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-bold" disabled={isSkillSubmitting}>
                 {editSkill ? "수정" : "추가"}
               </Button>
-              <Button type="button" variant="outline" onClick={() => setShowSkillModal(false)}>
+              <Button type="button" variant="outline" className="border-border text-foreground hover:bg-secondary" onClick={() => setShowSkillModal(false)}>
                 취소
               </Button>
             </div>
@@ -691,16 +702,16 @@ export function AdminDashboard() {
 
       {/* 카테고리 삭제 확인 */}
       <AlertDialog open={!!deleteCat} onOpenChange={(o) => !o && setDeleteCat(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-card border-border text-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle>카테고리 삭제</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-muted-foreground">
               "{deleteCat?.name}" 카테고리를 삭제하시겠습니까?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction onClick={handleCatDelete} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogCancel className="border-border text-foreground hover:bg-secondary">취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCatDelete} className="bg-destructive hover:bg-destructive/80 text-white font-bold">
               삭제
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -709,40 +720,21 @@ export function AdminDashboard() {
 
       {/* 스킬 삭제 확인 */}
       <AlertDialog open={!!deleteSkill} onOpenChange={(o) => !o && setDeleteSkill(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-card border-border text-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle>스킬 삭제</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-muted-foreground">
               "{deleteSkill?.name}" 스킬을 삭제하시겠습니까?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction onClick={handleSkillDelete} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogCancel className="border-border text-foreground hover:bg-secondary">취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSkillDelete} className="bg-destructive hover:bg-destructive/80 text-white font-bold">
               삭제
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  );
-}
-
-// X 아이콘 임시 (이미 lucide-react에 있음)
-function X({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
   );
 }

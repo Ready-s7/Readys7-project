@@ -185,24 +185,24 @@ export function ProjectCreate() {
 
   if (isLoadingInit) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4 max-w-3xl">
-        <Button variant="ghost" className="mb-6" onClick={() => navigate(-1)}>
+        <Button variant="ghost" className="mb-6 text-muted-foreground hover:text-foreground" onClick={() => navigate(-1)}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           뒤로가기
         </Button>
 
-        <Card>
+        <Card className="bg-card border-border shadow-xl">
           <CardHeader>
-            <CardTitle className="text-2xl">프로젝트 등록</CardTitle>
-            <p className="text-gray-600">
+            <CardTitle className="text-2xl font-bold text-foreground">프로젝트 등록</CardTitle>
+            <p className="text-muted-foreground">
               프로젝트 정보를 입력하고 최적의 개발자를 찾아보세요
             </p>
           </CardHeader>
@@ -210,7 +210,7 @@ export function ProjectCreate() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* 제목 */}
               <div className="space-y-2">
-                <Label htmlFor="title">프로젝트 제목 *</Label>
+                <Label htmlFor="title" className="text-sm font-semibold text-foreground">프로젝트 제목 *</Label>
                 <Input
                   id="title"
                   placeholder="예: 쇼핑몰 웹사이트 개발"
@@ -220,22 +220,23 @@ export function ProjectCreate() {
                   }
                   required
                   disabled={isSubmitting}
+                  className="h-11 bg-secondary/30 border-border text-foreground"
                 />
               </div>
 
               {/* 카테고리 */}
               <div className="space-y-2">
-                <Label htmlFor="category">카테고리 *</Label>
+                <Label htmlFor="category" className="text-sm font-semibold text-foreground">카테고리 *</Label>
                 <Select
                   value={formData.categoryId}
                   onValueChange={(value) =>
                     setFormData({ ...formData, categoryId: value })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 bg-secondary/30 border-border text-foreground">
                     <SelectValue placeholder="카테고리 선택" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-card border-border">
                     {categories.map((category) => (
                       <SelectItem
                         key={category.id}
@@ -250,7 +251,7 @@ export function ProjectCreate() {
 
               {/* 설명 */}
               <div className="space-y-2">
-                <Label htmlFor="description">프로젝트 설명 *</Label>
+                <Label htmlFor="description" className="text-sm font-semibold text-foreground">프로젝트 설명 *</Label>
                 <Textarea
                   id="description"
                   placeholder="프로젝트에 대해 자세히 설명해주세요. 필요한 기능, 목표, 요구사항 등을 포함해주세요."
@@ -261,20 +262,21 @@ export function ProjectCreate() {
                   rows={6}
                   required
                   disabled={isSubmitting}
+                  className="resize-none bg-secondary/30 border-border text-foreground"
                 />
-                <p className="text-sm text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   상세한 설명은 더 좋은 제안을 받을 수 있습니다
                 </p>
               </div>
 
               {/* 기술 스택 */}
               <div className="space-y-2">
-                <Label>필요 기술 * (최소 1개)</Label>
+                <Label className="text-sm font-semibold text-foreground">필요 기술 * (최소 1개)</Label>
                 <Select value={skillInput} onValueChange={(val) => { addSkill(val); setSkillInput(""); }}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 bg-secondary/30 border-border text-foreground">
                     <SelectValue placeholder="목록에서 기술 선택" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-card border-border">
                     {allSkills
                       .filter((skill) => !selectedSkills.includes(skill))
                       .map((skill) => (
@@ -287,12 +289,12 @@ export function ProjectCreate() {
                 {selectedSkills.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-3">
                     {selectedSkills.map((skill) => (
-                      <Badge key={skill} variant="secondary" className="pl-3 pr-1 py-1 flex items-center gap-1">
+                      <Badge key={skill} variant="secondary" className="pl-3 pr-1 py-1 flex items-center gap-1 bg-secondary text-secondary-foreground border-none">
                         {skill}
                         <button
                           type="button"
                           onClick={() => removeSkill(skill)}
-                          className="hover:text-red-600 transition-colors"
+                          className="hover:text-destructive transition-colors"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -304,10 +306,10 @@ export function ProjectCreate() {
 
               {/* 예산 - 최소/최대 분리 */}
               <div className="space-y-2">
-                <Label>예산 *</Label>
+                <Label className="text-sm font-semibold text-foreground">예산 *</Label>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">최소 예산 (원)</p>
+                    <p className="text-xs text-muted-foreground mb-1">최소 예산 (원)</p>
                     <Input
                       type="number"
                       placeholder="예: 3000000"
@@ -318,10 +320,11 @@ export function ProjectCreate() {
                       }
                       required
                       disabled={isSubmitting}
+                      className="h-11 bg-secondary/30 border-border text-foreground"
                     />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">최대 예산 (원)</p>
+                    <p className="text-xs text-muted-foreground mb-1">최대 예산 (원)</p>
                     <Input
                       type="number"
                       placeholder="예: 5000000"
@@ -332,13 +335,14 @@ export function ProjectCreate() {
                       }
                       required
                       disabled={isSubmitting}
+                      className="h-11 bg-secondary/30 border-border text-foreground"
                     />
                   </div>
                 </div>
                 {formData.minBudget &&
                   formData.maxBudget &&
                   Number(formData.minBudget) > Number(formData.maxBudget) && (
-                    <p className="text-xs text-red-500">
+                    <p className="text-xs text-destructive">
                       최소 예산이 최대 예산보다 클 수 없습니다.
                     </p>
                   )}
@@ -346,7 +350,7 @@ export function ProjectCreate() {
 
               {/* 기간 - 숫자(일) */}
               <div className="space-y-2">
-                <Label htmlFor="duration">예상 기간 * (일 단위)</Label>
+                <Label htmlFor="duration" className="text-sm font-semibold text-foreground">예상 기간 * (일 단위)</Label>
                 <Input
                   id="duration"
                   type="number"
@@ -358,15 +362,16 @@ export function ProjectCreate() {
                   }
                   required
                   disabled={isSubmitting}
+                  className="h-11 bg-secondary/30 border-border text-foreground"
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   숫자로 입력해주세요. (예: 30일이면 30 입력)
                 </p>
               </div>
 
               {/* 최대 제안서 수 */}
               <div className="space-y-2">
-                <Label htmlFor="maxProposalCount">최대 제안서 수 *</Label>
+                <Label htmlFor="maxProposalCount" className="text-sm font-semibold text-foreground">최대 제안서 수 *</Label>
                 <Input
                   id="maxProposalCount"
                   type="number"
@@ -382,8 +387,9 @@ export function ProjectCreate() {
                   }
                   required
                   disabled={isSubmitting}
+                  className="h-11 bg-secondary/30 border-border text-foreground"
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   이 수에 도달하면 모집이 자동으로 마감됩니다.
                 </p>
               </div>
@@ -393,7 +399,7 @@ export function ProjectCreate() {
                 <Button
                   type="submit"
                   size="lg"
-                  className="flex-1"
+                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/10 h-12"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
@@ -409,6 +415,7 @@ export function ProjectCreate() {
                   type="button"
                   variant="outline"
                   size="lg"
+                  className="border-border text-foreground hover:bg-secondary h-12"
                   onClick={() => navigate(-1)}
                   disabled={isSubmitting}
                 >
@@ -416,9 +423,11 @@ export function ProjectCreate() {
                 </Button>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="text-blue-900 mb-2">💡 등록 팁</h4>
-                <ul className="text-sm text-blue-900 space-y-1">
+              <div className="bg-secondary/50 border border-border rounded-xl p-4">
+                <h4 className="text-primary font-bold mb-2 flex items-center gap-2 text-sm">
+                   💡 등록 팁
+                </h4>
+                <ul className="text-xs text-muted-foreground space-y-1">
                   <li>• 프로젝트 목표와 요구사항을 명확히 작성하세요</li>
                   <li>• 예산과 기간을 현실적으로 설정하세요</li>
                   <li>• 필요한 기술 스택을 정확히 선택하세요</li>

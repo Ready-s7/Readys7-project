@@ -52,53 +52,53 @@ export function SearchPage() {
   const totalPages = currentPageInfo?.totalPages || 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4 max-w-5xl">
         {/* Search Header */}
         <div className="mb-10 text-center">
-          <h1 className="text-3xl font-bold mb-6 text-gray-900">통합 검색 결과</h1>
+          <h1 className="text-3xl font-bold mb-6 text-foreground">통합 검색 결과</h1>
           <form onSubmit={onSearchSubmit} className="max-w-2xl mx-auto flex gap-2">
             <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="검색어를 입력하세요"
-                className="pl-12 h-14 rounded-2xl border-gray-200 shadow-lg focus-visible:ring-blue-500 bg-white"
+                className="pl-12 h-14 rounded-2xl border-border shadow-lg focus-visible:ring-primary bg-card text-foreground"
               />
             </div>
-            <Button type="submit" size="lg" className="h-14 px-8 bg-blue-600 hover:bg-blue-700 rounded-2xl font-bold">검색</Button>
+            <Button type="submit" size="lg" className="h-14 px-8 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-bold">검색</Button>
           </form>
           {keyword && !isLoading && (
-            <p className="mt-6 text-gray-500">
-              "<span className="text-blue-600 font-bold">{keyword}</span>"에 대한 검색 결과입니다.
+            <p className="mt-6 text-muted-foreground">
+              "<span className="text-primary font-bold">{keyword}</span>"에 대한 검색 결과입니다.
             </p>
           )}
         </div>
 
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-32">
-            <Loader2 className="w-12 h-12 animate-spin text-blue-600 mb-4" />
-            <p className="text-gray-500 font-medium">최적의 결과를 찾는 중입니다...</p>
+            <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground font-medium">최적의 결과를 찾는 중입니다...</p>
           </div>
         ) : !results ? (
-          <div className="text-center py-32 text-gray-400">
+          <div className="text-center py-32 text-muted-foreground">
             <Search className="w-20 h-20 mx-auto mb-6 opacity-10" />
             <p className="text-lg">검색어를 입력하고 준비된 프로젝트와 전문가를 만나보세요.</p>
           </div>
         ) : (
           <Tabs defaultValue="projects" value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-10 bg-white p-1 rounded-2xl shadow-sm border h-14">
-              <TabsTrigger value="projects" className="flex gap-2 rounded-xl data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">
+            <TabsList className="grid w-full grid-cols-4 mb-10 bg-card p-1 rounded-2xl shadow-sm border border-border h-14">
+              <TabsTrigger value="projects" className="flex gap-2 rounded-xl data-[state=active]:bg-secondary data-[state=active]:text-primary">
                 <Briefcase className="w-4 h-4" /> 프로젝트 ({results.projects?.totalElements || 0})
               </TabsTrigger>
-              <TabsTrigger value="developers" className="flex gap-2 rounded-xl data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">
+              <TabsTrigger value="developers" className="flex gap-2 rounded-xl data-[state=active]:bg-secondary data-[state=active]:text-primary">
                 <Users className="w-4 h-4" /> 개발자 ({results.developers?.totalElements || 0})
               </TabsTrigger>
-              <TabsTrigger value="categories" className="flex gap-2 rounded-xl data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">
+              <TabsTrigger value="categories" className="flex gap-2 rounded-xl data-[state=active]:bg-secondary data-[state=active]:text-primary">
                 <Tag className="w-4 h-4" /> 카테고리 ({results.categories?.totalElements || 0})
               </TabsTrigger>
-              <TabsTrigger value="skills" className="flex gap-2 rounded-xl data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">
+              <TabsTrigger value="skills" className="flex gap-2 rounded-xl data-[state=active]:bg-secondary data-[state=active]:text-primary">
                 <Wrench className="w-4 h-4" /> 기술 스택 ({results.skills?.totalElements || 0})
               </TabsTrigger>
             </TabsList>
@@ -111,38 +111,38 @@ export function SearchPage() {
                   <div className="grid grid-cols-1 gap-4">
                     {results.projects.content.map((p) => (
                       <Link key={p.id} to={`/projects/${p.id}`}>
-                        <Card className="hover:shadow-lg transition-shadow border-none shadow-sm rounded-2xl overflow-hidden">
+                        <Card className="hover:border-primary/50 transition-colors border border-border bg-card shadow-sm rounded-2xl overflow-hidden">
                           <CardContent className="p-6">
                             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-3 mb-3 flex-wrap">
-                                  <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-none">{p.category || "기타"}</Badge>
-                                  <Badge variant="outline" className="border-gray-200">{p.status === "OPEN" ? "모집중" : p.status === "IN_PROGRESS" ? "진행중" : "완료"}</Badge>
-                                  <span className="text-xs text-gray-400 font-medium">
+                                  <Badge variant="secondary" className="bg-secondary text-secondary-foreground border-none">{p.category || "기타"}</Badge>
+                                  <Badge variant="outline" className="border-border text-muted-foreground">{p.status === "OPEN" ? "모집중" : p.status === "IN_PROGRESS" ? "진행중" : "완료"}</Badge>
+                                  <span className="text-xs text-muted-foreground font-medium">
                                     {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ""}
                                   </span>
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 truncate">{p.title}</h3>
-                                <p className="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">{p.description}</p>
+                                <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary truncate">{p.title}</h3>
+                                <p className="text-muted-foreground text-sm mb-4 line-clamp-2 leading-relaxed">{p.description}</p>
                                 <div className="flex flex-wrap gap-1.5 mb-4">
                                   {(p.skills || []).map(skill => (
-                                    <Badge key={skill} variant="outline" className="bg-gray-50/50 border-gray-100 text-gray-500 text-[10px] px-2">
+                                    <Badge key={skill} variant="outline" className="bg-secondary/30 border-border text-muted-foreground text-[10px] px-2">
                                       {skill}
                                     </Badge>
                                   ))}
                                 </div>
-                                <div className="flex items-center gap-4 text-xs text-gray-500 font-bold">
-                                  <div className="flex items-center gap-1"><span className="text-gray-300">👤</span> {p.clientName || "익명"}</div>
+                                <div className="flex items-center gap-4 text-xs text-muted-foreground font-bold">
+                                  <div className="flex items-center gap-1">👤 {p.clientName || "익명"}</div>
                                   <div className="flex items-center gap-1"><span className="text-yellow-400">⭐</span> {typeof p.clientRating === 'number' ? p.clientRating.toFixed(1) : "0.0"}</div>
-                                  <div className="flex items-center gap-1"><span className="text-blue-400">📝</span> 제안 {p.currentProposalCount || 0}개</div>
+                                  <div className="flex items-center gap-1"><span className="text-primary">📝</span> 제안 {p.currentProposalCount || 0}개</div>
                                 </div>
                               </div>
                               <div className="md:text-right shrink-0 flex flex-col justify-between items-end min-w-[150px]">
                                 <div className="mb-4">
-                                  <div className="text-lg font-black text-blue-600">{(p.minBudget || 0).toLocaleString()}원 ~ {(p.maxBudget || 0).toLocaleString()}원</div>
-                                  <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">예상 기간: {p.duration || 0}일</div>
+                                  <div className="text-lg font-black text-primary">{(p.minBudget || 0).toLocaleString()}원 ~ {(p.maxBudget || 0).toLocaleString()}원</div>
+                                  <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1">예상 기간: {p.duration || 0}일</div>
                                 </div>
-                                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 rounded-xl px-6">상세보기</Button>
+                                <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl px-6">상세보기</Button>
                               </div>
                             </div>
                           </CardContent>
@@ -160,36 +160,36 @@ export function SearchPage() {
                   <div className="grid grid-cols-1 gap-4">
                     {results.developers.content.map((dev) => (
                       <Link key={dev.id} to={`/developers/${dev.id}`}>
-                        <Card className="hover:shadow-lg transition-shadow border-none shadow-sm rounded-2xl overflow-hidden">
+                        <Card className="hover:border-primary/50 transition-colors border border-border bg-card shadow-sm rounded-2xl overflow-hidden">
                           <CardContent className="p-6">
                             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-3 mb-3">
-                                  <Badge className="bg-green-50 text-green-700 border-none hover:bg-green-100">{dev.participateType === "INDIVIDUAL" ? "개인" : "업체"}</Badge>
-                                  {dev.availableForWork && <Badge className="bg-blue-50 text-blue-700 border-none">활동중</Badge>}
+                                  <Badge className="bg-secondary text-secondary-foreground border-none">{dev.participateType === "INDIVIDUAL" ? "개인" : "업체"}</Badge>
+                                  {dev.availableForWork && <Badge className="bg-primary/10 text-primary border-none">활동중</Badge>}
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-1">{dev.name}</h3>
-                                <p className="text-blue-600 font-bold text-sm mb-3">{dev.title}</p>
-                                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{dev.description}</p>
+                                <h3 className="text-xl font-bold text-foreground mb-1">{dev.name}</h3>
+                                <p className="text-primary font-bold text-sm mb-3">{dev.title}</p>
+                                <p className="text-muted-foreground text-sm mb-4 line-clamp-2">{dev.description}</p>
                                 <div className="flex flex-wrap gap-1.5 mb-4">
                                   {(dev.skills || []).map(skill => (
-                                    <Badge key={skill} variant="outline" className="bg-gray-50 border-gray-100 text-gray-500 text-[10px]">{skill}</Badge>
+                                    <Badge key={skill} variant="outline" className="bg-secondary/30 border-border text-muted-foreground text-[10px]">{skill}</Badge>
                                   ))}
                                 </div>
-                                <div className="flex items-center gap-6 text-xs text-gray-500 font-bold">
-                                  <div className="flex items-center gap-1.5"><Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" /><span className="text-gray-900">{Number(dev.rating ?? 0).toFixed(1)}</span><span className="text-gray-400">({dev.reviewCount || 0})</span></div>
-                                  <div className="flex items-center gap-1"><span className="text-gray-400 font-medium">완료 프로젝트</span><span className="text-gray-900">{dev.completedProjects || 0}건</span></div>
-                                  <div className="flex items-center gap-1"><span className="text-gray-400 font-medium">응답 시간</span><span className="text-gray-900">{dev.responseTime || "-"}</span></div>
+                                <div className="flex items-center gap-6 text-xs text-muted-foreground font-bold">
+                                  <div className="flex items-center gap-1.5"><Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" /><span className="text-foreground">{Number(dev.rating ?? 0).toFixed(1)}</span><span className="text-muted-foreground">({dev.reviewCount || 0})</span></div>
+                                  <div className="flex items-center gap-1"><span className="text-muted-foreground font-medium">완료 프로젝트</span><span className="text-foreground">{dev.completedProjects || 0}건</span></div>
+                                  <div className="flex items-center gap-1"><span className="text-muted-foreground font-medium">응답 시간</span><span className="text-foreground">{dev.responseTime || "-"}</span></div>
                                 </div>
                               </div>
                               <div className="md:text-right shrink-0 flex flex-col justify-between items-end min-w-[160px]">
                                 <div className="mb-4">
-                                  <div className="text-xs text-gray-400 font-bold mb-1">희망 시급</div>
-                                  <div className="text-lg font-black text-gray-900">
+                                  <div className="text-xs text-muted-foreground font-bold mb-1">희망 시급</div>
+                                  <div className="text-lg font-black text-foreground">
                                     {dev.minHourlyPay?.toLocaleString() || 0}원 ~ {dev.maxHourlyPay?.toLocaleString() || 0}원
                                   </div>
                                 </div>
-                                <Button size="sm" className="bg-gray-900 hover:bg-gray-800 rounded-xl px-6 text-white">프로필 보기</Button>
+                                <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl px-6">프로필 보기</Button>
                               </div>
                             </div>
                           </CardContent>
@@ -207,9 +207,9 @@ export function SearchPage() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {results.categories.content.map((c) => (
                       <Link key={c.id} to={`/projects?categoryId=${c.id}`}>
-                        <Card className="hover:bg-blue-50 transition-all border-none shadow-sm rounded-2xl text-center p-8 group">
+                        <Card className="hover:bg-secondary/50 transition-all border border-border bg-card shadow-sm rounded-2xl text-center p-8 group">
                           <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">{c.icon || "📦"}</div>
-                          <div className="font-black text-gray-800 text-lg">{c.name}</div>
+                          <div className="font-black text-foreground text-lg">{c.name}</div>
                         </Card>
                       </Link>
                     ))}
@@ -223,9 +223,9 @@ export function SearchPage() {
                 ) : (
                   <div className="flex flex-wrap gap-3">
                     {results.skills.content.map((s) => (
-                      <Badge key={s.id} variant="outline" className="px-6 py-3 text-sm bg-white hover:bg-blue-50 border-gray-200 hover:border-blue-200 hover:text-blue-700 cursor-pointer shadow-sm rounded-xl transition-all">
+                      <Badge key={s.id} variant="outline" className="px-6 py-3 text-sm bg-card hover:bg-secondary border-border hover:border-primary/50 text-foreground cursor-pointer shadow-sm rounded-xl transition-all">
                         <span className="font-bold">{s.name}</span>
-                        <span className="text-[10px] text-gray-400 ml-3 uppercase font-black">{s.skillCategory}</span>
+                        <span className="text-[10px] text-muted-foreground ml-3 uppercase font-black">{s.skillCategory}</span>
                       </Badge>
                     ))}
                   </div>
@@ -235,12 +235,12 @@ export function SearchPage() {
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-4 py-8 border-t border-gray-100">
+              <div className="flex items-center justify-center gap-4 py-8 border-t border-border">
                 <Button 
                   variant="outline" 
                   disabled={pageParam === 1}
                   onClick={() => handlePageChange(pageParam - 1)}
-                  className="rounded-xl"
+                  className="rounded-xl border-border text-foreground hover:bg-secondary"
                 >
                   이전
                 </Button>
@@ -252,19 +252,19 @@ export function SearchPage() {
                         key={pageNum}
                         variant={pageParam === pageNum ? "default" : "ghost"}
                         onClick={() => handlePageChange(pageNum)}
-                        className={`w-10 h-10 rounded-xl ${pageParam === pageNum ? 'bg-blue-600 hover:bg-blue-700 text-white' : ''}`}
+                        className={`w-10 h-10 rounded-xl ${pageParam === pageNum ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'}`}
                       >
                         {pageNum}
                       </Button>
                     );
                   })}
-                  {totalPages > 5 && <span className="text-gray-400 px-2">...</span>}
+                  {totalPages > 5 && <span className="text-muted-foreground px-2">...</span>}
                 </div>
                 <Button 
                   variant="outline" 
                   disabled={pageParam >= totalPages}
                   onClick={() => handlePageChange(pageParam + 1)}
-                  className="rounded-xl"
+                  className="rounded-xl border-border text-foreground hover:bg-secondary"
                 >
                   다음
                 </Button>
@@ -279,11 +279,11 @@ export function SearchPage() {
 
 function NoResults({ message }: { message: string }) {
   return (
-    <div className="text-center py-32 bg-white rounded-3xl border-2 border-dashed border-gray-100 shadow-sm">
-      <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-        <Search className="w-8 h-8 text-gray-300" />
+    <div className="text-center py-32 bg-card rounded-3xl border-2 border-dashed border-border shadow-sm">
+      <div className="bg-secondary w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+        <Search className="w-8 h-8 text-muted-foreground" />
       </div>
-      <p className="text-gray-400 font-medium">{message}</p>
+      <p className="text-muted-foreground font-medium">{message}</p>
     </div>
   );
 }

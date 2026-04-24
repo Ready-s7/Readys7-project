@@ -111,72 +111,72 @@ export function Header() {
             {isLoggedIn ? (
               <>
                 <DropdownMenu>
-                  {/* asChild 제거 후 직접 스타일링 - 클릭 신뢰성 확보 */}
-                  <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-gray-100 transition-all outline-none border border-transparent focus:border-blue-200 cursor-pointer">
-                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-sm">
+                  {/* 드롭다운 트리거 스타일 수정 */}
+                  <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-white/5 transition-all outline-none border border-white/5 cursor-pointer group">
+                    <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center text-primary shadow-sm group-hover:bg-primary/30">
                       <User className="w-4 h-4" />
                     </div>
                     <div className="flex flex-col items-start leading-none gap-1">
-                      <span className="max-w-[120px] truncate text-xs font-bold text-gray-800">{userEmail}</span>
-                      <span className="text-[10px] text-blue-600 font-semibold uppercase tracking-wider">{userRole}</span>
+                      <span className="max-w-[120px] truncate text-xs font-bold text-white/90">{userEmail}</span>
+                      <span className="text-[10px] text-primary font-black uppercase tracking-wider">{userRole}</span>
                     </div>
-                    <ChevronDown className="w-4 h-4 text-gray-400 ml-1" />
+                    <ChevronDown className="w-4 h-4 text-muted-foreground ml-1 group-hover:text-primary transition-colors" />
                   </DropdownMenuTrigger>
                   
-                  <DropdownMenuContent align="end" sideOffset={10} className="w-56 p-1 shadow-2xl bg-white border-gray-200 z-[110]">
-                    <div className="px-3 py-2 mb-1 border-b bg-gray-50/50 rounded-t-md">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase mb-0.5">Logged in as</p>
-                      <p className="text-sm font-semibold text-gray-900 truncate">{userEmail}</p>
+                  <DropdownMenuContent align="end" sideOffset={10} className="w-60 p-2 shadow-2xl bg-card border-white/5 z-[110] rounded-2xl">
+                    <div className="px-4 py-3 mb-2 border-b border-white/5 bg-white/[0.02] rounded-t-xl">
+                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Account Info</p>
+                      <p className="text-sm font-bold text-white truncate">{userEmail}</p>
                     </div>
 
-                    <DropdownMenuItem onClick={() => navigate("/profile")} className="cursor-pointer py-2 focus:bg-blue-50">
-                      <User className="w-4 h-4 mr-3 text-gray-500" />
-                      <span className="text-sm">내 프로필 보기</span>
+                    <DropdownMenuItem onClick={() => navigate("/profile")} className="cursor-pointer py-2.5 rounded-lg focus:bg-primary/10 focus:text-primary transition-colors">
+                      <User className="w-4 h-4 mr-3 opacity-70" />
+                      <span className="text-sm font-medium">내 프로필 보기</span>
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem onClick={() => navigate("/my-profile")} className="cursor-pointer py-2 focus:bg-blue-50">
-                      <Pencil className="w-4 h-4 mr-3 text-gray-500" />
-                      <span className="text-sm">내 프로필 수정</span>
+                    <DropdownMenuItem onClick={() => navigate("/my-profile")} className="cursor-pointer py-2.5 rounded-lg focus:bg-primary/10 focus:text-primary transition-colors">
+                      <Pencil className="w-4 h-4 mr-3 opacity-70" />
+                      <span className="text-sm font-medium">내 프로필 수정</span>
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem onClick={() => navigate("/cs")} className="cursor-pointer py-2 focus:bg-blue-50">
-                      <MessageCircle className="w-4 h-4 mr-3 text-gray-500" />
-                      <span className="text-sm">고객센터 문의</span>
+                    <DropdownMenuItem onClick={() => navigate("/cs")} className="cursor-pointer py-2.5 rounded-lg focus:bg-primary/10 focus:text-primary transition-colors">
+                      <MessageCircle className="w-4 h-4 mr-3 opacity-70" />
+                      <span className="text-sm font-medium">고객센터 문의</span>
                     </DropdownMenuItem>
                     
                     {roleMenuItems().length > 0 && (
                       <>
-                        <DropdownMenuSeparator className="my-1" />
+                        <DropdownMenuSeparator className="my-2 bg-white/5" />
                         {roleMenuItems().map((item) => (
-                          <DropdownMenuItem key={item.path} onClick={() => navigate(item.path)} className="cursor-pointer py-2 focus:bg-blue-50">
-                            <item.icon className="w-4 h-4 mr-3 text-gray-500" />
-                            <span className="text-sm">{item.label}</span>
+                          <DropdownMenuItem key={item.path} onClick={() => navigate(item.path)} className="cursor-pointer py-2.5 rounded-lg focus:bg-primary/10 focus:text-primary transition-colors">
+                            <item.icon className="w-4 h-4 mr-3 opacity-70" />
+                            <span className="text-sm font-medium">{item.label}</span>
                           </DropdownMenuItem>
                         ))}
                       </>
                     )}
                     
-                    <DropdownMenuSeparator className="my-1" />
-                    <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer py-2 focus:bg-red-50 focus:text-red-600">
+                    <DropdownMenuSeparator className="my-2 bg-white/5" />
+                    <DropdownMenuItem onClick={handleLogout} className="text-destructive cursor-pointer py-2.5 rounded-lg focus:bg-destructive/10 focus:text-destructive transition-colors">
                       <LogOut className="w-4 h-4 mr-3" />
-                      <span className="text-sm font-bold">로그아웃</span>
+                      <span className="text-sm font-black">로그아웃</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
 
                 {userRole?.toUpperCase() === "CLIENT" && (
                   <Link to="/projects/new">
-                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700 shadow-sm">프로젝트 등록</Button>
+                    <Button size="sm" className="bg-primary/20 hover:bg-primary/30 text-primary border border-primary/20 font-bold rounded-xl transition-all shadow-none">프로젝트 등록</Button>
                   </Link>
                 )}
               </>
             ) : (
               <>
                 <Link to="/projects/new">
-                  <Button variant="outline" size="sm" className="border-gray-300 hover:bg-gray-50">프로젝트 등록</Button>
+                  <Button variant="outline" size="sm" className="border-white/10 text-muted-foreground hover:bg-white/5 hover:text-foreground rounded-xl">프로젝트 등록</Button>
                 </Link>
                 <Link to="/login">
-                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700 shadow-sm px-6">로그인</Button>
+                  <Button size="sm" className="bg-primary/20 hover:bg-primary/30 text-primary border border-primary/20 font-bold rounded-xl transition-all px-6 shadow-none">로그인</Button>
                 </Link>
               </>
             )}

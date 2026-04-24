@@ -2,43 +2,30 @@
 
 :root {
   --font-size: 16px;
-  --background: #0f1115; /* 차분한 다크 그레이 */
+  --background: #0a0b0e; /* 더 깊고 차분한 다크 차콜 */
   --foreground: #ececed;
-  --card: #181a1f; /* 카드 배경 */
+  --card: #14161b; /* 카드 톤 소폭 조정 */
   --card-foreground: #ececed;
-  --popover: #181a1f;
+  --popover: #14161b;
   --popover-foreground: #ececed;
-  --primary: #00d1ff; /* 포인트 컬러 유지하되 명도 조정 */
-  --primary-foreground: #0f1115;
-  --secondary: #2c2e36;
+  --primary: #00d1ff;
+  --primary-foreground: #0a0b0e;
+  --secondary: #1f2128;
   --secondary-foreground: #ffffff;
-  --muted: #262830;
-  --muted-foreground: #9ca3af; /* 가독성을 위해 밝은 회색으로 조정 */
-  --accent: #2c2e36;
+  --muted: #1f2128;
+  --muted-foreground: #8a8f98; /* 회색 글씨 가독성 추가 개선 */
+  --accent: #1f2128;
   --accent-foreground: #00d1ff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: rgba(255, 255, 255, 0.08); /* 경계선 톤 다운 */
+  --border: rgba(255, 255, 255, 0.06); /* 경계선 더 은은하게 */
   --input: transparent;
-  --input-background: #1e2028;
-  --switch-background: #374151;
+  --input-background: #16181d;
+  --switch-background: #2c2e36;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: rgba(0, 209, 255, 0.5);
-  --chart-1: #00d1ff;
-  --chart-2: #8b5cf6;
-  --chart-3: #f43f5e;
-  --chart-4: #fbbf24;
-  --chart-5: #10b981;
+  --ring: rgba(0, 209, 255, 0.3);
   --radius: 0.75rem;
-  --sidebar: #111318;
-  --sidebar-foreground: #ececed;
-  --sidebar-primary: #00d1ff;
-  --sidebar-primary-foreground: #0f1115;
-  --sidebar-accent: #1e2028;
-  --sidebar-accent-foreground: #00d1ff;
-  --sidebar-border: rgba(255, 255, 255, 0.05);
-  --sidebar-ring: #00d1ff;
 }
 
 .dark {
