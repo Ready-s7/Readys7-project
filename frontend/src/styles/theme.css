@@ -2,43 +2,43 @@
 
 :root {
   --font-size: 16px;
-  --background: #02020a;
-  --foreground: #f0f0f5;
-  --card: #08081a;
-  --card-foreground: #f0f0f5;
-  --popover: #08081a;
-  --popover-foreground: #f0f0f5;
-  --primary: #00e5ff;
-  --primary-foreground: #02020a;
-  --secondary: #9d00ff;
+  --background: #0f1115; /* 차분한 다크 그레이 */
+  --foreground: #ececed;
+  --card: #181a1f; /* 카드 배경 */
+  --card-foreground: #ececed;
+  --popover: #181a1f;
+  --popover-foreground: #ececed;
+  --primary: #00d1ff; /* 포인트 컬러 유지하되 명도 조정 */
+  --primary-foreground: #0f1115;
+  --secondary: #2c2e36;
   --secondary-foreground: #ffffff;
-  --muted: #1a1a2e;
-  --muted-foreground: #a0a0b8;
-  --accent: #1e1e3f;
-  --accent-foreground: #00e5ff;
-  --destructive: #ff0055;
+  --muted: #262830;
+  --muted-foreground: #9ca3af; /* 가독성을 위해 밝은 회색으로 조정 */
+  --accent: #2c2e36;
+  --accent-foreground: #00d1ff;
+  --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: rgba(0, 229, 255, 0.15);
+  --border: rgba(255, 255, 255, 0.08); /* 경계선 톤 다운 */
   --input: transparent;
-  --input-background: #0f0f2d;
-  --switch-background: #2e2e5e;
+  --input-background: #1e2028;
+  --switch-background: #374151;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: #00e5ff;
-  --chart-1: #00e5ff;
-  --chart-2: #9d00ff;
-  --chart-3: #ff0055;
-  --chart-4: #ffcc00;
-  --chart-5: #00ffaa;
+  --ring: rgba(0, 209, 255, 0.5);
+  --chart-1: #00d1ff;
+  --chart-2: #8b5cf6;
+  --chart-3: #f43f5e;
+  --chart-4: #fbbf24;
+  --chart-5: #10b981;
   --radius: 0.75rem;
-  --sidebar: #050514;
-  --sidebar-foreground: #f0f0f5;
-  --sidebar-primary: #00e5ff;
-  --sidebar-primary-foreground: #02020a;
-  --sidebar-accent: #1a1a2e;
-  --sidebar-accent-foreground: #00e5ff;
-  --sidebar-border: rgba(0, 229, 255, 0.1);
-  --sidebar-ring: #00e5ff;
+  --sidebar: #111318;
+  --sidebar-foreground: #ececed;
+  --sidebar-primary: #00d1ff;
+  --sidebar-primary-foreground: #0f1115;
+  --sidebar-accent: #1e2028;
+  --sidebar-accent-foreground: #00d1ff;
+  --sidebar-border: rgba(255, 255, 255, 0.05);
+  --sidebar-ring: #00d1ff;
 }
 
 .dark {

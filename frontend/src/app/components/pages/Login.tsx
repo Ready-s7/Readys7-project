@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { apiClient } from "../../../api/client";
 import type { SuccessResponse, UserDto } from "../../../api/types";
+import logo from "../../../assets/logo.png";
 
 type UserType = "client" | "developer" | "admin";
 type AdminRole = "SUPER_ADMIN" | "CS_ADMIN" | "OPER_ADMIN";
@@ -207,13 +208,11 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-12">
+    <div className="min-h-screen bg-background py-12">
       <div className="container mx-auto px-4 max-w-md">
         <Link to="/" className="flex items-center justify-center gap-2 mb-8">
-          <div className="bg-blue-600 p-2 rounded-lg">
-            <Code2 className="w-6 h-6 text-white" />
-          </div>
-          <span className="font-bold text-2xl">Ready's7</span>
+          <img src={logo} alt="Ready's7 Logo" className="h-10 w-auto" />
+          <span className="font-bold text-2xl text-white">Ready's7</span>
         </Link>
 
         <Card>

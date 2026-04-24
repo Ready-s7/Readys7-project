@@ -82,13 +82,13 @@ export function Header() {
   };
 
   return (
-    <header className="border-b border-white/5 bg-background/80 backdrop-blur-md sticky top-0 z-[100] w-full">
+    <header className="border-b border-white/5 bg-[#0b0c10]/90 backdrop-blur-md sticky top-0 z-[100] w-full">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 gap-4">
           {/* 로고 (왼쪽) */}
           <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-            <img src={logo} alt="Ready's7 Logo" className="h-8 w-auto" />
-            <span className="font-bold text-xl tracking-tight text-white">Ready's7</span>
+            <img src={logo} alt="Ready's7 Logo" className="h-8 w-auto brightness-110" />
+            <span className="font-bold text-xl tracking-tight text-white/90">Ready's7</span>
           </Link>
 
           {/* 데스크탑 내비 (중앙) */}

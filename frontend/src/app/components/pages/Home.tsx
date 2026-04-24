@@ -303,15 +303,16 @@ export function Home() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-blue-600 text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl mb-4 font-bold">지금 바로 시작하세요</h2>
-          <p className="text-xl mb-8 opacity-90">
+      <section className="py-24 bg-[#111318] border-t border-white/5 text-white relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(0,209,255,0.03),transparent)] pointer-events-none" />
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <h2 className="text-3xl md:text-4xl mb-6 font-bold tracking-tight">지금 바로 시작하세요</h2>
+          <p className="text-xl mb-10 text-gray-400 max-w-2xl mx-auto">
             당신의 프로젝트를 성공으로 이끌어줄 최고의 개발자를 만나보세요
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Link to="/projects/new">
-              <Button size="lg" variant="secondary" className="font-bold">
+              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 rounded-xl shadow-lg shadow-primary/10">
                 프로젝트 등록하기
               </Button>
             </Link>
@@ -319,7 +320,7 @@ export function Home() {
               <Button
                 size="lg"
                 variant="outline"
-                className="bg-transparent border-white text-white hover:bg-white hover:text-blue-600 font-bold"
+                className="bg-transparent border-white/20 text-white hover:bg-white/5 font-bold px-8 rounded-xl"
               >
                 개발자 찾아보기
               </Button>
