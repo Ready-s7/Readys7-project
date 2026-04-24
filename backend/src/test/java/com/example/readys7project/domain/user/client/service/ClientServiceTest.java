@@ -278,7 +278,7 @@ class ClientServiceTest {
             Client client = createClient(1L, user);
 
             given(clientRepository.findById(1L)).willReturn(Optional.of(client));
-            given(reviewRepository.getClientRatingSummary(1L)).willReturn(List.of(new Object[]{4.5, 1L}));
+            given(reviewRepository.getClientRatingSummary(1L)).willReturn(List.<Object[]>of(new Object[]{4.5, 1L}));
 
             //when
             clientService.updateRating(1L);
@@ -296,7 +296,7 @@ class ClientServiceTest {
             Client client = createClient(1L, user);
 
             given(clientRepository.findById(1L)).willReturn(Optional.of(client));
-            given(reviewRepository.getClientRatingSummary(1L)).willReturn(List.of(new Object[]{4.8, 10L}));
+            given(reviewRepository.getClientRatingSummary(1L)).willReturn(List.<Object[]>of(new Object[]{4.8, 10L}));
 
             // when
             clientService.updateRating(1L);

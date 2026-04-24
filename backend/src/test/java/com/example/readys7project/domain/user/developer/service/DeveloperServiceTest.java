@@ -202,7 +202,7 @@ class DeveloperServiceTest {
         Developer developer = createDeveloper(1L, user);
 
         given(developerRepository.findById(1L)).willReturn(Optional.of(developer));
-        given(reviewRepository.getDeveloperRatingSummary(1L)).willReturn(List.of(new Object[]{4.5, 10L}));
+        given(reviewRepository.getDeveloperRatingSummary(1L)).willReturn(List.<Object[]>of(new Object[]{4.5, 10L}));
 
         // when
         developerService.updateRating(1L);

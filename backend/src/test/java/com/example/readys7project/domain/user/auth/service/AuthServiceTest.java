@@ -128,7 +128,7 @@ class AuthServiceTest {
         void registerDeveloper_Success() {
             // given
             DeveloperRegisterRequestDto request = new DeveloperRegisterRequestDto(
-                    "dev@email.com", "password123", "Developer", "01012345678",
+                    "dev@email.com", "password123", "Developer", "01012345678", "description",
                     "DevTitle", 10000, 50000, List.of("Java", "Spring"), "1시간", true, ParticipateType.INDIVIDUAL
             );
             given(userRepository.existsByEmail(request.email())).willReturn(false);
@@ -169,7 +169,7 @@ class AuthServiceTest {
         void registerAdmin_Success() {
             // given
             AdminRegisterRequestDto request = new AdminRegisterRequestDto(
-                    "admin@email.com", "password", "Admin", "010", AdminRole.SUPER_ADMIN
+                    "admin@email.com", "password", "Admin", "010", "description", AdminRole.SUPER_ADMIN
             );
             given(userRepository.existsByEmail(request.email())).willReturn(false);
             given(passwordEncoder.encode(request.password())).willReturn("encoded");
