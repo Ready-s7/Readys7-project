@@ -29,7 +29,7 @@ public class Developer extends BaseEntity {
     private Long id;
 
     @Version
-    private Long version;  // 낙관적 락
+    private Long version = 0L;  // 낙관적 락
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
