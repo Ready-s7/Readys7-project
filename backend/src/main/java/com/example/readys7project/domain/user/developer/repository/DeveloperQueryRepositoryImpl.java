@@ -120,9 +120,9 @@ public class DeveloperQueryRepositoryImpl implements DeveloperQueryRepository {
         QCategory qCategory = QCategory.category;
 
         List<Project> content = queryFactory
-                .select(qProposal.project)
+                .select(qProject)
                 .from(qProposal)
-                .join(qProposal.project, qProject).fetchJoin()
+                .join(qProposal.project, qProject)
                 .join(qProject.client, qClient).fetchJoin()
                 .join(qClient.user, qUser).fetchJoin()
                 .join(qProject.category, qCategory).fetchJoin()

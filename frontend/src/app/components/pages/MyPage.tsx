@@ -393,11 +393,13 @@ export function MyPage() {
                             <SelectValue placeholder="응답 시간 선택" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="1시간 이내">1시간 이내</SelectItem>
-                            <SelectItem value="4시간 이내">4시간 이내</SelectItem>
-                            <SelectItem value="12시간 이내">12시간 이내</SelectItem>
-                            <SelectItem value="24시간 이내">24시간 이내</SelectItem>
-                            <SelectItem value="협의 후 결정">협의 후 결정</SelectItem>
+                            <SelectItem value="30분">30분</SelectItem>
+                            <SelectItem value="1시간">1시간</SelectItem>
+                            <SelectItem value="2시간">2시간</SelectItem>
+                            <SelectItem value="3시간">3시간</SelectItem>
+                            <SelectItem value="4시간">4시간</SelectItem>
+                            <SelectItem value="12시간">12시간</SelectItem>
+                            <SelectItem value="24시간">24시간</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>

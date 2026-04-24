@@ -20,10 +20,10 @@ public interface ReviewRepository extends JpaRepository<Review, Long>, ReviewQue
     List<Review> findByClientId(Long clientId);
 
     @Query("SELECT AVG(r.rating), COUNT(r) FROM Review r WHERE r.developer.id = :id AND r.writerRole = 'CLIENT'")
-    Object[] getDeveloperRatingSummary(@Param("id") Long id);
+    List<Object[]> getDeveloperRatingSummary(@Param("id") Long id);
 
     @Query("SELECT AVG(r.rating), COUNT(r) FROM Review r WHERE r.client.id = :id AND r.writerRole = 'DEVELOPER'")
-    Object[] getClientRatingSummary(@Param("id") Long id);
+    List<Object[]> getClientRatingSummary(@Param("id") Long id);
 
     // 리뷰 중복 체크.
     boolean existsByProjectAndClientAndDeveloperAndWriterRole(

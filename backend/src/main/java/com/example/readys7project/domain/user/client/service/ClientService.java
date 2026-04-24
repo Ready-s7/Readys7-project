@@ -196,7 +196,14 @@ public class ClientService {
         Client client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new ClientException(ErrorCode.CLIENT_NOT_FOUND));
 
-        Object[] summary = (Object[]) reviewRepository.getClientRatingSummary(clientId);
+        List<Object[]> results = reviewRepository.getClientRatingSummary(clientId);
+        
+        if (results.isEmpty() || results.get(0) == null) {
+            client.updateRating(0.0, 0);
+            return;
+        }
+
+        Object[] summary = results.get(0);
         
         // summary 자체가 [avg, count] 배열입니다.
         Double avg = (Double) summary[0];

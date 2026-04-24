@@ -342,7 +342,9 @@ export function DeveloperProfile() {
                     <div className="text-sm text-gray-600">평균 평점</div>
                   </div>
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl mb-1">{developer.participateType === "INDIVIDUAL" ? "개인" : "회사"}</div>
+                    <div className="text-2xl mb-1">
+                      {developer.participateType === "INDIVIDUAL" ? "개인" : developer.participateType === "COMPANY" ? "회사" : "미지정"}
+                    </div>
                     <div className="text-sm text-gray-600">유형</div>
                   </div>
                 </div>

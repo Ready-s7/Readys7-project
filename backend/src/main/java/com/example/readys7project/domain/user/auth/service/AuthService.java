@@ -99,6 +99,7 @@ public class AuthService {
                 .name(developerRegisterRequestDto.name())
                 .userRole(UserRole.DEVELOPER)
                 .phoneNumber(developerRegisterRequestDto.phoneNumber())
+                .description(developerRegisterRequestDto.description())
                 .build();
 
         // 유저 레포에 저장
@@ -113,6 +114,7 @@ public class AuthService {
                 .skills(developerRegisterRequestDto.skills())
                 .responseTime(developerRegisterRequestDto.responseTime())
                 .availableForWork(developerRegisterRequestDto.availableForWork())
+                .participateType(developerRegisterRequestDto.participateType())
                 .rating(0.0)
                 .reviewCount(0)
                 .completedProjects(0)
@@ -143,6 +145,7 @@ public class AuthService {
                 .name(adminRegisterRequestDto.name())
                 .userRole(UserRole.ADMIN)
                 .phoneNumber(adminRegisterRequestDto.phoneNumber())
+                .description(adminRegisterRequestDto.description())
                 .build();
 
         // 유저 레포에 저장

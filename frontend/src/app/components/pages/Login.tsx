@@ -17,6 +17,7 @@ import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { Textarea } from "../ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import {
   Select,
@@ -44,6 +45,7 @@ export function Login() {
     email: "",
     password: "",
     phoneNumber: "",
+    description: "",
     title: "",
     userType: "client" as UserType,
     participateType: "INDIVIDUAL" as "INDIVIDUAL" | "COMPANY",
@@ -114,6 +116,7 @@ export function Login() {
         password: signupData.password,
         name: signupData.name,
         phoneNumber: signupData.phoneNumber,
+        description: signupData.description,
         adminRole: signupData.adminRole,
       }
     );
@@ -154,6 +157,7 @@ export function Login() {
           password: signupData.password,
           name: signupData.name,
           phoneNumber: signupData.phoneNumber,
+          description: signupData.description,
           title: signupData.title || "클라이언트",
           participateType: signupData.participateType,
         });
@@ -165,6 +169,7 @@ export function Login() {
           password: signupData.password,
           name: signupData.name,
           phoneNumber: signupData.phoneNumber,
+          description: signupData.description,
           title: signupData.title || "개발자",
           minHourlyPay: Number(signupData.minHourlyPay) || 30000,
           maxHourlyPay: Number(signupData.maxHourlyPay) || 80000,
@@ -376,6 +381,22 @@ export function Login() {
                     />
                   </div>
 
+                  <div className="space-y-2">
+                    <Label>자기소개 / 업체 설명</Label>
+                    <Textarea
+                      placeholder="자신 또는 업체에 대해 간단히 소개해 주세요."
+                      value={signupData.description}
+                      onChange={(e) =>
+                        setSignupData({
+                          ...signupData,
+                          description: e.target.value,
+                        })
+                      }
+                      disabled={isLoading}
+                      rows={3}
+                    />
+                  </div>
+
                   {/* CLIENT / DEVELOPER 전용 필드 */}
                   {signupData.userType !== "admin" && (
                     <>
@@ -482,19 +503,26 @@ export function Login() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label>응답 시간 * (예: 1시간 30분, 30분)</Label>
-                        <Input
-                          placeholder="1시간 30분"
+                        <Label>응답 시간 *</Label>
+                        <Select
                           value={signupData.responseTime}
-                          onChange={(e) =>
-                            setSignupData({
-                              ...signupData,
-                              responseTime: e.target.value,
-                            })
+                          onValueChange={(val) =>
+                            setSignupData({ ...signupData, responseTime: val })
                           }
-                          required
-                          disabled={isLoading}
-                        />
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="응답 시간 선택" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="30분">30분</SelectItem>
+                            <SelectItem value="1시간">1시간</SelectItem>
+                            <SelectItem value="2시간">2시간</SelectItem>
+                            <SelectItem value="3시간">3시간</SelectItem>
+                            <SelectItem value="4시간">4시간</SelectItem>
+                            <SelectItem value="12시간">12시간</SelectItem>
+                            <SelectItem value="24시간">24시간</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </>
                   )}

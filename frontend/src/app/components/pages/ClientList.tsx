@@ -27,8 +27,19 @@ export function ClientList() {
       
       const responseBody = res.data;
       if (responseBody.success) {
-        setClients(responseBody.data.content);
-        setTotalPages(responseBody.data.totalPages);
+        let innerData = responseBody.data;
+        // ['org.springframework.data.domain.PageImpl', { content: [...] }] 구조 대응
+        if (Array.isArray(innerData) && innerData.length === 2 && typeof innerData[0] === 'string') {
+          innerData = innerData[1];
+        }
+
+        if (innerData && Array.isArray(innerData.content)) {
+          setClients(innerData.content);
+          setTotalPages(innerData.totalPages || 0);
+        } else {
+          setClients([]);
+          setTotalPages(0);
+        }
       }
     } catch (error) {
       console.error("Fetch clients error:", error);
@@ -72,12 +83,6 @@ export function ClientList() {
                   onKeyDown={handleKeyDown}
                 />
               </div>
-              <Button 
-                onClick={handleSearch} 
-                className="h-14 px-10 bg-blue-600 hover:bg-blue-700 text-lg font-bold rounded-xl shadow-md transition-all active:scale-95"
-              >
-                검색하기
-              </Button>
             </div>
           </CardContent>
         </Card>

@@ -114,6 +114,8 @@ public class ProposalService {
                 .proposedBudget(proposal.getProposedBudget())
                 .proposedDuration(proposal.getProposedDuration())
                 .status(proposal.getStatus().name().toUpperCase())
+                .createdAt(proposal.getCreatedAt())
+                .updatedAt(proposal.getUpdatedAt())
                 .build();
     }
 

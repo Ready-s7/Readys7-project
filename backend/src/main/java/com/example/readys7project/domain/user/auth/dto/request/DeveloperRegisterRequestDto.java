@@ -31,6 +31,8 @@ public record DeveloperRegisterRequestDto(
         )
         String phoneNumber,
 
+        String description,
+
         // DEVELOPER 전용
         @NotBlank(message = "직군 입력은 필수입니다.")
         String title,
