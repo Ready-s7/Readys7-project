@@ -314,9 +314,9 @@ curl "http://localhost:8080/api/developers/search?skill=React&location=서울&mi
 
 프론트엔드에서 사용하기 위한 설정:
 
-1. **Base URL**: `http://localhost:8080/api`
+1. **Base URL**: `http://localhost:8080/api` (운영: `https://dogpedia.store/api`)
 2. **Authorization Header**: `Bearer {JWT_TOKEN}`
-3. **CORS**: `localhost:3000`, `localhost:5173` 허용됨
+3. **CORS**: `localhost:3000`, `localhost:5173`, `https://readys7-project.vercel.app` 허용됨
 
 ## 개발 도구
 
