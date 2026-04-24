@@ -25,7 +25,7 @@ public class Client extends BaseEntity {
     private Long id;
 
     @Version
-    private Long version;
+    private Long version = 0L;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
