@@ -82,6 +82,8 @@ export function Login() {
     setSelectedSkills(prev => prev.filter(s => s !== skill));
   };
 
+  // Rebuild trigger for deployment verification 2026-04-24 15:40
+
   // ── 로그인 핸들러 ──────────────────────────────────────────
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

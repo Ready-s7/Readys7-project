@@ -11,8 +11,10 @@ import java.time.LocalDateTime;
 public record ReviewDto (
         Long id,
         Long developerId,
+        Long developerUserId, // 추가
         String developerName,
         Long clientId,
+        Long clientUserId,    // 추가
         String clientName,
         Long projectId,
         String projectTitle,

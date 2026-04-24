@@ -130,8 +130,10 @@ export interface CreateProposalRequest {
 export interface ReviewDto {
   id: number;
   developerId: number;
+  developerUserId: number; // 추가
   developerName: string;
   clientId: number;
+  clientUserId: number;    // 추가
   clientName: string;
   projectId: number;
   projectTitle: string;

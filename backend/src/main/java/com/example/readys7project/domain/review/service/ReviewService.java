@@ -224,12 +224,20 @@ public class ReviewService {
 
     private ReviewDto convertToDto(Review review) {
         return ReviewDto.builder()
-                .id(review.getId()).developerId(review.getDeveloper().getId())
+                .id(review.getId())
+                .developerId(review.getDeveloper().getId())
+                .developerUserId(review.getDeveloper().getUser().getId())
                 .developerName(review.getDeveloper().getUser().getName())
-                .clientId(review.getClient().getId()).clientName(review.getClient().getUser().getName())
-                .projectId(review.getProject().getId()).projectTitle(review.getProject().getTitle())
-                .writerRole(review.getWriterRole()).rating(review.getRating())
-                .comment(review.getComment()).createdAt(review.getCreatedAt()).build();
+                .clientId(review.getClient().getId())
+                .clientUserId(review.getClient().getUser().getId())
+                .clientName(review.getClient().getUser().getName())
+                .projectId(review.getProject().getId())
+                .projectTitle(review.getProject().getTitle())
+                .writerRole(review.getWriterRole())
+                .rating(review.getRating())
+                .comment(review.getComment())
+                .createdAt(review.getCreatedAt())
+                .build();
     }
 
     private void updateDeveloperRating(Long developerId) {

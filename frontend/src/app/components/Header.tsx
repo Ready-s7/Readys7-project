@@ -33,6 +33,8 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "sonner";
 
+import logo from "../../assets/logo.png";
+
 export function Header() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -80,15 +82,13 @@ export function Header() {
   };
 
   return (
-    <header className="border-b bg-white sticky top-0 z-[100] w-full">
+    <header className="border-b border-white/5 bg-background/80 backdrop-blur-md sticky top-0 z-[100] w-full">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 gap-4">
           {/* 로고 (왼쪽) */}
           <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-            <div className="bg-blue-600 p-2 rounded-lg">
-              <Code2 className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold text-xl tracking-tight">Ready's7</span>
+            <img src={logo} alt="Ready's7 Logo" className="h-8 w-auto" />
+            <span className="font-bold text-xl tracking-tight text-white">Ready's7</span>
           </Link>
 
           {/* 데스크탑 내비 (중앙) */}
@@ -97,8 +97,8 @@ export function Header() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`hover:text-blue-600 transition-colors text-sm font-medium ${
-                  isActive(item.path) ? "text-blue-600" : "text-gray-600"
+                className={`hover:text-primary transition-colors text-sm font-medium ${
+                  isActive(item.path) ? "text-primary" : "text-gray-400"
                 }`}
               >
                 {item.label}

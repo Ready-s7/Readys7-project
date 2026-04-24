@@ -185,7 +185,9 @@ export function SearchPage() {
                               <div className="md:text-right shrink-0 flex flex-col justify-between items-end min-w-[160px]">
                                 <div className="mb-4">
                                   <div className="text-xs text-gray-400 font-bold mb-1">희망 시급</div>
-                                  <div className="text-lg font-black text-gray-900">{dev.minHourlyPay?.toLocaleString() || 0}원 ~</div>
+                                  <div className="text-lg font-black text-gray-900">
+                                    {dev.minHourlyPay?.toLocaleString() || 0}원 ~ {dev.maxHourlyPay?.toLocaleString() || 0}원
+                                  </div>
                                 </div>
                                 <Button size="sm" className="bg-gray-900 hover:bg-gray-800 rounded-xl px-6 text-white">프로필 보기</Button>
                               </div>

@@ -8,7 +8,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { Star, Briefcase, MessageSquare, Loader2, MapPin, Calendar, ExternalLink, PlusCircle } from "lucide-react";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from "../ui/alert-dialog";
+import { Star, Briefcase, MessageSquare, Loader2, Calendar, PlusCircle, Pencil, Trash2 } from "lucide-react";
 import { clientApi, reviewApi, developerApi } from "../../../api/apiService";
 import type { ClientDto, ProjectDto, ReviewDto } from "../../../api/types";
 import { useAuth } from "../../../context/AuthContext";
@@ -16,7 +26,7 @@ import { toast } from "sonner";
 
 export function ClientDetail() {
   const { id } = useParams();
-  const { isLoggedIn, userRole } = useAuth();
+  const { isLoggedIn, userRole, userId } = useAuth();
   
   const [client, setClient] = useState<ClientDto | null>(null);
   const [projects, setProjects] = useState<ProjectDto[]>([]);
@@ -31,6 +41,13 @@ export function ClientDetail() {
     rating: 5,
     comment: ""
   });
+
+  // 리뷰 수정 관련 상태
+  const [editReview, setEditReview] = useState<ReviewDto | null>(null);
+  const [editForm, setEditForm] = useState({ rating: 5, comment: "" });
+
+  // 리뷰 삭제 관련 상태
+  const [deleteReview, setDeleteReview] = useState<ReviewDto | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -86,14 +103,55 @@ export function ClientDetail() {
       toast.success("리뷰가 등록되었습니다.");
       setIsReviewModalOpen(false);
       setReviewForm({ projectId: "", rating: 5, comment: "" });
-      // 리뷰 목록 새로고침
-      const reviewRes = await reviewApi.getByClient(Number(id), { page: 1, size: 20 });
-      setReviews(reviewRes.data.data.content);
+      // 리뷰 목록 및 클라이언트 정보 새로고침
+      refreshData();
     } catch (e: any) {
       toast.error(e.response?.data?.message || "리뷰 등록에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleEditReview = async () => {
+    if (!editReview) return;
+    try {
+      await reviewApi.update(editReview.id, {
+        rating: editForm.rating,
+        comment: editForm.comment
+      });
+      toast.success("리뷰가 수정되었습니다.");
+      setEditReview(null);
+      refreshData();
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "리뷰 수정에 실패했습니다.");
+    }
+  };
+
+  const handleDeleteReview = async () => {
+    if (!deleteReview) return;
+    try {
+      await reviewApi.delete(deleteReview.id);
+      toast.success("리뷰가 삭제되었습니다.");
+      setDeleteReview(null);
+      refreshData();
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "리뷰 삭제에 실패했습니다.");
+    }
+  };
+
+  const refreshData = async () => {
+    const [clientRes, reviewRes] = await Promise.allSettled([
+      clientApi.getById(Number(id)),
+      reviewApi.getByClient(Number(id), { page: 1, size: 20 })
+    ]);
+    if (clientRes.status === "fulfilled") setClient(clientRes.value.data.data);
+    if (reviewRes.status === "fulfilled") setReviews(reviewRes.value.data.data.content);
+  };
+
+  const isMyReview = (review: ReviewDto) => {
+    if (!isLoggedIn || !userId) return false;
+    // 이 페이지는 CLIENT의 상세 페이지이므로, 작성자는 DEVELOPER임.
+    return userRole === "DEVELOPER" && Number(review.developerUserId) === Number(userId);
   };
 
   if (isLoading) return <div className="flex justify-center py-32"><Loader2 className="animate-spin text-blue-600 w-10 h-10" /></div>;
@@ -162,7 +220,7 @@ export function ClientDetail() {
               <div className="bg-green-50 p-3 rounded-xl"><MessageSquare className="text-green-600 w-6 h-6" /></div>
               <div>
                 <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">리뷰</p>
-                <p className="text-2xl font-black text-gray-900">{reviews.length}건</p>
+                <p className="text-2xl font-black text-gray-900">{client.reviewCount || 0}건</p>
               </div>
             </CardContent>
           </Card>
@@ -172,7 +230,7 @@ export function ClientDetail() {
         <Tabs defaultValue="reviews" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-8 bg-white p-1 rounded-xl shadow-sm border h-12">
             <TabsTrigger value="info" className="rounded-lg">소개</TabsTrigger>
-            <TabsTrigger value="reviews" className="rounded-lg">리뷰 ({reviews.length})</TabsTrigger>
+            <TabsTrigger value="reviews" className="rounded-lg">리뷰 ({client.reviewCount || 0})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="info">
@@ -198,7 +256,10 @@ export function ClientDetail() {
                             {r.developerName[0]}
                           </div>
                           <div>
-                            <p className="font-bold text-gray-900">{r.developerName}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-bold text-gray-900">{r.developerName}</p>
+                              {isMyReview(r) && <Badge variant="secondary" className="text-[10px] py-0">내 리뷰</Badge>}
+                            </div>
                             <div className="flex items-center gap-1 text-yellow-500">
                               {[...Array(5)].map((_, i) => (
                                 <Star key={i} className={`w-3 h-3 ${i < r.rating ? "fill-current" : "text-gray-200"}`} />
@@ -206,7 +267,28 @@ export function ClientDetail() {
                             </div>
                           </div>
                         </div>
-                        <span className="text-xs text-gray-400">{new Date(r.createdAt).toLocaleDateString()}</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs text-gray-400">{new Date(r.createdAt).toLocaleDateString()}</span>
+                          {isMyReview(r) && (
+                            <div className="flex gap-1">
+                              <button 
+                                onClick={() => {
+                                  setEditReview(r);
+                                  setEditForm({ rating: r.rating, comment: r.comment });
+                                }}
+                                className="p-1 text-blue-500 hover:bg-blue-50 rounded"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button 
+                                onClick={() => setDeleteReview(r)}
+                                className="p-1 text-red-400 hover:bg-red-50 rounded"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                       <p className="text-gray-700 text-sm leading-relaxed mb-3">{r.comment}</p>
                       <div className="bg-gray-50 p-3 rounded-lg flex items-center gap-2">
@@ -221,7 +303,7 @@ export function ClientDetail() {
           </TabsContent>
         </Tabs>
 
-        {/* Review Modal */}
+        {/* Review 작성 Modal */}
         <Dialog open={isReviewModalOpen} onOpenChange={setIsReviewModalOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
@@ -287,6 +369,61 @@ export function ClientDetail() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* 리뷰 수정 모달 */}
+        <Dialog open={!!editReview} onOpenChange={(o) => !o && setEditReview(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>리뷰 수정</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>평점</Label>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((num) => (
+                    <button
+                      key={num}
+                      type="button"
+                      onClick={() => setEditForm(prev => ({ ...prev, rating: num }))}
+                      className="focus:outline-none"
+                    >
+                      <Star 
+                        className={`w-8 h-8 ${num <= editForm.rating ? "text-yellow-500 fill-current" : "text-gray-200"}`} 
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>리뷰 내용</Label>
+                <Textarea
+                  value={editForm.comment}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, comment: e.target.value }))}
+                  className="h-32"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditReview(null)}>취소</Button>
+              <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleEditReview}>수정 완료</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* 리뷰 삭제 확인 */}
+        <AlertDialog open={!!deleteReview} onOpenChange={(o) => !o && setDeleteReview(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>리뷰 삭제</AlertDialogTitle>
+              <AlertDialogDescription>이 리뷰를 삭제하시겠습니까? 되돌릴 수 없습니다.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>취소</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteReview} className="bg-red-600 hover:bg-red-700">삭제</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
       </div>
     </div>
   );

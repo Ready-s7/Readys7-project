@@ -263,6 +263,7 @@ public class ClientService {
                 .title(client.getTitle())
                 .completedProject(client.getCompletedProject())
                 .rating(client.getRating())
+                .reviewCount(client.getReviewCount()) // 추가
                 .participateType(client.getParticipateType())
                 .description(client.getUser().getDescription())
                 .build();

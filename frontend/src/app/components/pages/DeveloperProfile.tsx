@@ -343,10 +343,12 @@ export function DeveloperProfile() {
                   </div>
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
                     <div className="text-2xl mb-1">
-                      {developer.participateType === "INDIVIDUAL" ? "개인" : developer.participateType === "COMPANY" ? "회사" : "미지정"}
+                      {developer.participateType?.toUpperCase() === "INDIVIDUAL" ? "개인" : 
+                       developer.participateType?.toUpperCase() === "COMPANY" ? "회사" : "미지정"}
                     </div>
                     <div className="text-sm text-gray-600">유형</div>
                   </div>
+                  {/* Rebuild trigger for deployment verification */}
                 </div>
               </CardContent>
             </Card>
