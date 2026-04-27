@@ -76,6 +76,8 @@ export function ProjectDetail() {
 
   // 제안서 관련
   const [showProposalModal, setShowProposalModal] = useState(false);
+  const [showProposalDetailModal, setShowProposalDetailModal] = useState(false);
+  const [selectedProposal, setSelectedProposal] = useState<ProposalDto | null>(null);
   const [proposalForm, setProposalForm] = useState({ coverLetter: "", proposedBudget: "", proposedDuration: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [proposals, setProposals] = useState<ProposalDto[]>([]);
@@ -299,6 +301,7 @@ export function ProjectDetail() {
                          </div>
                          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{p.coverLetter}</p>
                          <div className="flex gap-2">
+                           <Button size="sm" variant="outline" className="border-border text-foreground hover:bg-secondary" onClick={() => { setSelectedProposal(p); setShowProposalDetailModal(true); }}>상세 보기</Button>
                            {p.status === "PENDING" && (
                              <>
                                <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold" onClick={() => handleProposalStatusChange(p.id, "ACCEPTED")}>수락</Button>
