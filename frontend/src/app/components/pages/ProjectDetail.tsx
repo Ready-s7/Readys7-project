@@ -29,6 +29,7 @@ import {
   Loader2,
   CheckCircle,
   Edit3,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { projectApi, proposalApi, chatApi, reviewApi } from "../../../api/apiService";
