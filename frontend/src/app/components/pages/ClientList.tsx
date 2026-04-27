@@ -95,7 +95,7 @@ export function ClientList() {
                       <div className="flex items-center justify-between text-sm text-muted-foreground pt-1">
                         <div className="flex items-center gap-1.5">
                           <Layout className="w-4 h-4" />
-                          <span>{client.totalProjects || 0} 프로젝트 등록</span>
+                          <span>{client.completedProject || 0} 완료한 프로젝트</span>
                         </div>
                       </div>
                     </CardContent>
