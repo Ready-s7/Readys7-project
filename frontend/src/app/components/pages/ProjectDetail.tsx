@@ -29,6 +29,7 @@ import {
   Loader2,
   CheckCircle,
   Edit3,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { projectApi, proposalApi, chatApi, reviewApi } from "../../../api/apiService";
@@ -76,6 +77,8 @@ export function ProjectDetail() {
 
   // 제안서 관련
   const [showProposalModal, setShowProposalModal] = useState(false);
+  const [showProposalDetailModal, setShowProposalDetailModal] = useState(false);
+  const [selectedProposal, setSelectedProposal] = useState<ProposalDto | null>(null);
   const [proposalForm, setProposalForm] = useState({ coverLetter: "", proposedBudget: "", proposedDuration: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [proposals, setProposals] = useState<ProposalDto[]>([]);
@@ -299,6 +302,7 @@ export function ProjectDetail() {
                          </div>
                          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{p.coverLetter}</p>
                          <div className="flex gap-2">
+                           <Button size="sm" variant="outline" className="border-border text-foreground hover:bg-secondary" onClick={() => { setSelectedProposal(p); setShowProposalDetailModal(true); }}>상세 보기</Button>
                            {p.status === "PENDING" && (
                              <>
                                <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold" onClick={() => handleProposalStatusChange(p.id, "ACCEPTED")}>수락</Button>
@@ -391,6 +395,47 @@ export function ProjectDetail() {
             <Button className="w-full h-12 font-bold bg-primary hover:bg-primary/90 text-primary-foreground" onClick={handleStatusChange} disabled={!newStatus || isChangingStatus}>
               {isChangingStatus && <Loader2 className="animate-spin mr-2" />}상태 변경 적용
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 제안서 상세 모달 */}
+      <Dialog open={showProposalDetailModal} onOpenChange={setShowProposalDetailModal}>
+        <DialogContent className="max-w-2xl bg-card border-border text-foreground max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex justify-between items-center mr-6">
+              <DialogTitle className="text-2xl font-black text-foreground">{selectedProposal?.developerName}님의 제안서</DialogTitle>
+              <Badge className={`${PROPOSAL_STATUS_LABELS[selectedProposal?.status || ""]?.color || ""} border-none font-bold`}>
+                {PROPOSAL_STATUS_LABELS[selectedProposal?.status || ""]?.label}
+              </Badge>
+            </div>
+          </DialogHeader>
+          <div className="space-y-6 mt-4">
+            <div className="bg-secondary/20 p-6 rounded-2xl border border-border">
+              <h3 className="font-bold text-foreground mb-3 flex items-center gap-2">지원 동기 및 상세 제안</h3>
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{selectedProposal?.coverLetter}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="bg-secondary/10 p-4 rounded-xl border border-border">
+                <p className="text-xs text-muted-foreground font-bold uppercase mb-1">제안 예산</p>
+                <p className="font-black text-primary text-lg">{(selectedProposal?.proposedBudget ?? 0).toLocaleString()}원</p>
+              </div>
+              <div className="bg-secondary/10 p-4 rounded-xl border border-border">
+                <p className="text-xs text-muted-foreground font-bold uppercase mb-1">제안 기간</p>
+                <p className="font-bold text-foreground text-lg">{selectedProposal?.proposedDuration}일</p>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-4">
+              {selectedProposal?.status === "PENDING" && (
+                <>
+                  <Button className="flex-1 h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-bold" onClick={() => { handleProposalStatusChange(selectedProposal.id, "ACCEPTED"); setShowProposalDetailModal(false); }}>제안 수락</Button>
+                  <Button variant="destructive" className="flex-1 h-12 font-bold" onClick={() => { handleProposalStatusChange(selectedProposal.id, "REJECTED"); setShowProposalDetailModal(false); }}>제안 거절</Button>
+                </>
+              )}
+              {selectedProposal?.status === "ACCEPTED" && !existingChatRooms[selectedProposal.developerId] && (
+                <Button className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-bold" onClick={() => { handleCreateChatRoom(selectedProposal); setShowProposalDetailModal(false); }}>채팅방 생성하기</Button>
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>

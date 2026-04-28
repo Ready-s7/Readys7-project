@@ -26,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { Code2, Loader2 } from "lucide-react";
+import { Code2, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { apiClient } from "../../../api/client";
