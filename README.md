@@ -410,8 +410,23 @@ LIMIT :limit OFFSET :offset;
                                 │
                         GlobalSearchResponseDto 반환
 ```
-
 **성능 비교**
+
+#### 실행 계획 분석 (EXPLAIN)
+
+| 구분 | 검색 방식 | 대상 테이블 / 컬럼 | 검색어 | 전체 실행 시간 | 주요 처리 방식 | 결과 row 수 |
+|------|----------|--------------------|--------|--------------|--------------|------------|
+| 1-1 | LIKE (FULLTEXT INDEX 적용 전) | projects.title, projects.description | 백엔드 개발 | 230ms | Table Scan + Filter + Sort | 5 |
+| 1-2 | LIKE (FULLTEXT INDEX 적용 전) | developers.title | 백엔드 개발 | 83.1ms | Table Scan + Filter + Sort | 5 |
+| 1-3 | LIKE (FULLTEXT INDEX 적용 전) | users.description → developers JOIN | 성능 최적화 | 99.4ms | Table Scan + Nested Loop Join + Sort | 5 |
+| 2-1 | FULLTEXT (INDEX 적용 후) | projects.title, projects.description | 백엔드 개발 | 56.4ms | Full-text Index Search + Filter + Sort | 5 |
+| 2-2 | FULLTEXT (INDEX 적용 후) | developers.title | 백엔드 개발 | 55.2ms | Full-text Index Search + Filter + Sort | 5 |
+| 2-3 | FULLTEXT (INDEX 적용 후) | users.description → developers JOIN | 성능 최적화 | 56.3ms | Full-text Index Search + Nested Loop Join + Sort | 5 |
+| **3-1** | **FULLTEXT + ngram (ngram parser 적용 후)** | projects.title, projects.description | 백엔드 개발 | **77.3ms** | Full-text Index Search + Filter + Sort | 5 |
+| **3-2** | **FULLTEXT + ngram (ngram parser 적용 후)** | developers.title | 백엔드 개발 | **50.2ms** | Full-text Index Search + Filter + Sort | 5 |
+| **3-3** | **FULLTEXT + ngram (ngram parser 적용 후)** | users.name, users.description → developers JOIN | 성능 최적화 | **87.6ms** | Full-text Index Search + Nested Loop Join + Sort | 5 |
+
+#### 실제 통합 검색 결과 비교
 
 | 구분 | 검색 방식 | 응답 시간 | 결과 특징 |
 |------|----------|---------|---------|
@@ -464,18 +479,13 @@ ALTER TABLE users
     WITH PARSER ngram;
 ```
 
-#### proposals 테이블
+#### skills 테이블
 
 ```sql
--- 프로젝트별 제안서 목록 조회 인덱스 (동시성 제어 시 슬롯 검증 쿼리 최적화)
-CREATE INDEX idx_proposals_project_id ON proposals (project_id);
-
--- 개발자별 제안서 목록 조회 인덱스
-CREATE INDEX idx_proposals_developer_id ON proposals (developer_id);
-
--- 중복 제출 검증 복합 인덱스
-CREATE UNIQUE INDEX idx_proposals_project_developer
-    ON proposals (project_id, developer_id);
+-- 개발자 통합 검색 시 skills.name 검색용 FULLTEXT + ngram 인덱스
+ALTER TABLE skills
+    ADD FULLTEXT INDEX idx_skills_name (name)
+    WITH PARSER ngram;
 ```
 
 #### 인덱스 적용 효과 요약
@@ -485,7 +495,6 @@ CREATE UNIQUE INDEX idx_proposals_project_developer
 | `projects` | FULLTEXT ngram (title, description) | LIKE 대비 검색 시간 약 74% 단축 (230ms → 56.4ms) |
 | `developers` | FULLTEXT ngram (title) | LIKE 대비 검색 시간 약 40% 단축 (83ms → 50ms) |
 | `users` | FULLTEXT ngram (name, description) | 개발자 JOIN 검색 정확도 및 부분 검색 대응력 향상 |
-| `proposals` | 복합 UNIQUE INDEX | 동시성 제어 중복 제출 방어 + 조회 성능 향상 |
 
 <br>
 
@@ -541,15 +550,15 @@ GitHub Actions CI
 
 **운영 환경 설정**
 
-| 항목 | 설정 값 |
-|------|--------|
-| HikariCP 최대 풀 사이즈 | 20 |
-| HikariCP 최소 유휴 커넥션 | 10 |
+| 항목 | 설정 값                                                     |
+|------|----------------------------------------------------------|
+| HikariCP 최대 풀 사이즈 | 20                                                        |
+| HikariCP 최소 유휴 커넥션 | 10                                                       |
 | 모니터링 | Prometheus + Grafana + Actuator (`/actuator/prometheus`) |
-| 부하 테스트 | k6 |
-| CORS 허용 오리진 | `localhost:5173`, `readys7-project.vercel.app` |
-| 민감 정보 | 환경변수로 분리 (`SPRING_DATASOURCE_URL`, `JWT_SECRET` 등) |
-| HTTPS | Route 53 + SSL/TLS + 80→443 Redirect |
+| 부하 테스트 | k6                                                       |
+| CORS 허용 오리진 | `localhost:5173`, `readys7-project.vercel.app`           |
+| 민감 정보 | 환경변수로 분리 (`SPRING_DATASOURCE_URL`, `JWT_SECRET` 등)       |
+| HTTPS | Route 53 + SSL/TLS + 80→443 Redirect                     |
 
 <br>
 
@@ -727,7 +736,12 @@ backend/src/main/java/com/example/readys7project/
 │   │   ├── message/
 │   │   └── cs/                      # CS 채팅 (별도 분리)
 │   ├── review/                      # 리뷰 (최형민)
-│   └── portfolio/                   # 포트폴리오 (최형민)
+│   ├── portfolio/                   # 포트폴리오 (최형민)
+│   └── user/                        
+│       ├── developer/               # 개발자 (박수지)
+│       ├── client/                  # 클라이언트 (정호진)
+│       ├── admin/                   # 관리자 (정호진)
+│       └── auth/                    # 인증 절차 (이석형)
 │
 └── global/
     ├── lock/
